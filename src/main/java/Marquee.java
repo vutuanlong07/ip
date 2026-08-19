@@ -8,6 +8,37 @@ import java.util.stream.IntStream;
 public class Marquee {
     private static final BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
 
+    private static final class MemoryItem {
+        private boolean marked;
+        private String content;
+
+        private MemoryItem(String content) {
+            this.marked = false;
+            this.content = content;
+        }
+
+        public boolean marked() {
+            return marked;
+        }
+
+        public String content() {
+            return content;
+        }
+
+        public boolean mark() {
+            return this.marked != (this.marked = true);
+        }
+
+        public boolean unmark() {
+            return this.marked != (this.marked = false);
+        }
+
+        @Override
+        public String toString() {
+            return (marked? "[x] " : "[ ] ") + content;
+        }
+    }
+
     public static void main(String[] args) throws IOException {
         String banner = "____  ___\n" +
                 "|   \\/   |  _____   ____   _____   _   _   ____   ____\n" +
