@@ -29,15 +29,19 @@ public class Marquee {
                     System.out.println("See you later :D");
                     return;
                 case "list":
-                    StringBuilder builder = IntStream.range(0, memory.size())
-                            .mapToObj( idx -> String.format("%d. %s\n", idx + 1, memory.get(idx)) )
-                            .collect(
-                                    StringBuilder::new,
-                                    StringBuilder::append,
-                                    StringBuilder::append
-                            );
-                    builder.deleteCharAt(builder.length() - 1);
-                    System.out.println(builder.toString());
+                    if (memory.isEmpty()) {
+                        System.out.println("No items yet :(");
+                    } else {
+                        StringBuilder builder = IntStream.range(0, memory.size())
+                                .mapToObj(idx -> String.format("%d. %s\n", idx + 1, memory.get(idx)))
+                                .collect(
+                                        StringBuilder::new,
+                                        StringBuilder::append,
+                                        StringBuilder::append
+                                );
+                        builder.deleteCharAt(builder.length() - 1);
+                        System.out.println(builder.toString());
+                    }
                     break;
                 default:
                     memory.add(rawInput);
