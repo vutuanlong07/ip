@@ -51,7 +51,7 @@ public class Marquee {
         List<TaskItem> checklist = new ArrayList<>();
 
         System.out.println(banner);
-        System.out.println("Hi! I'm Marquee.\nWhat will we do today?");
+        System.out.println("Hi! I'm Marquee.\nWhat will we do today? xD");
         while (true) {
             String rawInput = getInput();
             String[] input = rawInput.split(" ", -1);
@@ -93,7 +93,7 @@ public class Marquee {
                             System.out.println("No items were modified -.- .(zzz)");
                         } else {
                             System.out.println("These items were marked:");
-                            System.out.print(checklistToString(modified));
+                            System.out.print(checklistToStringNoIndex(modified));
                         }
                     }
                     break;
@@ -117,6 +117,16 @@ public class Marquee {
                         StringBuilder::new,
                         StringBuilder::append,
                         StringBuilder::append
+                );
+        return builder.toString();
+    }
+
+    private static String checklistToStringNoIndex(List<TaskItem> list) {
+        StringBuilder builder = list.stream()
+                .collect(
+                        StringBuilder::new,
+                        (acc, item) -> acc.append(item.toString()).append('\n'),
+                        (acc, other) -> acc.append(other).append('\n')
                 );
         return builder.toString();
     }
