@@ -97,8 +97,8 @@ public class Marquee {
                     }
                     break;
                 default:
-                    checklist.add(new TaskItem(rawInput));
-                    System.out.printf("added: %s\n", rawInput);
+                    if (!input[0].isEmpty())
+                        System.out.printf("unknown command: %s\n", input[0]);
                     break;
             }
         }
