@@ -1,6 +1,9 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
 
 public class Marquee {
     private static final BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
@@ -14,6 +17,8 @@ public class Marquee {
                 "                              | |\n" +
                 "                              | |\n" +
                 "                               \\|";
+        List<String> memory = new ArrayList<>();
+
         System.out.println(banner);
         System.out.println("Hi! I'm Marquee.\nWhat will we do today?");
         while (true) {
@@ -23,8 +28,20 @@ public class Marquee {
                 case "bye":
                     System.out.println("See you later :D");
                     return;
+                case "list":
+                    StringBuilder builder = IntStream.range(0, memory.size())
+                            .mapToObj( idx -> String.format("%d. %s\n", idx + 1, memory.get(idx)) )
+                            .collect(
+                                    StringBuilder::new,
+                                    StringBuilder::append,
+                                    StringBuilder::append
+                            );
+                    builder.deleteCharAt(builder.length() - 1);
+                    System.out.println(builder.toString());
+                    break;
                 default:
-                    System.out.printf("%s\n", rawInput);
+                    memory.add(rawInput);
+                    System.out.printf("added: %s\n", rawInput);
                     break;
             }
         }
