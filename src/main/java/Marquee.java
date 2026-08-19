@@ -67,6 +67,36 @@ public class Marquee {
                         System.out.print(checklistToString(checklist));
                     }
                     break;
+                case "mark":
+                    if (input.length < 2) {
+                        System.out.println("Indicate an index to mark -_-\"");
+                    } else {
+                        List<TaskItem> modified = new ArrayList<>();
+                        for (int i = 1; i < input.length; i++) {
+                            try {
+                                int idx = Integer.parseInt(input[i]) - 1;
+                                if (checklist.get(idx).mark()) {
+                                    modified.add(checklist.get(idx));
+                                }
+                            } catch (NumberFormatException e) {
+                                System.out.printf("'%s' is not a number :O\n", input[i]);
+                            } catch (IndexOutOfBoundsException e) {
+                                int idx = Integer.parseInt(input[i]) - 1;
+                                if (idx < 0)
+                                    System.out.printf("%s is not a valid index :O\n", input[i]);
+                                else
+                                    System.out.printf("%s is too large! Your checklist only has %d items >_<\n", input[i], checklist.size());
+                            }
+                        }
+
+                        if (modified.isEmpty()) {
+                            System.out.println("No items were modified -.- .(zzz)");
+                        } else {
+                            System.out.println("These items were marked:");
+                            System.out.print(checklistToString(modified));
+                        }
+                    }
+                    break;
                 default:
                     checklist.add(new TaskItem(rawInput));
                     System.out.printf("added: %s\n", rawInput);
