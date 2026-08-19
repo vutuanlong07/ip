@@ -86,6 +86,21 @@ public class Marquee {
                         System.out.printf(Dialogues.AddTaskSuccessful + "%n", eventItem, checklist.size());
                     }
                     break;
+                case "delete":
+                    if (argument.isEmpty()) {
+                        System.out.println(Dialogues.DeleteMissingArguments);
+                    } else {
+                        List<TaskItem> modified = parseRawIndexArray(argument, checklist.size())
+                                .mapToObj(checklist::remove)
+                                .toList();
+                        if (modified.isEmpty()) {
+                            System.out.println(Dialogues.DeleteNoChange);
+                        } else {
+                            System.out.println(Dialogues.DeleteSuccessful);
+                            System.out.print(checklistToStringNoIndex(modified));
+                        }
+                    }
+                    break;
                 case "mark":
                     if (argument.isEmpty()) {
                         System.out.println(Dialogues.MarkMissingArguments);
@@ -97,7 +112,7 @@ public class Marquee {
                         if (modified.isEmpty()) {
                             System.out.println(Dialogues.MarkNoChange);
                         } else {
-                            System.out.println(Dialogues.MarkChangeSuccessful);
+                            System.out.println(Dialogues.MarkSuccessful);
                             System.out.print(checklistToStringNoIndex(modified));
                         }
                     }
@@ -113,7 +128,7 @@ public class Marquee {
                         if (modified.isEmpty()) {
                             System.out.println(Dialogues.UnmarkNoChange);
                         } else {
-                            System.out.println(Dialogues.UnmarkChangeSuccessful);
+                            System.out.println(Dialogues.UnmarkSuccessful);
                             System.out.print(checklistToStringNoIndex(modified));
                         }
                     }
