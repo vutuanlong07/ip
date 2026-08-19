@@ -154,10 +154,11 @@ public class Marquee {
 
     public static String checklistToStringNoIndex(List<TaskItem> list) {
         StringBuilder builder = list.stream()
+                .map(item -> String.format("  %s\n", item))
                 .collect(
                         StringBuilder::new,
-                        (acc, item) -> acc.append(item.toString()).append('\n'),
-                        (acc, other) -> acc.append(other).append('\n')
+                        StringBuilder::append,
+                        StringBuilder::append
                 );
         return builder.toString();
     }
