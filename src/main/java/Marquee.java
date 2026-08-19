@@ -175,6 +175,25 @@ public class Marquee {
         return inputReader.readLine();
     }
 
+    public static List<Integer> parseRawIndexArray(String indexArray, int capacity) {
+        List<Integer> indices = new ArrayList<>();
+        for (String idxStr : indexArray.split(" ", -1)) {
+            if (idxStr.isEmpty()) continue;
+            try {
+                int idx = Integer.parseInt(idxStr) - 1;
+                if (idx < 0)
+                    System.out.printf(Dialogues.IndexInvalid + "\n", idx);
+                else if (idx >= capacity)
+                    System.out.printf(Dialogues.IndexTooLarge + "\n", idx, capacity);
+                else
+                    indices.add(idx);
+            } catch (NumberFormatException e) {
+                System.out.printf(Dialogues.ArgumentNotIndex + "\n", idxStr);
+            }
+        }
+        return indices;
+    }
+
     public static String checklistToString(List<TaskItem> list) {
         StringBuilder builder = IntStream.range(0, list.size())
                 .mapToObj(idx -> String.format("%d. %s\n", idx + 1, list.get(idx)))
