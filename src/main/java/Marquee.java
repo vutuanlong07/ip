@@ -8,5 +8,15 @@ public class Marquee {
                 "                              | |\n" +
                 "                               \\|";
         System.out.println(banner);
+        greet();
+        exit();
+    }
+
+    public static void greet() {
+        System.out.print("\nHi! I'm Marquee.\nWhat will we do today?\n\n");
+    }
+
+    public static void exit() {
+        System.out.print("\nSee you later :D\n");
     }
 }
