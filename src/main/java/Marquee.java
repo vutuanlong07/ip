@@ -2,11 +2,19 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class Marquee {
+    private static final String flagDelimiter = "\\/";
     private static final BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
+    private static final Pattern commandPattern = Pattern.compile("^\\s*(\\w+)");
+    private static final Pattern contentPattern = Pattern.compile("\\s*(\\S.*?|)\\s*(?=<DELIM>|\\z)".replace("<DELIM>", flagDelimiter));
+    private static final Pattern flagPattern = Pattern.compile("<DELIM>(\\w+)".replace("<DELIM>", flagDelimiter));
 
     public static void main(String[] args) throws IOException {
         String banner = "____  ___\n" +
@@ -23,8 +31,28 @@ public class Marquee {
         System.out.println("Hi! I'm Marquee.\nWhat will we do today? xD");
         while (true) {
             String rawInput = getInput();
-            String[] input = rawInput.split(" ", -1);
-            switch (input[0]) {
+            Matcher commandMatcher = commandPattern.matcher(rawInput);
+            Matcher contentMatcher = contentPattern.matcher(rawInput);
+            Matcher flagMatcher = flagPattern.matcher(rawInput);
+
+            String command = "";
+            String argument = "";
+            Map<String, String> flags = new HashMap<>();
+            if (commandMatcher.find()) {
+                command = commandMatcher.group(1);
+
+                if (contentMatcher.find(commandMatcher.end())) {
+                    argument = contentMatcher.group(1);
+
+                    while (flagMatcher.find(contentMatcher.end())) {
+                        if (contentMatcher.find(flagMatcher.end())) {
+                            flags.put(flagMatcher.group(1), contentMatcher.group(1));
+                        }
+                    }
+                }
+            }
+
+            switch (command) {
                 case "bye":
                     System.out.println("See you later :D");
                     return;
@@ -37,24 +65,26 @@ public class Marquee {
                     }
                     break;
                 case "mark":
-                    if (input.length < 2) {
+                    if (argument.isEmpty()) {
                         System.out.println("Indicate an index to mark -_-\"");
                     } else {
                         List<TaskItem> modified = new ArrayList<>();
-                        for (int i = 1; i < input.length; i++) {
+                        for (String idxStr : argument.split(" ", -1)) {
+                            if (idxStr.isEmpty()) continue;
                             try {
-                                int idx = Integer.parseInt(input[i]) - 1;
-                                if (checklist.get(idx).mark()) {
-                                    modified.add(checklist.get(idx));
+                                int idx = Integer.parseInt(idxStr) - 1;
+                                try {
+                                    if (checklist.get(idx).mark()) {
+                                        modified.add(checklist.get(idx));
+                                    }
+                                } catch (IndexOutOfBoundsException e) {
+                                    if (idx < 0)
+                                        System.out.printf("%d is not a valid index :O\n", idx);
+                                    else
+                                        System.out.printf("%d is too large! Your checklist only has %d items >_<\n", idx, checklist.size());
                                 }
                             } catch (NumberFormatException e) {
-                                System.out.printf("'%s' is not a number :O\n", input[i]);
-                            } catch (IndexOutOfBoundsException e) {
-                                int idx = Integer.parseInt(input[i]) - 1;
-                                if (idx < 0)
-                                    System.out.printf("%s is not a valid index :O\n", input[i]);
-                                else
-                                    System.out.printf("%s is too large! Your checklist only has %d items >_<\n", input[i], checklist.size());
+                                System.out.printf("'%s' is not a number :O\n", idxStr);
                             }
                         }
 
@@ -67,24 +97,26 @@ public class Marquee {
                     }
                     break;
                 case "unmark":
-                    if (input.length < 2) {
+                    if (argument.isEmpty()) {
                         System.out.println("Indicate an index to unmark -_-\"");
                     } else {
                         List<TaskItem> modified = new ArrayList<>();
-                        for (int i = 1; i < input.length; i++) {
+                        for (String idxStr : argument.split(" ", -1)) {
+                            if (idxStr.isEmpty()) continue;
                             try {
-                                int idx = Integer.parseInt(input[i]) - 1;
-                                if (checklist.get(idx).unmark()) {
-                                    modified.add(checklist.get(idx));
+                                int idx = Integer.parseInt(idxStr) - 1;
+                                try {
+                                    if (checklist.get(idx).unmark()) {
+                                        modified.add(checklist.get(idx));
+                                    }
+                                } catch (IndexOutOfBoundsException e) {
+                                    if (idx < 0)
+                                        System.out.printf("%d is not a valid index :O\n", idx);
+                                    else
+                                        System.out.printf("%d is too large! Your checklist only has %d items >_<\n", idx, checklist.size());
                                 }
                             } catch (NumberFormatException e) {
-                                System.out.printf("'%s' is not a number :O\n", input[i]);
-                            } catch (IndexOutOfBoundsException e) {
-                                int idx = Integer.parseInt(input[i]) - 1;
-                                if (idx < 0)
-                                    System.out.printf("%s is not a valid index :O\n", input[i]);
-                                else
-                                    System.out.printf("%s is too large! Your checklist only has %d items >_<\n", input[i], checklist.size());
+                                System.out.printf("'%s' is not a number :O\n", idxStr);
                             }
                         }
 
@@ -97,8 +129,8 @@ public class Marquee {
                     }
                     break;
                 default:
-                    if (!input[0].isEmpty())
-                        System.out.printf("unknown command: %s\n", input[0]);
+                    if (!command.isEmpty())
+                        System.out.printf("unknown command: %s\n", command);
                     break;
             }
         }
