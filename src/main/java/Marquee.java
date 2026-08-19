@@ -8,11 +8,11 @@ import java.util.stream.IntStream;
 public class Marquee {
     private static final BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
 
-    private static final class MemoryItem {
+    private static final class TaskItem {
         private boolean marked;
         private String content;
 
-        private MemoryItem(String content) {
+        private TaskItem(String content) {
             this.marked = false;
             this.content = content;
         }
@@ -48,7 +48,7 @@ public class Marquee {
                 "                              | |\n" +
                 "                              | |\n" +
                 "                               \\|";
-        List<MemoryItem> memory = new ArrayList<>();
+        List<TaskItem> checklist = new ArrayList<>();
 
         System.out.println(banner);
         System.out.println("Hi! I'm Marquee.\nWhat will we do today?");
@@ -60,15 +60,15 @@ public class Marquee {
                     System.out.println("See you later :D");
                     return;
                 case "list":
-                    if (memory.isEmpty()) {
+                    if (checklist.isEmpty()) {
                         System.out.println("No items yet :(");
                     } else {
                         System.out.println("Current items in your list:");
-                        System.out.print(checklistToString(memory));
+                        System.out.print(checklistToString(checklist));
                     }
                     break;
                 default:
-                    memory.add(new MemoryItem(rawInput));
+                    checklist.add(new TaskItem(rawInput));
                     System.out.printf("added: %s\n", rawInput);
                     break;
             }
@@ -80,7 +80,7 @@ public class Marquee {
         return inputReader.readLine();
     }
 
-    private static String checklistToString(List<MemoryItem> list) {
+    private static String checklistToString(List<TaskItem> list) {
         StringBuilder builder = IntStream.range(0, list.size())
                 .mapToObj(idx -> String.format("%d. %s\n", idx + 1, list.get(idx)))
                 .collect(
