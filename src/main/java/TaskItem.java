@@ -1,4 +1,4 @@
-public class TaskItem {
+public abstract class TaskItem {
     private boolean marked;
     private String content;
 
@@ -25,6 +25,6 @@ public class TaskItem {
 
     @Override
     public String toString() {
-        return (marked? "[x] " : "[ ] ") + content;
+        return (marked? "[?][x] " : "[?][ ] ") + content;
     }
 }
