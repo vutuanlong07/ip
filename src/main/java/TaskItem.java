@@ -8,11 +8,11 @@ public abstract class TaskItem {
     }
 
     public boolean marked() {
-        return marked;
+        return this.marked;
     }
 
     public String content() {
-        return content;
+        return this.content;
     }
 
     public boolean mark() {
@@ -25,6 +25,6 @@ public abstract class TaskItem {
 
     @Override
     public String toString() {
-        return (marked? "[?][x] " : "[?][ ] ") + content;
+        return "[?]" + (this.marked()? "[x] " : "[ ] ") + this.content();
     }
 }
