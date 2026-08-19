@@ -1,10 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -17,18 +14,10 @@ public class Marquee {
     private static final Pattern flagPattern = Pattern.compile("<DELIM>(\\w+)".replace("<DELIM>", flagDelimiter));
 
     public static void main(String[] args) throws IOException {
-        String banner = "____  ___\n" +
-                "|   \\/   |  _____   ____   _____   _   _   ____   ____\n" +
-                "| |\\  /| | / .__ /  | .-` / ._. \\ | | | | / ___) / ___)\n" +
-                "| | || | | | |_/ |  | |   | |_| | | |_| | | ___) | ___)\n" +
-                "|_| |/ |_| \\____/\\_ |_|   \\___  | \\_____\\ \\____) \\____)\n" +
-                "                              | |\n" +
-                "                              | |\n" +
-                "                               \\|";
         List<TaskItem> checklist = new ArrayList<>();
 
-        System.out.println(banner);
-        System.out.println("Hi! I'm Marquee \\(>e<)/\nWhat will we do today? xD");
+        System.out.println(Dialogues.Banner);
+        System.out.println(Dialogues.Greetings);
         while (true) {
             String rawInput = getInput();
             Matcher commandMatcher = commandPattern.matcher(rawInput);
@@ -54,117 +43,84 @@ public class Marquee {
 
             switch (command) {
                 case "bye":
-                    System.out.println("See you later :3");
+                    System.out.println(Dialogues.Goodbye);
                     return;
                 case "list":
                     if (checklist.isEmpty()) {
-                        System.out.println("No items yet -.- .·(ᶻzZ)");
+                        System.out.println(Dialogues.DisplayListEmpty);
                     } else {
-                        System.out.println("Current items in your list:");
+                        System.out.println(Dialogues.DisplayListSuccessful);
                         System.out.print(checklistToString(checklist));
                     }
                     break;
                 case "todo":
-                    ToDoItem toDoItem = new ToDoItem(argument);
-                    checklist.add(toDoItem);
-                    System.out.println("Added task:");
-                    System.out.println("  " + toDoItem);
-                    System.out.println("to the list (^_-☆ >c");
-                    System.out.println("Currently have " + checklist.size() + " items in your checklist");
+                    if (argument.isEmpty()) {
+                        System.out.println(Dialogues.TaskItemMissingName);
+                    } else {
+                        ToDoItem toDoItem = new ToDoItem(argument);
+                        checklist.add(toDoItem);
+                        System.out.printf(Dialogues.AddTaskSuccessful + "%n", toDoItem, checklist.size());
+                    }
                     break;
                 case "deadline":
-                    if (!flags.containsKey("by")) {
-                        System.out.println("Missing deadline for task -_-\"");
+                    if (argument.isEmpty()) {
+                        System.out.println(Dialogues.TaskItemMissingName);
+                    } else if (!flags.containsKey("by")) {
+                        System.out.println(Dialogues.DeadlineMissing);
                     } else {
                         DeadlineItem deadlineItem = new DeadlineItem(argument, flags.get("by"));
                         checklist.add(deadlineItem);
-                        System.out.println("Added task:");
-                        System.out.println("  " + deadlineItem);
-                        System.out.println("to the list (^_-☆ >c");
-                        System.out.println("Currently have " + checklist.size() + " items in your checklist");
+                        System.out.printf(Dialogues.AddTaskSuccessful + "%n", deadlineItem, checklist.size());
                     }
                     break;
                 case "event":
-                    if (!flags.containsKey("from")) {
-                        System.out.println("Missing start time for event -_-\"");
+                    if (argument.isEmpty()) {
+                        System.out.println(Dialogues.TaskItemMissingName);
+                    } else if (!flags.containsKey("from")) {
+                        System.out.println(Dialogues.EventMissingStart);
                     } else if (!flags.containsKey("to")) {
-                        System.out.println("Missing end time for event -_-\"");
+                        System.out.println(Dialogues.EventMissingEnd);
                     } else {
                         EventItem eventItem = new EventItem(argument, flags.get("from"), flags.get("to"));
                         checklist.add(eventItem);
-                        System.out.println("Added event:");
-                        System.out.println("  " + eventItem);
-                        System.out.println("to the list (^_-☆ >c");
-                        System.out.println("Currently have " + checklist.size() + " items in your checklist");
+                        System.out.printf(Dialogues.AddTaskSuccessful + "%n", eventItem, checklist.size());
                     }
                     break;
                 case "mark":
                     if (argument.isEmpty()) {
-                        System.out.println("Indicate an index to mark -_-\"");
+                        System.out.println(Dialogues.MarkMissingArguments);
                     } else {
-                        List<TaskItem> modified = new ArrayList<>();
-                        for (String idxStr : argument.split(" ", -1)) {
-                            if (idxStr.isEmpty()) continue;
-                            try {
-                                int idx = Integer.parseInt(idxStr) - 1;
-                                try {
-                                    if (checklist.get(idx).mark()) {
-                                        modified.add(checklist.get(idx));
-                                    }
-                                } catch (IndexOutOfBoundsException e) {
-                                    if (idx < 0)
-                                        System.out.printf("%d is not a valid index >_<\n", idx);
-                                    else
-                                        System.out.printf("%d is too large! Your checklist only has %d items >_<\n", idx, checklist.size());
-                                }
-                            } catch (NumberFormatException e) {
-                                System.out.printf("'%s' is not a number :O\n", idxStr);
-                            }
-                        }
-
+                        List<TaskItem> modified = parseRawIndexArray(argument, checklist.size())
+                                .mapToObj(checklist::get)
+                                .filter(TaskItem::mark)
+                                .toList();
                         if (modified.isEmpty()) {
-                            System.out.println("No items were modified (= ~ =)");
+                            System.out.println(Dialogues.MarkNoChange);
                         } else {
-                            System.out.println("These items were marked:");
+                            System.out.println(Dialogues.MarkChangeSuccessful);
                             System.out.print(checklistToStringNoIndex(modified));
                         }
                     }
                     break;
                 case "unmark":
                     if (argument.isEmpty()) {
-                        System.out.println("Indicate an index to unmark -_-\"");
+                        System.out.println(Dialogues.UnmarkMissingArguments);
                     } else {
-                        List<TaskItem> modified = new ArrayList<>();
-                        for (String idxStr : argument.split(" ", -1)) {
-                            if (idxStr.isEmpty()) continue;
-                            try {
-                                int idx = Integer.parseInt(idxStr) - 1;
-                                try {
-                                    if (checklist.get(idx).unmark()) {
-                                        modified.add(checklist.get(idx));
-                                    }
-                                } catch (IndexOutOfBoundsException e) {
-                                    if (idx < 0)
-                                        System.out.printf("%d is not a valid index >_<\n", idx);
-                                    else
-                                        System.out.printf("%d is too large! Your checklist only has %d items >_<\n", idx, checklist.size());
-                                }
-                            } catch (NumberFormatException e) {
-                                System.out.printf("'%s' is not a number :O\n", idxStr);
-                            }
-                        }
-
+                        List<TaskItem> modified = parseRawIndexArray(argument, checklist.size())
+                                .mapToObj(checklist::get)
+                                .filter(TaskItem::unmark)
+                                .toList();
                         if (modified.isEmpty()) {
-                            System.out.println("No items were modified (= ~ =)");
+                            System.out.println(Dialogues.UnmarkNoChange);
                         } else {
-                            System.out.println("These items were unmarked \uD83D\uDC4D:");
+                            System.out.println(Dialogues.UnmarkChangeSuccessful);
                             System.out.print(checklistToStringNoIndex(modified));
                         }
                     }
                     break;
                 default:
                     if (!command.isEmpty())
-                        System.out.printf("unknown command: %s\n", command);
+                        System.out.printf(Dialogues.UnknownCommand + "\n", command);
                     break;
             }
         }
@@ -175,23 +131,24 @@ public class Marquee {
         return inputReader.readLine();
     }
 
-    public static List<Integer> parseRawIndexArray(String indexArray, int capacity) {
+    public static IntStream parseRawIndexArray(String indexArray, int capacity) {
         List<Integer> indices = new ArrayList<>();
-        for (String idxStr : indexArray.split(" ", -1)) {
-            if (idxStr.isEmpty()) continue;
-            try {
-                int idx = Integer.parseInt(idxStr) - 1;
-                if (idx < 0)
-                    System.out.printf(Dialogues.IndexInvalid + "\n", idx);
-                else if (idx >= capacity)
-                    System.out.printf(Dialogues.IndexTooLarge + "\n", idx, capacity);
-                else
-                    indices.add(idx);
-            } catch (NumberFormatException e) {
-                System.out.printf(Dialogues.ArgumentNotIndex + "\n", idxStr);
-            }
-        }
-        return indices;
+        return Arrays.stream(indexArray.split(" ", -1))
+                .mapToInt(idxStr -> {
+                    if (!idxStr.isEmpty()) try {
+                        int idx = Integer.parseInt(idxStr) - 1;
+                        if (idx < 0)
+                            System.out.printf(Dialogues.IndexInvalid + "\n", idx);
+                        else if (idx >= capacity)
+                            System.out.printf(Dialogues.IndexTooLarge + "\n", idx, capacity);
+                        else
+                            return idx;
+                    } catch (NumberFormatException e) {
+                        System.out.printf(Dialogues.ArgumentNAN + "\n", idxStr);
+                    }
+                    return -1;
+                })
+                .filter(idx -> idx != -1);
     }
 
     public static String checklistToString(List<TaskItem> list) {
