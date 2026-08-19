@@ -15,13 +15,13 @@ public class Marquee {
                 "                              | |\n" +
                 "                               \\|";
         System.out.println(banner);
-        greet();
+        System.out.println("Hi! I'm Marquee.\nWhat will we do today?");
         while (true) {
             String rawInput = getInput();
             String[] input = rawInput.split(" ", -1);
             switch (input[0]) {
                 case "bye":
-                    bye();
+                    System.out.println("See you later :D");
                     return;
                 default:
                     System.out.printf("%s\n", rawInput);
@@ -33,13 +33,5 @@ public class Marquee {
     public static String getInput() throws IOException {
         System.out.print("\n> ");
         return inputReader.readLine();
-    }
-
-    public static void greet() {
-        System.out.print("Hi! I'm Marquee.\nWhat will we do today?\n");
-    }
-
-    public static void bye() {
-        System.out.print("\nSee you later :D\n");
     }
 }
