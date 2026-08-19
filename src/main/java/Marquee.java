@@ -48,7 +48,7 @@ public class Marquee {
                 "                              | |\n" +
                 "                              | |\n" +
                 "                               \\|";
-        List<String> memory = new ArrayList<>();
+        List<MemoryItem> memory = new ArrayList<>();
 
         System.out.println(banner);
         System.out.println("Hi! I'm Marquee.\nWhat will we do today?");
@@ -63,19 +63,12 @@ public class Marquee {
                     if (memory.isEmpty()) {
                         System.out.println("No items yet :(");
                     } else {
-                        StringBuilder builder = IntStream.range(0, memory.size())
-                                .mapToObj(idx -> String.format("%d. %s\n", idx + 1, memory.get(idx)))
-                                .collect(
-                                        StringBuilder::new,
-                                        StringBuilder::append,
-                                        StringBuilder::append
-                                );
-                        builder.deleteCharAt(builder.length() - 1);
-                        System.out.println(builder.toString());
+                        System.out.println("Current items in your list:");
+                        System.out.print(checklistToString(memory));
                     }
                     break;
                 default:
-                    memory.add(rawInput);
+                    memory.add(new MemoryItem(rawInput));
                     System.out.printf("added: %s\n", rawInput);
                     break;
             }
@@ -85,5 +78,16 @@ public class Marquee {
     public static String getInput() throws IOException {
         System.out.print("\n> ");
         return inputReader.readLine();
+    }
+
+    private static String checklistToString(List<MemoryItem> list) {
+        StringBuilder builder = IntStream.range(0, list.size())
+                .mapToObj(idx -> String.format("%d. %s\n", idx + 1, list.get(idx)))
+                .collect(
+                        StringBuilder::new,
+                        StringBuilder::append,
+                        StringBuilder::append
+                );
+        return builder.toString();
     }
 }
