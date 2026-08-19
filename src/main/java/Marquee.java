@@ -59,7 +59,7 @@ public class Marquee {
                     } else {
                         ToDoItem toDoItem = new ToDoItem(argument);
                         checklist.add(toDoItem);
-                        System.out.printf(Dialogues.AddTaskSuccessful + "%n", toDoItem, checklist.size());
+                        System.out.printf(Dialogues.AddTaskSuccessful + "\n", toDoItem, checklist.size());
                     }
                     break;
                 case "deadline":
@@ -70,7 +70,7 @@ public class Marquee {
                     } else {
                         DeadlineItem deadlineItem = new DeadlineItem(argument, flags.get("by"));
                         checklist.add(deadlineItem);
-                        System.out.printf(Dialogues.AddTaskSuccessful + "%n", deadlineItem, checklist.size());
+                        System.out.printf(Dialogues.AddTaskSuccessful + "\n", deadlineItem, checklist.size());
                     }
                     break;
                 case "event":
@@ -83,7 +83,7 @@ public class Marquee {
                     } else {
                         EventItem eventItem = new EventItem(argument, flags.get("from"), flags.get("to"));
                         checklist.add(eventItem);
-                        System.out.printf(Dialogues.AddTaskSuccessful + "%n", eventItem, checklist.size());
+                        System.out.printf(Dialogues.AddTaskSuccessful + "\n", eventItem, checklist.size());
                     }
                     break;
                 case "delete":
@@ -96,8 +96,7 @@ public class Marquee {
                         if (modified.isEmpty()) {
                             System.out.println(Dialogues.DeleteNoChange);
                         } else {
-                            System.out.println(Dialogues.DeleteSuccessful);
-                            System.out.print(checklistToStringNoIndex(modified));
+                            System.out.printf(Dialogues.DeleteSuccessful + "\n", checklistToStringNoIndex(modified), checklist.size());
                         }
                     }
                     break;

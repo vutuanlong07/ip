@@ -10,11 +10,11 @@ public final class Dialogues {
     public static final String Greetings = "Hi! I'm Marquee \\(>e<)/\nWhat will we do today? xD";
     public static final String Goodbye = "See you later :3";
 
-    public static final String DisplayListSuccessful = "Current items in your list:";
-    public static final String MarkSuccessful = "These items were marked:";
-    public static final String UnmarkSuccessful = "These items were unmarked:";
-    public static final String DeleteSuccessful = "These items were deleted:";
-    public static final String AddTaskSuccessful = "Added task:\n  %s\nto the list (^_-☆ >c\nCurrently have %d items in your checklist";
+    public static final String DisplayListSuccessful = "Current item(s) in your list:";
+    public static final String MarkSuccessful = "These item(s) were marked:";
+    public static final String UnmarkSuccessful = "These item(s) were unmarked:";
+    public static final String DeleteSuccessful = "These item(s) were deleted:\n%s\nThere are %d item(s) left in your checklist";
+    public static final String AddTaskSuccessful = "Added task:\n  %s\nto the list (^_-☆ >c\nCurrently have %d item(s) in your checklist";
 
     public static final String DisplayListEmpty = "No items yet -.- .·(ᶻzZ)";
     public static final String MarkNoChange = "No items were marked (= ~ =)";
@@ -30,7 +30,7 @@ public final class Dialogues {
     public static final String EventMissingEnd = "Missing end time for event -_-\"";
 
     public static final String IndexInvalid = "%d is not a valid index >_<";
-    public static final String IndexTooLarge = "%d is too large! Your checklist only has %d items >_<";
+    public static final String IndexTooLarge = "%d is too large! Your checklist only has %d item(s) >_<";
     public static final String IndexListEmpty = "Your checklist is empty! o Д o";
     public static final String ArgumentNAN = "'%s' is not a number >_<";
     public static final String UnknownCommand = "No clue what %s means `@ ᗝ @´╬";
