@@ -24,7 +24,7 @@ public class Marquee {
                     bye();
                     return;
                 default:
-                    System.out.printf("\n%s\n", rawInput);
+                    System.out.printf("%s\n", rawInput);
                     break;
             }
         }
@@ -36,7 +36,7 @@ public class Marquee {
     }
 
     public static void greet() {
-        System.out.print("\nHi! I'm Marquee.\nWhat will we do today?\n");
+        System.out.print("Hi! I'm Marquee.\nWhat will we do today?\n");
     }
 
     public static void bye() {
