@@ -16,7 +16,7 @@ public class Marquee {
         System.out.print("\nHi! I'm Marquee.\nWhat will we do today?\n\n");
     }
 
-    public static void exit() {
+    public static void bye() {
         System.out.print("\nSee you later :D\n");
     }
 }
