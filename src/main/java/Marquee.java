@@ -16,7 +16,18 @@ public class Marquee {
                 "                               \\|";
         System.out.println(banner);
         greet();
-        exit();
+        while (true) {
+            String rawInput = getInput();
+            String[] input = rawInput.split(" ", -1);
+            switch (input[0]) {
+                case "bye":
+                    bye();
+                    return;
+                default:
+                    System.out.printf("\n%s\n", rawInput);
+                    break;
+            }
+        }
     }
 
     public static String getInput() throws IOException {
@@ -25,7 +36,7 @@ public class Marquee {
     }
 
     public static void greet() {
-        System.out.print("\nHi! I'm Marquee.\nWhat will we do today?\n\n");
+        System.out.print("\nHi! I'm Marquee.\nWhat will we do today?\n");
     }
 
     public static void bye() {
