@@ -28,7 +28,7 @@ public class Marquee {
         List<TaskItem> checklist = new ArrayList<>();
 
         System.out.println(banner);
-        System.out.println("Hi! I'm Marquee.\nWhat will we do today? xD");
+        System.out.println("Hi! I'm Marquee \\(>e<)/\nWhat will we do today? xD");
         while (true) {
             String rawInput = getInput();
             Matcher commandMatcher = commandPattern.matcher(rawInput);
@@ -54,14 +54,48 @@ public class Marquee {
 
             switch (command) {
                 case "bye":
-                    System.out.println("See you later :D");
+                    System.out.println("See you later :3");
                     return;
                 case "list":
                     if (checklist.isEmpty()) {
-                        System.out.println("No items yet :(");
+                        System.out.println("No items yet -.- .·(ᶻzZ)");
                     } else {
                         System.out.println("Current items in your list:");
                         System.out.print(checklistToString(checklist));
+                    }
+                    break;
+                case "todo":
+                    ToDoItem toDoItem = new ToDoItem(argument);
+                    checklist.add(toDoItem);
+                    System.out.println("Added task:");
+                    System.out.println("  " + toDoItem);
+                    System.out.println("to the list (^_-☆ >c");
+                    System.out.println("Currently have " + checklist.size() + " items in your checklist");
+                    break;
+                case "deadline":
+                    if (!flags.containsKey("by")) {
+                        System.out.println("Missing deadline for task -_-\"");
+                    } else {
+                        DeadlineItem deadlineItem = new DeadlineItem(argument, flags.get("by"));
+                        checklist.add(deadlineItem);
+                        System.out.println("Added task:");
+                        System.out.println("  " + deadlineItem);
+                        System.out.println("to the list (^_-☆ >c");
+                        System.out.println("Currently have " + checklist.size() + " items in your checklist");
+                    }
+                    break;
+                case "event":
+                    if (!flags.containsKey("from")) {
+                        System.out.println("Missing start time for event -_-\"");
+                    } else if (!flags.containsKey("to")) {
+                        System.out.println("Missing end time for event -_-\"");
+                    } else {
+                        EventItem eventItem = new EventItem(argument, flags.get("from"), flags.get("to"));
+                        checklist.add(eventItem);
+                        System.out.println("Added event:");
+                        System.out.println("  " + eventItem);
+                        System.out.println("to the list (^_-☆ >c");
+                        System.out.println("Currently have " + checklist.size() + " items in your checklist");
                     }
                     break;
                 case "mark":
@@ -79,7 +113,7 @@ public class Marquee {
                                     }
                                 } catch (IndexOutOfBoundsException e) {
                                     if (idx < 0)
-                                        System.out.printf("%d is not a valid index :O\n", idx);
+                                        System.out.printf("%d is not a valid index >_<\n", idx);
                                     else
                                         System.out.printf("%d is too large! Your checklist only has %d items >_<\n", idx, checklist.size());
                                 }
@@ -89,7 +123,7 @@ public class Marquee {
                         }
 
                         if (modified.isEmpty()) {
-                            System.out.println("No items were modified -.- .(zzz)");
+                            System.out.println("No items were modified (= ~ =)");
                         } else {
                             System.out.println("These items were marked:");
                             System.out.print(checklistToStringNoIndex(modified));
@@ -111,7 +145,7 @@ public class Marquee {
                                     }
                                 } catch (IndexOutOfBoundsException e) {
                                     if (idx < 0)
-                                        System.out.printf("%d is not a valid index :O\n", idx);
+                                        System.out.printf("%d is not a valid index >_<\n", idx);
                                     else
                                         System.out.printf("%d is too large! Your checklist only has %d items >_<\n", idx, checklist.size());
                                 }
@@ -121,9 +155,9 @@ public class Marquee {
                         }
 
                         if (modified.isEmpty()) {
-                            System.out.println("No items were modified -.- .(zzz)");
+                            System.out.println("No items were modified (= ~ =)");
                         } else {
-                            System.out.println("These items were unmarked:");
+                            System.out.println("These items were unmarked \uD83D\uDC4D:");
                             System.out.print(checklistToStringNoIndex(modified));
                         }
                     }
