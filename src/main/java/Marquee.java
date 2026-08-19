@@ -152,10 +152,12 @@ public class Marquee {
                 .mapToInt(idxStr -> {
                     if (!idxStr.isEmpty()) try {
                         int idx = Integer.parseInt(idxStr) - 1;
-                        if (idx < 0)
-                            System.out.printf(Dialogues.IndexInvalid + "\n", idx);
+                        if (capacity == 0)
+                            System.out.println(Dialogues.IndexListEmpty);
+                        else if (idx < 0)
+                            System.out.printf(Dialogues.IndexInvalid + "\n", idx + 1);
                         else if (idx >= capacity)
-                            System.out.printf(Dialogues.IndexTooLarge + "\n", idx, capacity);
+                            System.out.printf(Dialogues.IndexTooLarge + "\n", idx + 1, capacity);
                         else
                             return idx;
                     } catch (NumberFormatException e) {
