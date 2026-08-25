@@ -4,15 +4,15 @@ public abstract class TaskItem {
         Deadline('D'),
         Event('E');
 
-        private char display;
+        public final char value;
 
-        ItemTag(char display) {
-            this.display = display;
+        ItemTag(char value) {
+            this.value = value;
         }
 
         @Override
         public String toString() {
-            return "[" + display + "]";
+            return "[" + value + "]";
         }
     }
 
@@ -20,10 +20,13 @@ public abstract class TaskItem {
     private String content;
     private ItemTag tag;
 
-    public TaskItem(String content, ItemTag tag) {
-        this.marked = false;
+    public TaskItem(String content, ItemTag tag, boolean marked) {
+        this.marked = marked;
         this.content = content;
         this.tag = tag;
+    }
+    public TaskItem(String content, ItemTag tag) {
+        this(content, tag, false);
     }
 
     public boolean marked() {

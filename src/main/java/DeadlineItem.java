@@ -1,6 +1,10 @@
 public final class DeadlineItem extends TaskItem {
     private String deadline;
 
+    public DeadlineItem(String content, String deadline, boolean marked) {
+        super(content, ItemTag.Deadline, marked);
+        this.deadline = deadline;
+    }
     public DeadlineItem(String content, String deadline) {
         super(content, ItemTag.Deadline);
         this.deadline = deadline;

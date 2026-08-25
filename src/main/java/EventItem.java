@@ -2,6 +2,11 @@ public final class EventItem extends TaskItem {
     private String start;
     private String end;
 
+    public EventItem(String content, String start, String end, boolean marked) {
+        super(content, ItemTag.Event, marked);
+        this.start = start;
+        this.end = end;
+    }
     public EventItem(String content, String start, String end) {
         super(content, ItemTag.Event);
         this.start = start;
