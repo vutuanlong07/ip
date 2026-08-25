@@ -1,12 +1,12 @@
 public abstract class TaskItem {
     public enum ItemTag {
-        Todo('T'),
-        Deadline('D'),
-        Event('E');
+        Todo("T"),
+        Deadline("D"),
+        Event("E");
 
-        public final char value;
+        public final String value;
 
-        ItemTag(char value) {
+        ItemTag(String value) {
             this.value = value;
         }
 
