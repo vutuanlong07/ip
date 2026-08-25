@@ -1,17 +1,23 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Marquee {
-    private static final String flagDelimiter = "\\/";
+    private static final String CSV_SEPARATOR = ";";
+
+    private static final Path checklistPath = Path.of("./checklist.csv");
     private static final BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
 
     public static void main(String[] args) throws IOException {
-        List<TaskItem> checklist = new ArrayList<>();
-
         System.out.println(Dialogues.Banner);
+        List<TaskItem> checklist = readCSV();
         System.out.println(Dialogues.Greetings);
         while (true) {
             String rawInput = getInput();
@@ -19,6 +25,7 @@ public class Marquee {
             switch (command.code()) {
                 case "bye" -> {
                     System.out.println(Dialogues.Goodbye);
+                    writeCSV(checklist);
                     return;
                 }
                 case "list" -> {
@@ -121,8 +128,72 @@ public class Marquee {
         return inputReader.readLine();
     }
 
+    public static List<TaskItem> readCSV() throws IOException {
+        try {
+            Files.createFile(checklistPath);
+            Files.writeString(checklistPath, String.join(CSV_SEPARATOR, "tag", "marked", "content", "start", "end"));
+            return new ArrayList<>();
+        } catch (FileAlreadyExistsException _) {
+            List<TaskItem> checklist = new ArrayList<>();
+            String[] lines = Files.readString(checklistPath).split("\r\n");
+            boolean corrupted = false;
+
+            List<String> headers = Arrays.asList(lines[0].split(CSV_SEPARATOR));
+            int tagIdx = headers.indexOf("tag");
+            int markedIdx = headers.indexOf("marked");
+            int contentIdx =  headers.indexOf("content");
+            int startIdx = headers.indexOf("start");
+            int endIdx = headers.indexOf("end");
+            if (tagIdx != -1 && contentIdx != -1 && markedIdx != -1 && startIdx != -1 && endIdx != -1) {
+                for (int i = 1; i < lines.length; i++) {
+                    if (lines[i].isEmpty()) continue;
+
+                    String[] fields = lines[i].split(CSV_SEPARATOR, -1);
+                    if (fields.length != headers.size()) corrupted = true;
+                    try {
+                        String content = fields[contentIdx];
+                        boolean marked = Boolean.parseBoolean(fields[markedIdx]);
+                        String start = fields[startIdx];
+                        String end = fields[endIdx];
+                        switch (TaskItem.ItemTag.fromLabel(fields[tagIdx])) {
+                            case Todo -> checklist.add(new TodoItem(content, marked));
+                            case Deadline -> checklist.add(new DeadlineItem(content, end, marked));
+                            case Event -> checklist.add(new EventItem(content, start, end, marked));
+                            case null -> {}
+                        }
+                    }
+                    catch (IllegalArgumentException | IndexOutOfBoundsException _) { corrupted = true; }
+                }
+            } else corrupted = true;
+
+            if (corrupted) {
+                System.out.println(Dialogues.CorruptedCacheFile);
+            }
+            return checklist;
+        }
+    }
+
+    public static void writeCSV(List<TaskItem> checklist) throws IOException {
+        Files.writeString(checklistPath, Stream.concat(
+            Stream.of(String.join(CSV_SEPARATOR, "tag", "marked", "content", "start", "end")),
+            checklist.stream()
+                    .map(taskItem -> String.join(CSV_SEPARATOR,
+                            taskItem.tag().label,
+                            Boolean.toString(taskItem.marked()),
+                            taskItem.content(),
+                            taskItem instanceof EventItem
+                                    ? ((EventItem) taskItem).start()
+                                    : "",
+                            taskItem instanceof DeadlineItem
+                                    ? ((DeadlineItem) taskItem).deadline()
+                                    : taskItem instanceof EventItem
+                                      ? ((EventItem) taskItem).end()
+                                      : ""
+                    ))
+        ).collect(Collectors.joining("\r\n")));
+    }
+
     public static IntStream parseRawIndexArray(String indexArray, int capacity) {
-        List<Integer> indices = new ArrayList<>();
         return Arrays.stream(indexArray.split(" ", -1))
                 .mapToInt(idxStr -> {
                     if (!idxStr.isEmpty()) try {
