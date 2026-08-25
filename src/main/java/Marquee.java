@@ -57,7 +57,7 @@ public class Marquee {
                     if (argument.isEmpty()) {
                         System.out.println(Dialogues.TaskItemMissingName);
                     } else {
-                        ToDoItem toDoItem = new ToDoItem(argument);
+                        TodoItem toDoItem = new TodoItem(argument);
                         checklist.add(toDoItem);
                         System.out.printf(Dialogues.AddTaskSuccessful + "\n", toDoItem, checklist.size());
                     }

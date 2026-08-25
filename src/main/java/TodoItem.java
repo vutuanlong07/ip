@@ -1,5 +1,5 @@
-public class ToDoItem extends TaskItem {
-    public ToDoItem(String content) {
+public final class TodoItem extends TaskItem {
+    public TodoItem(String content) {
         super(content, ItemTag.Todo);
     }
 

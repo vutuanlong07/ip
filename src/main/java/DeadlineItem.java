@@ -1,4 +1,4 @@
-public class DeadlineItem extends TaskItem {
+public final class DeadlineItem extends TaskItem {
     private String deadline;
 
     public DeadlineItem(String content, String deadline) {
