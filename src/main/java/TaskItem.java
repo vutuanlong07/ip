@@ -4,21 +4,30 @@ public abstract class TaskItem {
         Deadline("D"),
         Event("E");
 
-        public final String value;
+        public final String label;
 
-        ItemTag(String value) {
-            this.value = value;
+        public static ItemTag fromLabel(String label) {
+            for (ItemTag tag : values()) {
+                if (java.util.Objects.equals(tag.label, label)) {
+                    return tag;
+                }
+            }
+            return null;
+        }
+
+        ItemTag(String label) {
+            this.label = label;
         }
 
         @Override
         public String toString() {
-            return "[" + value + "]";
+            return "[" + label + "]";
         }
     }
 
     private boolean marked;
-    private String content;
-    private ItemTag tag;
+    private final String content;
+    private final ItemTag tag;
 
     public TaskItem(String content, ItemTag tag, boolean marked) {
         this.marked = marked;
