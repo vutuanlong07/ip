@@ -1,9 +1,14 @@
-public class EventItem extends TaskItem {
+public final class EventItem extends TaskItem {
     private String start;
     private String end;
 
+    public EventItem(String content, String start, String end, boolean marked) {
+        super(content, ItemTag.Event, marked);
+        this.start = start;
+        this.end = end;
+    }
     public EventItem(String content, String start, String end) {
-        super(content);
+        super(content, ItemTag.Event);
         this.start = start;
         this.end = end;
     }
@@ -18,6 +23,6 @@ public class EventItem extends TaskItem {
 
     @Override
     public String toString() {
-        return "[E]" + (this.marked()? "[x] " : "[ ] ") + this.content() + " (from: " + this.start() + " to: " + this.end() + ")";
+        return super.toString() + " (from: " + this.start() + " to: " + this.end() + ")";
     }
 }

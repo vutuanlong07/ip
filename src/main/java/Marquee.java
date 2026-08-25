@@ -1,96 +1,79 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Marquee {
-    private static final String flagDelimiter = "\\/";
+    private static final String CSV_SEPARATOR = ";";
+
+    private static final Path checklistPath = Path.of("./checklist.csv");
     private static final BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
-    private static final Pattern commandPattern = Pattern.compile("^\\s*(\\w+)");
-    private static final Pattern contentPattern = Pattern.compile("\\s*(\\S.*?|)\\s*(?=<DELIM>|\\z)".replace("<DELIM>", flagDelimiter));
-    private static final Pattern flagPattern = Pattern.compile("<DELIM>(\\w+)".replace("<DELIM>", flagDelimiter));
 
     public static void main(String[] args) throws IOException {
-        List<TaskItem> checklist = new ArrayList<>();
-
         System.out.println(Dialogues.Banner);
+        List<TaskItem> checklist = readCSV();
         System.out.println(Dialogues.Greetings);
         while (true) {
             String rawInput = getInput();
-            Matcher commandMatcher = commandPattern.matcher(rawInput);
-            Matcher contentMatcher = contentPattern.matcher(rawInput);
-            Matcher flagMatcher = flagPattern.matcher(rawInput);
-
-            String command = "";
-            String argument = "";
-            Map<String, String> flags = new HashMap<>();
-            if (commandMatcher.find()) {
-                command = commandMatcher.group(1);
-
-                if (contentMatcher.find(commandMatcher.end())) {
-                    argument = contentMatcher.group(1);
-
-                    while (flagMatcher.find(contentMatcher.end())) {
-                        if (contentMatcher.find(flagMatcher.end())) {
-                            flags.put(flagMatcher.group(1), contentMatcher.group(1));
-                        }
-                    }
-                }
-            }
-
-            switch (command) {
-                case "bye":
+            Command command = Command.fromInput(rawInput);
+            switch (command.code()) {
+                case "bye" -> {
                     System.out.println(Dialogues.Goodbye);
+                    writeCSV(checklist);
                     return;
-                case "list":
+                }
+                case "list" -> {
                     if (checklist.isEmpty()) {
                         System.out.println(Dialogues.DisplayListEmpty);
                     } else {
                         System.out.println(Dialogues.DisplayListSuccessful);
                         System.out.print(checklistToString(checklist));
                     }
-                    break;
-                case "todo":
-                    if (argument.isEmpty()) {
+                }
+                case "todo" -> {
+                    if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.TaskItemMissingName);
                     } else {
-                        ToDoItem toDoItem = new ToDoItem(argument);
+                        TodoItem toDoItem = new TodoItem(command.parameter());
                         checklist.add(toDoItem);
                         System.out.printf(Dialogues.AddTaskSuccessful + "\n", toDoItem, checklist.size());
                     }
-                    break;
-                case "deadline":
-                    if (argument.isEmpty()) {
+                }
+                case "deadline" -> {
+                    if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.TaskItemMissingName);
-                    } else if (!flags.containsKey("by")) {
+                    } else if (!command.flags().containsKey("by")) {
                         System.out.println(Dialogues.DeadlineMissing);
                     } else {
-                        DeadlineItem deadlineItem = new DeadlineItem(argument, flags.get("by"));
+                        DeadlineItem deadlineItem = new DeadlineItem(command.parameter(), command.flags().get("by"));
                         checklist.add(deadlineItem);
                         System.out.printf(Dialogues.AddTaskSuccessful + "\n", deadlineItem, checklist.size());
                     }
-                    break;
-                case "event":
-                    if (argument.isEmpty()) {
+                }
+                case "event" -> {
+                    if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.TaskItemMissingName);
-                    } else if (!flags.containsKey("from")) {
+                    } else if (!command.flags().containsKey("from")) {
                         System.out.println(Dialogues.EventMissingStart);
-                    } else if (!flags.containsKey("to")) {
+                    } else if (!command.flags().containsKey("to")) {
                         System.out.println(Dialogues.EventMissingEnd);
                     } else {
-                        EventItem eventItem = new EventItem(argument, flags.get("from"), flags.get("to"));
+                        EventItem eventItem = new EventItem(command.parameter(), command.flags().get("from"), command.flags().get("to"));
                         checklist.add(eventItem);
                         System.out.printf(Dialogues.AddTaskSuccessful + "\n", eventItem, checklist.size());
                     }
-                    break;
-                case "delete":
-                    if (argument.isEmpty()) {
+                }
+                case "delete" -> {
+                    if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.DeleteMissingArguments);
                     } else {
-                        List<TaskItem> modified = parseRawIndexArray(argument, checklist.size())
+                        List<TaskItem> modified = parseRawIndexArray(command.parameter(), checklist.size())
                                 .mapToObj(checklist::remove)
                                 .toList();
                         if (modified.isEmpty()) {
@@ -99,12 +82,12 @@ public class Marquee {
                             System.out.printf(Dialogues.DeleteSuccessful + "\n", checklistToStringNoIndex(modified), checklist.size());
                         }
                     }
-                    break;
-                case "mark":
-                    if (argument.isEmpty()) {
+                }
+                case "mark" -> {
+                    if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.MarkMissingArguments);
                     } else {
-                        List<TaskItem> modified = parseRawIndexArray(argument, checklist.size())
+                        List<TaskItem> modified = parseRawIndexArray(command.parameter(), checklist.size())
                                 .mapToObj(checklist::get)
                                 .filter(TaskItem::mark)
                                 .toList();
@@ -115,12 +98,12 @@ public class Marquee {
                             System.out.print(checklistToStringNoIndex(modified));
                         }
                     }
-                    break;
-                case "unmark":
-                    if (argument.isEmpty()) {
+                }
+                case "unmark" -> {
+                    if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.UnmarkMissingArguments);
                     } else {
-                        List<TaskItem> modified = parseRawIndexArray(argument, checklist.size())
+                        List<TaskItem> modified = parseRawIndexArray(command.parameter(), checklist.size())
                                 .mapToObj(checklist::get)
                                 .filter(TaskItem::unmark)
                                 .toList();
@@ -131,11 +114,11 @@ public class Marquee {
                             System.out.print(checklistToStringNoIndex(modified));
                         }
                     }
-                    break;
-                default:
-                    if (!command.isEmpty())
+                }
+                default -> {
+                    if (!command.code().isEmpty())
                         System.out.printf(Dialogues.UnknownCommand + "\n", command);
-                    break;
+                }
             }
         }
     }
@@ -145,8 +128,72 @@ public class Marquee {
         return inputReader.readLine();
     }
 
+    public static List<TaskItem> readCSV() throws IOException {
+        try {
+            Files.createFile(checklistPath);
+            Files.writeString(checklistPath, String.join(CSV_SEPARATOR, "tag", "marked", "content", "start", "end"));
+            return new ArrayList<>();
+        } catch (FileAlreadyExistsException _) {
+            List<TaskItem> checklist = new ArrayList<>();
+            String[] lines = Files.readString(checklistPath).split("\r\n");
+            boolean corrupted = false;
+
+            List<String> headers = Arrays.asList(lines[0].split(CSV_SEPARATOR));
+            int tagIdx = headers.indexOf("tag");
+            int markedIdx = headers.indexOf("marked");
+            int contentIdx =  headers.indexOf("content");
+            int startIdx = headers.indexOf("start");
+            int endIdx = headers.indexOf("end");
+            if (tagIdx != -1 && contentIdx != -1 && markedIdx != -1 && startIdx != -1 && endIdx != -1) {
+                for (int i = 1; i < lines.length; i++) {
+                    if (lines[i].isEmpty()) continue;
+
+                    String[] fields = lines[i].split(CSV_SEPARATOR, -1);
+                    if (fields.length != headers.size()) corrupted = true;
+                    try {
+                        String content = fields[contentIdx];
+                        boolean marked = Boolean.parseBoolean(fields[markedIdx]);
+                        String start = fields[startIdx];
+                        String end = fields[endIdx];
+                        switch (TaskItem.ItemTag.fromLabel(fields[tagIdx])) {
+                            case Todo -> checklist.add(new TodoItem(content, marked));
+                            case Deadline -> checklist.add(new DeadlineItem(content, end, marked));
+                            case Event -> checklist.add(new EventItem(content, start, end, marked));
+                            case null -> {}
+                        }
+                    }
+                    catch (IllegalArgumentException | IndexOutOfBoundsException _) { corrupted = true; }
+                }
+            } else corrupted = true;
+
+            if (corrupted) {
+                System.out.println(Dialogues.CorruptedCacheFile);
+            }
+            return checklist;
+        }
+    }
+
+    public static void writeCSV(List<TaskItem> checklist) throws IOException {
+        Files.writeString(checklistPath, Stream.concat(
+            Stream.of(String.join(CSV_SEPARATOR, "tag", "marked", "content", "start", "end")),
+            checklist.stream()
+                    .map(taskItem -> String.join(CSV_SEPARATOR,
+                            taskItem.tag().label,
+                            Boolean.toString(taskItem.marked()),
+                            taskItem.content(),
+                            taskItem instanceof EventItem
+                                    ? ((EventItem) taskItem).start()
+                                    : "",
+                            taskItem instanceof DeadlineItem
+                                    ? ((DeadlineItem) taskItem).deadline()
+                                    : taskItem instanceof EventItem
+                                      ? ((EventItem) taskItem).end()
+                                      : ""
+                    ))
+        ).collect(Collectors.joining("\r\n")));
+    }
+
     public static IntStream parseRawIndexArray(String indexArray, int capacity) {
-        List<Integer> indices = new ArrayList<>();
         return Arrays.stream(indexArray.split(" ", -1))
                 .mapToInt(idxStr -> {
                     if (!idxStr.isEmpty()) try {
