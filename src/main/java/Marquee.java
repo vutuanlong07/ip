@@ -2,16 +2,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class Marquee {
     private static final String flagDelimiter = "\\/";
     private static final BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
-    private static final Pattern commandPattern = Pattern.compile("^\\s*(\\w+)");
-    private static final Pattern contentPattern = Pattern.compile("\\s*(\\S.*?|)\\s*(?=<DELIM>|\\z)".replace("<DELIM>", flagDelimiter));
-    private static final Pattern flagPattern = Pattern.compile("<DELIM>(\\w+)".replace("<DELIM>", flagDelimiter));
 
     public static void main(String[] args) throws IOException {
         List<TaskItem> checklist = new ArrayList<>();
@@ -20,77 +15,58 @@ public class Marquee {
         System.out.println(Dialogues.Greetings);
         while (true) {
             String rawInput = getInput();
-            Matcher commandMatcher = commandPattern.matcher(rawInput);
-            Matcher contentMatcher = contentPattern.matcher(rawInput);
-            Matcher flagMatcher = flagPattern.matcher(rawInput);
-
-            String command = "";
-            String argument = "";
-            Map<String, String> flags = new HashMap<>();
-            if (commandMatcher.find()) {
-                command = commandMatcher.group(1);
-
-                if (contentMatcher.find(commandMatcher.end())) {
-                    argument = contentMatcher.group(1);
-
-                    while (flagMatcher.find(contentMatcher.end())) {
-                        if (contentMatcher.find(flagMatcher.end())) {
-                            flags.put(flagMatcher.group(1), contentMatcher.group(1));
-                        }
-                    }
-                }
-            }
-
-            switch (command) {
-                case "bye":
+            Command command = Command.fromInput(rawInput);
+            switch (command.code()) {
+                case "bye" -> {
                     System.out.println(Dialogues.Goodbye);
                     return;
-                case "list":
+                }
+                case "list" -> {
                     if (checklist.isEmpty()) {
                         System.out.println(Dialogues.DisplayListEmpty);
                     } else {
                         System.out.println(Dialogues.DisplayListSuccessful);
                         System.out.print(checklistToString(checklist));
                     }
-                    break;
-                case "todo":
-                    if (argument.isEmpty()) {
+                }
+                case "todo" -> {
+                    if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.TaskItemMissingName);
                     } else {
-                        TodoItem toDoItem = new TodoItem(argument);
+                        TodoItem toDoItem = new TodoItem(command.parameter());
                         checklist.add(toDoItem);
                         System.out.printf(Dialogues.AddTaskSuccessful + "\n", toDoItem, checklist.size());
                     }
-                    break;
-                case "deadline":
-                    if (argument.isEmpty()) {
+                }
+                case "deadline" -> {
+                    if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.TaskItemMissingName);
-                    } else if (!flags.containsKey("by")) {
+                    } else if (!command.flags().containsKey("by")) {
                         System.out.println(Dialogues.DeadlineMissing);
                     } else {
-                        DeadlineItem deadlineItem = new DeadlineItem(argument, flags.get("by"));
+                        DeadlineItem deadlineItem = new DeadlineItem(command.parameter(), command.flags().get("by"));
                         checklist.add(deadlineItem);
                         System.out.printf(Dialogues.AddTaskSuccessful + "\n", deadlineItem, checklist.size());
                     }
-                    break;
-                case "event":
-                    if (argument.isEmpty()) {
+                }
+                case "event" -> {
+                    if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.TaskItemMissingName);
-                    } else if (!flags.containsKey("from")) {
+                    } else if (!command.flags().containsKey("from")) {
                         System.out.println(Dialogues.EventMissingStart);
-                    } else if (!flags.containsKey("to")) {
+                    } else if (!command.flags().containsKey("to")) {
                         System.out.println(Dialogues.EventMissingEnd);
                     } else {
-                        EventItem eventItem = new EventItem(argument, flags.get("from"), flags.get("to"));
+                        EventItem eventItem = new EventItem(command.parameter(), command.flags().get("from"), command.flags().get("to"));
                         checklist.add(eventItem);
                         System.out.printf(Dialogues.AddTaskSuccessful + "\n", eventItem, checklist.size());
                     }
-                    break;
-                case "delete":
-                    if (argument.isEmpty()) {
+                }
+                case "delete" -> {
+                    if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.DeleteMissingArguments);
                     } else {
-                        List<TaskItem> modified = parseRawIndexArray(argument, checklist.size())
+                        List<TaskItem> modified = parseRawIndexArray(command.parameter(), checklist.size())
                                 .mapToObj(checklist::remove)
                                 .toList();
                         if (modified.isEmpty()) {
@@ -99,12 +75,12 @@ public class Marquee {
                             System.out.printf(Dialogues.DeleteSuccessful + "\n", checklistToStringNoIndex(modified), checklist.size());
                         }
                     }
-                    break;
-                case "mark":
-                    if (argument.isEmpty()) {
+                }
+                case "mark" -> {
+                    if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.MarkMissingArguments);
                     } else {
-                        List<TaskItem> modified = parseRawIndexArray(argument, checklist.size())
+                        List<TaskItem> modified = parseRawIndexArray(command.parameter(), checklist.size())
                                 .mapToObj(checklist::get)
                                 .filter(TaskItem::mark)
                                 .toList();
@@ -115,12 +91,12 @@ public class Marquee {
                             System.out.print(checklistToStringNoIndex(modified));
                         }
                     }
-                    break;
-                case "unmark":
-                    if (argument.isEmpty()) {
+                }
+                case "unmark" -> {
+                    if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.UnmarkMissingArguments);
                     } else {
-                        List<TaskItem> modified = parseRawIndexArray(argument, checklist.size())
+                        List<TaskItem> modified = parseRawIndexArray(command.parameter(), checklist.size())
                                 .mapToObj(checklist::get)
                                 .filter(TaskItem::unmark)
                                 .toList();
@@ -131,11 +107,11 @@ public class Marquee {
                             System.out.print(checklistToStringNoIndex(modified));
                         }
                     }
-                    break;
-                default:
-                    if (!command.isEmpty())
+                }
+                default -> {
+                    if (!command.code().isEmpty())
                         System.out.printf(Dialogues.UnknownCommand + "\n", command);
-                    break;
+                }
             }
         }
     }
