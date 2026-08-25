@@ -2,7 +2,7 @@ public class DeadlineItem extends TaskItem {
     private String deadline;
 
     public DeadlineItem(String content, String deadline) {
-        super(content);
+        super(content, ItemTag.Deadline);
         this.deadline = deadline;
     }
 
@@ -12,6 +12,6 @@ public class DeadlineItem extends TaskItem {
 
     @Override
     public String toString() {
-        return "[D]" + (this.marked()? "[x] " : "[ ] ") + this.content() + " (by: " + this.deadline() + ")";
+        return super.toString() + " (by: " + this.deadline() + ")";
     }
 }
