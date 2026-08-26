@@ -1,3 +1,8 @@
+import tasks.DeadlineItem;
+import tasks.EventItem;
+import tasks.TaskItem;
+import tasks.TodoItem;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -21,7 +26,7 @@ public class Marquee {
         System.out.println(Dialogues.Greetings);
         while (true) {
             String rawInput = getInput();
-            Command command = Command.fromInput(rawInput);
+            Command command = Command.parseCommand(rawInput);
             switch (command.code()) {
                 case "bye" -> {
                     System.out.println(Dialogues.Goodbye);
@@ -33,7 +38,7 @@ public class Marquee {
                         System.out.println(Dialogues.DisplayListEmpty);
                     } else {
                         System.out.println(Dialogues.DisplayListSuccessful);
-                        System.out.print(checklistToString(checklist));
+                        System.out.print(numberedList(checklist));
                     }
                 }
                 case "todo" -> {
@@ -73,13 +78,13 @@ public class Marquee {
                     if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.DeleteMissingArguments);
                     } else {
-                        List<TaskItem> modified = parseRawIndexArray(command.parameter(), checklist.size())
+                        List<TaskItem> modified = parseIndexArray(command.parameter(), checklist.size())
                                 .mapToObj(checklist::remove)
                                 .toList();
                         if (modified.isEmpty()) {
                             System.out.println(Dialogues.DeleteNoChange);
                         } else {
-                            System.out.printf(Dialogues.DeleteSuccessful + "\n", checklistToStringNoIndex(modified), checklist.size());
+                            System.out.printf(Dialogues.DeleteSuccessful + "\n", bulletList(modified), checklist.size());
                         }
                     }
                 }
@@ -87,7 +92,7 @@ public class Marquee {
                     if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.MarkMissingArguments);
                     } else {
-                        List<TaskItem> modified = parseRawIndexArray(command.parameter(), checklist.size())
+                        List<TaskItem> modified = parseIndexArray(command.parameter(), checklist.size())
                                 .mapToObj(checklist::get)
                                 .filter(TaskItem::mark)
                                 .toList();
@@ -95,7 +100,7 @@ public class Marquee {
                             System.out.println(Dialogues.MarkNoChange);
                         } else {
                             System.out.println(Dialogues.MarkSuccessful);
-                            System.out.print(checklistToStringNoIndex(modified));
+                            System.out.print(bulletList(modified));
                         }
                     }
                 }
@@ -103,7 +108,7 @@ public class Marquee {
                     if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.UnmarkMissingArguments);
                     } else {
-                        List<TaskItem> modified = parseRawIndexArray(command.parameter(), checklist.size())
+                        List<TaskItem> modified = parseIndexArray(command.parameter(), checklist.size())
                                 .mapToObj(checklist::get)
                                 .filter(TaskItem::unmark)
                                 .toList();
@@ -111,7 +116,7 @@ public class Marquee {
                             System.out.println(Dialogues.UnmarkNoChange);
                         } else {
                             System.out.println(Dialogues.UnmarkSuccessful);
-                            System.out.print(checklistToStringNoIndex(modified));
+                            System.out.print(bulletList(modified));
                         }
                     }
                 }
@@ -193,8 +198,8 @@ public class Marquee {
         ).collect(Collectors.joining("\r\n")));
     }
 
-    public static IntStream parseRawIndexArray(String indexArray, int capacity) {
-        return Arrays.stream(indexArray.split(" ", -1))
+    public static IntStream parseIndexArray(String rawIndexArray, int capacity) {
+        return Arrays.stream(rawIndexArray.split(" ", -1))
                 .mapToInt(idxStr -> {
                     if (!idxStr.isEmpty()) try {
                         int idx = Integer.parseInt(idxStr) - 1;
@@ -214,7 +219,7 @@ public class Marquee {
                 .filter(idx -> idx != -1);
     }
 
-    public static String checklistToString(List<TaskItem> list) {
+    public static String numberedList(List<TaskItem> list) {
         StringBuilder builder = IntStream.range(0, list.size())
                 .mapToObj(idx -> String.format("%d. %s\n", idx + 1, list.get(idx)))
                 .collect(
@@ -225,7 +230,7 @@ public class Marquee {
         return builder.toString();
     }
 
-    public static String checklistToStringNoIndex(List<TaskItem> list) {
+    public static String bulletList(List<TaskItem> list) {
         StringBuilder builder = list.stream()
                 .map(item -> String.format("  %s\n", item))
                 .collect(

@@ -9,7 +9,7 @@ public record Command(String code, String parameter, Map<String, String> flags) 
     private static final Pattern contentPattern = Pattern.compile("\\s*(\\S.*?|)\\s*(?=<DELIM>|\\z)".replace("<DELIM>", flagDelimiter));
     private static final Pattern flagPattern = Pattern.compile("<DELIM>(\\w+)".replace("<DELIM>", flagDelimiter));
 
-    public static Command fromInput(String input) {
+    public static Command parseCommand(String input) {
         Matcher commandMatcher = commandPattern.matcher(input);
         Matcher contentMatcher = contentPattern.matcher(input);
         Matcher flagMatcher = flagPattern.matcher(input);
