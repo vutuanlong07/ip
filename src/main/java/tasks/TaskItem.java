@@ -1,3 +1,5 @@
+package tasks;
+
 public abstract class TaskItem {
     public enum ItemTag {
         Todo("T"),
