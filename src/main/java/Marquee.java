@@ -2,6 +2,7 @@ import tasks.DeadlineItem;
 import tasks.EventItem;
 import tasks.TaskItem;
 import tasks.TodoItem;
+import time.DateTimeFormatter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,6 +10,8 @@ import java.io.InputStreamReader;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -28,12 +31,12 @@ public class Marquee {
             String rawInput = getInput();
             Command command = Command.parseCommand(rawInput);
             switch (command.code()) {
-                case "bye" -> {
+                case Command.Code.EXIT -> {
                     System.out.println(Dialogues.Goodbye);
                     writeCSV(checklist);
                     return;
                 }
-                case "list" -> {
+                case Command.Code.LIST -> {
                     if (checklist.isEmpty()) {
                         System.out.println(Dialogues.DisplayListEmpty);
                     } else {
@@ -41,7 +44,7 @@ public class Marquee {
                         System.out.print(numberedList(checklist));
                     }
                 }
-                case "todo" -> {
+                case Command.Code.TODO -> {
                     if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.TaskItemMissingName);
                     } else {
@@ -50,18 +53,25 @@ public class Marquee {
                         System.out.printf(Dialogues.AddTaskSuccessful + "\n", toDoItem, checklist.size());
                     }
                 }
-                case "deadline" -> {
+                case Command.Code.DEADLINE -> {
                     if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.TaskItemMissingName);
                     } else if (!command.flags().containsKey("by")) {
                         System.out.println(Dialogues.DeadlineMissing);
                     } else {
-                        DeadlineItem deadlineItem = new DeadlineItem(command.parameter(), command.flags().get("by"));
-                        checklist.add(deadlineItem);
-                        System.out.printf(Dialogues.AddTaskSuccessful + "\n", deadlineItem, checklist.size());
+                        try {
+                            DeadlineItem deadlineItem = new DeadlineItem(
+                                    command.parameter(),
+                                    DateTimeFormatter.parseDateTime(command.flags().get("by"))
+                            );
+                            checklist.add(deadlineItem);
+                            System.out.printf(Dialogues.AddTaskSuccessful + "\n", deadlineItem, checklist.size());
+                        } catch (DateTimeParseException e) {
+                            System.out.println(Dialogues.InvalidDateTime);
+                        }
                     }
                 }
-                case "event" -> {
+                case Command.Code.EVENT -> {
                     if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.TaskItemMissingName);
                     } else if (!command.flags().containsKey("from")) {
@@ -69,12 +79,16 @@ public class Marquee {
                     } else if (!command.flags().containsKey("to")) {
                         System.out.println(Dialogues.EventMissingEnd);
                     } else {
-                        EventItem eventItem = new EventItem(command.parameter(), command.flags().get("from"), command.flags().get("to"));
+                        EventItem eventItem = new EventItem(
+                                command.parameter(),
+                                DateTimeFormatter.parseDateTime(command.flags().get("from")),
+                                DateTimeFormatter.parseDateTime(command.flags().get("to"))
+                        );
                         checklist.add(eventItem);
                         System.out.printf(Dialogues.AddTaskSuccessful + "\n", eventItem, checklist.size());
                     }
                 }
-                case "delete" -> {
+                case Command.Code.DELETE -> {
                     if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.DeleteMissingArguments);
                     } else {
@@ -88,7 +102,7 @@ public class Marquee {
                         }
                     }
                 }
-                case "mark" -> {
+                case Command.Code.MARK -> {
                     if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.MarkMissingArguments);
                     } else {
@@ -104,7 +118,7 @@ public class Marquee {
                         }
                     }
                 }
-                case "unmark" -> {
+                case Command.Code.UNMARK -> {
                     if (command.parameter().isEmpty()) {
                         System.out.println(Dialogues.UnmarkMissingArguments);
                     } else {
@@ -119,10 +133,6 @@ public class Marquee {
                             System.out.print(bulletList(modified));
                         }
                     }
-                }
-                default -> {
-                    if (!command.code().isEmpty())
-                        System.out.printf(Dialogues.UnknownCommand + "\n", command);
                 }
             }
         }
@@ -161,9 +171,20 @@ public class Marquee {
                         String start = fields[startIdx];
                         String end = fields[endIdx];
                         switch (TaskItem.ItemTag.fromLabel(fields[tagIdx])) {
-                            case Todo -> checklist.add(new TodoItem(content, marked));
-                            case Deadline -> checklist.add(new DeadlineItem(content, end, marked));
-                            case Event -> checklist.add(new EventItem(content, start, end, marked));
+                            case Todo -> checklist.add(new TodoItem(
+                                    content,
+                                    marked
+                            ));
+                            case Deadline -> checklist.add(new DeadlineItem(
+                                    content,
+                                    LocalDateTime.parse(end),
+                                    marked
+                            ));
+                            case Event -> checklist.add(new EventItem(content,
+                                    LocalDateTime.parse(start),
+                                    LocalDateTime.parse(end),
+                                    marked
+                            ));
                             case null -> {}
                         }
                     }
@@ -187,19 +208,19 @@ public class Marquee {
                             Boolean.toString(taskItem.marked()),
                             taskItem.content(),
                             taskItem instanceof EventItem
-                                    ? ((EventItem) taskItem).start()
+                                    ? ((EventItem) taskItem).start().toString()
                                     : "",
                             taskItem instanceof DeadlineItem
-                                    ? ((DeadlineItem) taskItem).deadline()
+                                    ? ((DeadlineItem) taskItem).deadline().toString()
                                     : taskItem instanceof EventItem
-                                      ? ((EventItem) taskItem).end()
+                                      ? ((EventItem) taskItem).end().toString()
                                       : ""
                     ))
         ).collect(Collectors.joining("\r\n")));
     }
 
-    public static IntStream parseIndexArray(String rawIndexArray, int capacity) {
-        return Arrays.stream(rawIndexArray.split(" ", -1))
+    public static IntStream parseIndexArray(String input, int capacity) {
+        return Arrays.stream(input.split(" ", -1))
                 .mapToInt(idxStr -> {
                     if (!idxStr.isEmpty()) try {
                         int idx = Integer.parseInt(idxStr) - 1;
