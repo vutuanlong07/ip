@@ -11,10 +11,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class DateTimeFormatter {
-    public static final String[] daysOfWeekShort = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
-    public static final String[] daysOfWeekLong = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
-    public static final String[] monthsShort = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    public static final String[] monthsLong = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+    public static final List<String> daysOfWeekShort = List.of("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun");
+    public static final List<String> daysOfWeekLong = List.of("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
+    public static final List<String> monthsShort = List.of("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec");
+    public static final List<String> monthsLong = List.of("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
 
     private static final List<Pattern> timeShortPatterns = List.of(
             Pattern.compile("^\\b(?<hour>\\d{2}):?(?<minute>\\d{2})\\b\\s*")
@@ -93,12 +93,12 @@ public final class DateTimeFormatter {
             }
             if (!setDate) {
                 boolean matched = false;
-                for (Matcher dateLongMatcher : dateLongMatchers) {
-                    if (dateLongMatcher.find(index)) {
-                        day = Integer.parseInt(dateLongMatcher.group("day"));
-                        month = Arrays.binarySearch(monthsLong, dateLongMatcher.group("monthLong"));
-                        year = Integer.parseInt(dateLongMatcher.group("year"));
-                        index = dateLongMatcher.end();
+                for (Matcher dateNumberMatcher : dateNumberMatchers) {
+                    if (dateNumberMatcher.find(index)) {
+                        day = Integer.parseInt(dateNumberMatcher.group("day"));
+                        month = Integer.parseInt(dateNumberMatcher.group("month"));
+                        year = Integer.parseInt(dateNumberMatcher.group("year"));
+                        index = dateNumberMatcher.end();
                         setDate = matched = true;
                         break;
                     }
@@ -107,7 +107,7 @@ public final class DateTimeFormatter {
                 for (Matcher dateShortMatcher : dateShortMatchers) {
                     if (dateShortMatcher.find(index)) {
                         day = Integer.parseInt(dateShortMatcher.group("day"));
-                        month = Arrays.binarySearch(monthsShort, dateShortMatcher.group("monthShort"));
+                        month = monthsShort.indexOf(dateShortMatcher.group("monthShort")) + 1;
                         year = Integer.parseInt(dateShortMatcher.group("year"));
                         index = dateShortMatcher.end();
                         setDate = matched = true;
@@ -115,12 +115,12 @@ public final class DateTimeFormatter {
                     }
                 }
                 if (matched) continue;
-                for (Matcher dateNumberMatcher : dateNumberMatchers) {
-                    if (dateNumberMatcher.find(index)) {
-                        day = Integer.parseInt(dateNumberMatcher.group("day"));
-                        month = Integer.parseInt(dateNumberMatcher.group("month"));
-                        year = Integer.parseInt(dateNumberMatcher.group("year"));
-                        index = dateNumberMatcher.end();
+                for (Matcher dateLongMatcher : dateLongMatchers) {
+                    if (dateLongMatcher.find(index)) {
+                        day = Integer.parseInt(dateLongMatcher.group("day"));
+                        month = monthsLong.indexOf(dateLongMatcher.group("monthLong")) + 1;
+                        year = Integer.parseInt(dateLongMatcher.group("year"));
+                        index = dateLongMatcher.end();
                         setDate = matched = true;
                         break;
                     }
@@ -195,7 +195,7 @@ public final class DateTimeFormatter {
         StringBuilder res =  new StringBuilder();
         res.append(String.format("%02d:%02d:%02d ", input.getHour(), input.getMinute(), input.getSecond()));
 
-        LocalDateTime today = LocalDateTime.now();
+        LocalDate today = LocalDate.now();
         int currentYear = today.get(WeekFields.ISO.weekBasedYear());
         int currentWeek = today.get(WeekFields.ISO.weekOfWeekBasedYear());
         int currentDay = today.getDayOfWeek().getValue();
@@ -212,17 +212,17 @@ public final class DateTimeFormatter {
                 } else if (inputDay == currentDay + 1) {
                     res.append("tomorrow");
                 } else {
-                    res.append(daysOfWeekLong[input.getDayOfWeek().getValue() - 1]).append(" this week");
+                    res.append(daysOfWeekLong.get(input.getDayOfWeek().getValue() - 1)).append(" this week");
                 }
             } else if (inputWeek == currentWeek - 1) {
-                res.append(daysOfWeekLong[input.getDayOfWeek().getValue() - 1]).append(" last week");
+                res.append(daysOfWeekLong.get(input.getDayOfWeek().getValue() - 1)).append(" last week");
             } else if (inputWeek == currentWeek + 1) {
-                res.append(daysOfWeekLong[input.getDayOfWeek().getValue() - 1]).append(" next week");
+                res.append(daysOfWeekLong.get(input.getDayOfWeek().getValue() - 1)).append(" next week");
             } else {
-                res.append(input.getDayOfMonth()).append(' ').append(monthsLong[input.getMonthValue() - 1]);
+                res.append(input.getDayOfMonth()).append(' ').append(monthsLong.get(input.getMonthValue() - 1));
             }
         } else {
-            res.append(input.getDayOfMonth()).append(' ').append(monthsLong[input.getMonthValue() - 1]).append(' ').append(inputYear);
+            res.append(input.getDayOfMonth()).append(' ').append(monthsLong.get(input.getMonthValue() - 1)).append(' ').append(inputYear);
         }
         return res.toString();
     }
