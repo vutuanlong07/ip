@@ -1,9 +1,12 @@
 package time;
 
 import java.security.InvalidParameterException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +24,23 @@ public final class DateTimeFormatter {
     );
     private static final List<Pattern> timeLongPatterns = List.of(
             Pattern.compile("^\\b(?<hour>\\d{2}):(?<minute>\\d{2}):(?<second>\\d{2})\\b\\s*")
+    );
+
+    private static final Pattern yesterdayPattern = Pattern.compile(
+            "^\\byesterday(?<yesterday>(?: yesterday)*)\\b\\s*"
+    );
+    private static final Pattern tomorrowPattern = Pattern.compile(
+            "^\\btomorrow(?<tomorrow>(?: tomorrow)*)\\b\\s*"
+    );
+    private static final Pattern dayOfWeekShortPattern = Pattern.compile(
+            "^\\b(?<next>next )*(?<dayOfWeekShort>"
+                    + String.join("|", daysOfWeekShort)
+                    + ")\\b\\s*"
+    );
+    private static final Pattern dayOfWeekLongPattern = Pattern.compile(
+            "^\\b(?<next>next )*(?<dayOfWeekLong>"
+                    + String.join("|", daysOfWeekLong)
+                    + ")\\b\\s*"
     );
     private static final List<Pattern> dateShortPatterns = List.of(
             Pattern.compile(
@@ -58,6 +78,11 @@ public final class DateTimeFormatter {
     private static LocalDateTime parseTimestamp(String input) throws DateTimeParseException {
         List<Matcher> timeShortMatchers = timeShortPatterns.stream().map(pattern -> pattern.matcher(input)).toList();
         List<Matcher> timeLongMatchers = timeLongPatterns.stream().map(pattern -> pattern.matcher(input)).toList();
+
+        Matcher yesterdayMatcher = yesterdayPattern.matcher(input);
+        Matcher tomorrowMatcher = tomorrowPattern.matcher(input);
+        Matcher dayOfWeekShortMatcher = dayOfWeekShortPattern.matcher(input);
+        Matcher dayOfWeekLongMatcher = dayOfWeekLongPattern.matcher(input);
         List<Matcher> dateShortMatchers = dateShortPatterns.stream().map(pattern -> pattern.matcher(input)).toList();
         List<Matcher> dateLongMatchers = dateLongPatterns.stream().map(pattern -> pattern.matcher(input)).toList();
         List<Matcher> dateNumberMatchers = dateNumberPatterns.stream().map(pattern -> pattern.matcher(input)).toList();
@@ -92,6 +117,50 @@ public final class DateTimeFormatter {
                 if (matched) continue;
             }
             if (!setDate) {
+                if (yesterdayMatcher.find(index)) {
+                    int count = dayOfWeekShortMatcher.group("yesterday").length() / 10 + 1;
+                    LocalDate targetDate = LocalDate.now().minusDays(count);
+                    day = targetDate.getDayOfMonth();
+                    month = targetDate.getMonthValue();
+                    year = targetDate.getYear();
+                    index = yesterdayMatcher.end();
+                    setDate = true;
+                    continue;
+                }
+                if (tomorrowMatcher.find(index)) {
+                    int count = tomorrowMatcher.group("tomorrow").length() / 9 + 1;
+                    LocalDate targetDate = LocalDate.now().plusDays(count);
+                    day = targetDate.getDayOfMonth();
+                    month = targetDate.getMonthValue();
+                    year = targetDate.getYear();
+                    index = tomorrowMatcher.end();
+                    setDate = true;
+                    continue;
+                }
+                if (dayOfWeekShortMatcher.find(index)) {
+                    int dayOfWeekShort = daysOfWeekShort.indexOf(dayOfWeekShortMatcher.group("dayOfWeekShort")) + 1;
+                    LocalDate targetDate = LocalDate.now()
+                            .with(TemporalAdjusters.previousOrSame(DayOfWeek.of(dayOfWeekShort)))
+                            .plusWeeks(dayOfWeekShortMatcher.group("next").length() / 5);
+                    day = targetDate.getDayOfMonth();
+                    month = targetDate.getMonthValue();
+                    year = targetDate.getYear();
+                    index = dayOfWeekShortMatcher.end();
+                    setDate = true;
+                    continue;
+                }
+                if (dayOfWeekLongMatcher.find(index)) {
+                    int dayOfWeekLong = daysOfWeekLong.indexOf(dayOfWeekLongMatcher.group("dayOfWeekLong")) + 1;
+                    LocalDate targetDate = LocalDate.now()
+                            .with(TemporalAdjusters.previousOrSame(DayOfWeek.of(dayOfWeekLong)))
+                            .plusWeeks(dayOfWeekShortMatcher.group("next").length() / 5);
+                    day = targetDate.getDayOfMonth();
+                    month = targetDate.getMonthValue();
+                    year = targetDate.getYear();
+                    index = dayOfWeekLongMatcher.end();
+                    setDate = true;
+                    continue;
+                }
                 boolean matched = false;
                 for (Matcher dateNumberMatcher : dateNumberMatchers) {
                     if (dateNumberMatcher.find(index)) {
