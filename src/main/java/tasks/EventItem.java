@@ -1,30 +1,40 @@
 package tasks;
 
+import time.DateTimeFormatter;
+
+import java.time.LocalDateTime;
+
 public final class EventItem extends TaskItem {
-    private String start;
-    private String end;
+    private LocalDateTime start;
+    private LocalDateTime end;
 
-    public EventItem(String content, String start, String end, boolean marked) {
+    public EventItem(String content, LocalDateTime start, LocalDateTime end, boolean marked) {
         super(content, ItemTag.Event, marked);
+        if (end.isBefore(start)) {
+            throw new IllegalArgumentException("End time must be after start time");
+        }
         this.start = start;
         this.end = end;
     }
-    public EventItem(String content, String start, String end) {
+    public EventItem(String content, LocalDateTime start, LocalDateTime end) {
         super(content, ItemTag.Event);
+        if (end.isBefore(start)) {
+            throw new IllegalArgumentException("End time must be after start time");
+        }
         this.start = start;
         this.end = end;
     }
 
-    public String start() {
+    public LocalDateTime start() {
         return this.start;
     }
 
-    public String end() {
+    public LocalDateTime end() {
         return this.end;
     }
 
     @Override
     public String toString() {
-        return super.toString() + " (from: " + this.start() + " to: " + this.end() + ")";
+        return super.toString() + " (from: " + DateTimeFormatter.formatDateTime(this.start()) + " to: " + DateTimeFormatter.formatDateTime(this.end()) + ")";
     }
 }

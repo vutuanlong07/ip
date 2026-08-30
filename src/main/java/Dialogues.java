@@ -34,6 +34,7 @@ public final class Dialogues {
     public static final String IndexInvalid = "%d is not a valid index! >_<";
     public static final String IndexTooLarge = "%d is too large! Your checklist only has %d item(s) >_<";
     public static final String IndexListEmpty = "Your checklist is empty...";
-    public static final String ArgumentNAN = "'%s' is not a number! >_<";
+    public static final String ArgumentNAN = "'%s' is not a number! (@ ~ @)";
+    public static final String InvalidDateTime = "Not a valid date! (@ ~ @)";
     public static final String UnknownCommand = "No clue what %s means `O ᗝ O´╬";
 }
