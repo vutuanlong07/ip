@@ -183,7 +183,7 @@ public class Marquee {
         return inputReader.readLine();
     }
 
-    public static List<TaskItem> readCSV(Path file) throws IOException {
+    private static List<TaskItem> readCSV(Path file) throws IOException {
         try {
             Files.createFile(file);
             Files.writeString(file, String.join(CSV_SEPARATOR, "tag", "marked", "content", "start", "end"));
@@ -239,7 +239,7 @@ public class Marquee {
         }
     }
 
-    public static void writeCSV(List<TaskItem> checklist, Path file) throws IOException {
+    private static void writeCSV(List<TaskItem> checklist, Path file) throws IOException {
         Files.writeString(file, Stream.concat(
             Stream.of(String.join(CSV_SEPARATOR, "tag", "marked", "content", "start", "end")),
             checklist.stream()
@@ -259,14 +259,12 @@ public class Marquee {
         ).collect(Collectors.joining("\r\n")));
     }
 
-    public static IntStream parseIndexArray(String input, int capacity) {
+    private static IntStream parseIndexArray(String input, int capacity) {
         return Arrays.stream(input.split(" ", -1))
                 .mapToInt(idxStr -> {
                     if (!idxStr.isEmpty()) try {
                         int idx = Integer.parseInt(idxStr) - 1;
-                        if (capacity == 0)
-                            System.out.println(Dialogues.IndexListEmpty);
-                        else if (idx < 0)
+                        if (idx < 0)
                             System.out.printf(Dialogues.IndexInvalid + "\n", idx + 1);
                         else if (idx >= capacity)
                             System.out.printf(Dialogues.IndexTooLarge + "\n", idx + 1, capacity);
@@ -280,7 +278,7 @@ public class Marquee {
                 .filter(idx -> idx != -1);
     }
 
-    public static String numberedList(List<TaskItem> list) {
+    private static String numberedList(List<TaskItem> list) {
         StringBuilder builder = IntStream.range(0, list.size())
                 .mapToObj(idx -> String.format("%d. %s\n", idx + 1, list.get(idx)))
                 .collect(
@@ -291,7 +289,7 @@ public class Marquee {
         return builder.toString();
     }
 
-    public static String bulletList(List<TaskItem> list) {
+    private static String bulletList(List<TaskItem> list) {
         StringBuilder builder = list.stream()
                 .map(item -> String.format("  %s\n", item))
                 .collect(
