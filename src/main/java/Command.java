@@ -1,36 +1,119 @@
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public record Command(String code, String parameter, Map<String, String> flags) {
-    private static final String flagDelimiter = "\\/";
-    private static final Pattern commandPattern = Pattern.compile("^\\s*(?<code>\\w+)");
-    private static final Pattern contentPattern = Pattern.compile("\\s*(?<content>\\S.*?|)\\s*(?=<DELIM>|\\z)".replace("<DELIM>", flagDelimiter));
-    private static final Pattern flagPattern = Pattern.compile("<DELIM>(?<flag>\\w+)".replace("<DELIM>", flagDelimiter));
+public record Command(Code code, String parameter, Map<String, String> flags) {
+    public enum Code {
+        EXIT("bye"),
+        LIST("list"),
+        TODO("todo"),
+        DEADLINE("deadline"),
+        EVENT("event"),
+        DELETE("delete"),
+        DELETE_MANY("delete many"),
+        MARK("mark"),
+        MARK_MANY("mark many"),
+        UNMARK("unmark"),
+        UNMARK_MANY("unmark many");
 
-    public static Command parseCommand(String input) {
-        Matcher commandMatcher = commandPattern.matcher(input);
-        Matcher contentMatcher = contentPattern.matcher(input);
-        Matcher flagMatcher = flagPattern.matcher(input);
+        private static final Map<String, Code> BY_CODE_STRING = new HashMap<>();
 
-        String code = "";
-        String argument = "";
-        Map<String, String> flags = new HashMap<>();
-        if (commandMatcher.find()) {
-            code = commandMatcher.group("code");
-
-            if (contentMatcher.find(commandMatcher.end())) {
-                argument = contentMatcher.group("content");
-
-                while (flagMatcher.find(contentMatcher.end())) {
-                    if (contentMatcher.find(flagMatcher.end())) {
-                        flags.put(flagMatcher.group("flag"), contentMatcher.group("content"));
-                    }
-                }
+        static {
+            for (Code code : values()) {
+                BY_CODE_STRING.put(code.getCodeString(), code);
             }
         }
 
-        return new Command(code, argument, flags);
+        private final String codeString;
+
+        Code(String codeString) {
+            this.codeString = codeString;
+        }
+
+        public static Code fromCodeString(String codeString) {
+            return BY_CODE_STRING.get(codeString);
+        }
+
+        public String getCodeString() {
+            return this.codeString;
+        }
+    }
+
+    private static final String flagDelimiter = "/";
+    private static final Pattern commandPattern = Pattern.compile(
+            "^\\s*(?<code>"
+                    + Arrays.stream(Code.values()).map(Code::getCodeString).collect(Collectors.joining("|"))
+                    + ")\\b\\s*"
+    );
+
+    private static final Map<Code, Map<String, Pattern>> availableCommands = Stream
+            .<Map.Entry<Code, List<String>>>of(
+                    Map.entry(Code.EXIT, List.of()),
+                    Map.entry(Code.LIST, List.of("from", "to", "completed")),
+                    Map.entry(Code.TODO, List.of("completed")),
+                    Map.entry(Code.DEADLINE, List.of("by", "completed")),
+                    Map.entry(Code.EVENT, List.of("from", "to", "completed")),
+                    Map.entry(Code.DELETE, List.of()),
+                    Map.entry(Code.DELETE_MANY, List.of("from", "to", "completed", "containing")),
+                    Map.entry(Code.MARK, List.of()),
+                    Map.entry(Code.MARK_MANY, List.of("from", "to", "completed", "containing")),
+                    Map.entry(Code.UNMARK, List.of()),
+                    Map.entry(Code.UNMARK_MANY, List.of("from", "to", "completed", "containing"))
+            )
+            .map(pair -> Map.entry(
+                    pair.getKey(),
+                    pair.getValue().stream()
+                            .map(flagName -> Map.entry(
+                                    flagName,
+                                    Pattern.compile("\\s+" + flagDelimiter + flagName + "\\b\\s*")
+                            ))
+                            .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue))
+
+            ))
+            .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    public static Command parseCommand(String input) {
+        Matcher codeMatcher = commandPattern.matcher(input);
+        if (!codeMatcher.find()) {
+            throw new IllegalArgumentException("Invalid command");
+        }
+
+        Code code = Code.fromCodeString(codeMatcher.group("code"));
+        if (!availableCommands.containsKey(code)) {
+            throw new IllegalArgumentException("Unknown command: " + code);
+        }
+
+        Map<String, Matcher> flagMatchers = availableCommands.get(code).entrySet().stream()
+                .map(pair -> Map.entry(
+                        pair.getKey(),
+                        pair.getValue().matcher(input)
+                ))
+                .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
+        List<Integer> delimiters = new ArrayList<>();
+        delimiters.add(codeMatcher.end());
+        delimiters.add(input.length());
+        Map<Integer, String> flagPositions = new HashMap<>();
+        flagPositions.put(codeMatcher.end(), "");
+        for (Map.Entry<String, Matcher> pair : flagMatchers.entrySet()) {
+            if (pair.getValue().find()) {
+                flagPositions.put(pair.getValue().end(), pair.getKey());
+                delimiters.add(pair.getValue().start());
+                delimiters.add(pair.getValue().end());
+            }
+        }
+        delimiters.sort(Integer::compareTo);
+
+        Map<String, String> flags = new HashMap<>();
+        for (int i = 0; i < delimiters.size(); i += 2) {
+            String flagName = flagPositions.get(delimiters.get(i));
+            if (flags.containsKey(flagName)) {
+                throw new IllegalArgumentException("Duplicate flags: " + flagName);
+            }
+            flags.put(flagName, input.substring(delimiters.get(i), delimiters.get(i + 1)));
+        }
+
+        return new Command(code, flags.remove(""), flags);
     }
 }

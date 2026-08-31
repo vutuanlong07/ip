@@ -1,23 +1,27 @@
 package tasks;
 
-public final class DeadlineItem extends TaskItem {
-    private String deadline;
+import time.DateTimeFormatter;
 
-    public DeadlineItem(String content, String deadline, boolean marked) {
+import java.time.LocalDateTime;
+
+public final class DeadlineItem extends TaskItem {
+    private LocalDateTime deadline;
+
+    public DeadlineItem(String content, LocalDateTime deadline, boolean marked) {
         super(content, ItemTag.Deadline, marked);
         this.deadline = deadline;
     }
-    public DeadlineItem(String content, String deadline) {
+    public DeadlineItem(String content, LocalDateTime deadline) {
         super(content, ItemTag.Deadline);
         this.deadline = deadline;
     }
 
-    public String deadline() {
+    public LocalDateTime deadline() {
         return this.deadline;
     }
 
     @Override
     public String toString() {
-        return super.toString() + " (by: " + this.deadline() + ")";
+        return super.toString() + " (by: " + DateTimeFormatter.formatDateTime(this.deadline()) + ")";
     }
 }
