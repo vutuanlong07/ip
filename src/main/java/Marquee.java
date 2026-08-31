@@ -37,23 +37,22 @@ public class Marquee {
         public static final String DeleteSuccessful = "These item(s) were deleted:\n%s\nThere are %d item(s) left in your checklist";
         public static final String AddTaskSuccessful = "Added task:\n  %s\nto the list (^_-☆ >c\nCurrently have %d item(s) in your checklist";
 
-        public static final String DisplayListEmpty = "No items yet (‾ 3‾)";
+        public static final String ChecklistEmpty = "Your checklist is empty (‾ 3‾)";
         public static final String MarkNoChange = "No items were marked (‾ 3‾)";
         public static final String UnmarkNoChange = "No items were unmarked (‾ 3‾)";
         public static final String DeleteNoChange = "No items were deleted (‾ 3‾)";
 
-        public static final String MarkMissingArguments = "Indicate an index to mark -_-'";
-        public static final String UnmarkMissingArguments = "Indicate an index to unmark -_-'";
-        public static final String DeleteMissingArguments = "Indicate an index to delete -_-'";
+        public static final String MarkMissingArguments = "Nothing to mark -_-'";
+        public static final String UnmarkMissingArguments = "Nothing to unmark -_-'";
+        public static final String DeleteMissingArguments = "Nothing to delete -_-'";
         public static final String TaskItemMissingName = "Task name can't be empty, duh °∀°?";
-        public static final String DeadlineMissing = "Missing deadline for task °∀°";
-        public static final String EventMissingStart = "Missing start time for event °∀°";
-        public static final String EventMissingEnd = "Missing end time for event °∀°";
+        public static final String DeadlineMissing = "Task has no deadline? °∀°";
+        public static final String EventMissingStart = "Event can't start without start time °∀°";
+        public static final String EventMissingEnd = "Event can't end without end time °∀°";
 
         public static final String CorruptedCacheFile = "..ca.che..fi.le..cor.rup.te..d.  Σ( ﾟДﾟ)";
         public static final String IndexInvalid = "%d is not a valid index! >_<";
         public static final String IndexTooLarge = "%d is too large! Your checklist only has %d item(s) >_<";
-        public static final String IndexListEmpty = "Your checklist is empty...";
         public static final String ArgumentNAN = "'%s' is not a number! (@ ~ @)";
         public static final String InvalidDateTime = "Not a valid date! (@ ~ @)";
         public static final String UnknownCommand = "No clue what %s means `O ᗝ O´╬";
