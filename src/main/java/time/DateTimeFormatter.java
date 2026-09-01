@@ -1,6 +1,5 @@
 package time;
 
-import java.security.InvalidParameterException;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -200,7 +199,7 @@ public final class DateTimeFormatter {
         return LocalDateTime.of(year, month, day, hour, second, minute);
     }
 
-    private static LocalDateTime parseRelativeTime(String input) throws InvalidParameterException, DateTimeParseException {
+    private static LocalDateTime parseRelativeTime(String input) throws DateTimeParseException {
         if (!input.endsWith("later")) {
             throw new DateTimeParseException("No 'later' indicator", input, input.length() < 5 ? 0 : input.length() - 5);
         }
@@ -249,7 +248,7 @@ public final class DateTimeFormatter {
                 .plusDays(days);
     }
 
-    public static LocalDateTime parseDateTime(String input) throws InvalidParameterException, DateTimeParseException {
+    public static LocalDateTime parseDateTime(String input) throws DateTimeParseException {
         if (input.equals("now")) {
             return LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         } else if (input.endsWith("later")) {
