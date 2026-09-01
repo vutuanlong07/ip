@@ -8,6 +8,7 @@ public record Command(Code code, String parameter, Map<String, String> flags) {
     public enum Code {
         EXIT("bye"),
         LIST("list"),
+        SEARCH("search"),
         TODO("todo"),
         DEADLINE("deadline"),
         EVENT("event"),
@@ -46,7 +47,8 @@ public record Command(Code code, String parameter, Map<String, String> flags) {
     private static final Map<Code, Map<String, Pattern>> AVAILABLE_COMMANDS = Stream
             .<Map.Entry<Code, List<String>>>of(
                     Map.entry(Code.EXIT, List.of()),
-                    Map.entry(Code.LIST, List.of("from", "to", "completed")),
+                    Map.entry(Code.LIST, List.of()),
+                    Map.entry(Code.SEARCH, List.of("from", "to", "completed")),
                     Map.entry(Code.TODO, List.of("completed")),
                     Map.entry(Code.DEADLINE, List.of("by", "completed")),
                     Map.entry(Code.EVENT, List.of("from", "to", "completed")),
