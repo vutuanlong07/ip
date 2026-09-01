@@ -5,10 +5,10 @@ import time.DateTimeFormatter;
 import java.time.LocalDateTime;
 
 public final class DeadlineItem extends TaskItem {
-    private LocalDateTime deadline;
+    private final LocalDateTime deadline;
 
-    public DeadlineItem(String content, LocalDateTime deadline, boolean marked) {
-        super(content, ItemTag.Deadline, marked);
+    public DeadlineItem(String content, LocalDateTime deadline, boolean isMarked) {
+        super(content, ItemTag.Deadline, isMarked);
         this.deadline = deadline;
     }
     public DeadlineItem(String content, LocalDateTime deadline) {

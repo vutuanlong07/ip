@@ -5,11 +5,11 @@ import time.DateTimeFormatter;
 import java.time.LocalDateTime;
 
 public final class EventItem extends TaskItem {
-    private LocalDateTime start;
-    private LocalDateTime end;
+    private final LocalDateTime start;
+    private final LocalDateTime end;
 
-    public EventItem(String content, LocalDateTime start, LocalDateTime end, boolean marked) {
-        super(content, ItemTag.Event, marked);
+    public EventItem(String content, LocalDateTime start, LocalDateTime end, boolean isMarked) {
+        super(content, ItemTag.Event, isMarked);
         if (end.isBefore(start)) {
             throw new IllegalArgumentException("End time must be after start time");
         }

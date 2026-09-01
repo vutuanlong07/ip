@@ -27,12 +27,12 @@ public abstract class TaskItem {
         }
     }
 
-    private boolean marked;
+    private boolean isMarked;
     private final String content;
     private final ItemTag tag;
 
-    public TaskItem(String content, ItemTag tag, boolean marked) {
-        this.marked = marked;
+    public TaskItem(String content, ItemTag tag, boolean isMarked) {
+        this.isMarked = isMarked;
         this.content = content;
         this.tag = tag;
     }
@@ -40,8 +40,8 @@ public abstract class TaskItem {
         this(content, tag, false);
     }
 
-    public boolean marked() {
-        return this.marked;
+    public boolean isMarked() {
+        return this.isMarked;
     }
 
     public String content() {
@@ -53,15 +53,15 @@ public abstract class TaskItem {
     }
 
     public boolean mark() {
-        return this.marked != (this.marked = true);
+        return this.isMarked != (this.isMarked = true);
     }
 
     public boolean unmark() {
-        return this.marked != (this.marked = false);
+        return this.isMarked != (this.isMarked = false);
     }
 
     @Override
     public String toString() {
-        return (this.tag() == null? "[?]" : this.tag().toString()) + (this.marked()? " [x] " : " [ ] ") + this.content();
+        return (this.tag() == null? "[?]" : this.tag().toString()) + (this.isMarked()? " [x] " : " [ ] ") + this.content();
     }
 }

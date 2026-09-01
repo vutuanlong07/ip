@@ -19,7 +19,7 @@ import java.util.stream.Stream;
 
 public class Marquee {
     public static final class Dialogues {
-        public static final String Banner = """
+        public static final String BANNER = """
             ____  ___
             |   \\/   |  _____   ____   _____   _   _   ____   ____
             | |\\  /| | / .__ /  | .-` / ._. \\ | | | | / ___) / ___)
@@ -28,34 +28,34 @@ public class Marquee {
                                           | |
                                           | |
                                            \\|""";
-        public static final String Greetings = "Hi! I'm Marquee \\(>e<)/\nWhat will we do today? xD";
-        public static final String Goodbye = "See you later :3";
+        public static final String START_MESSAGE = "Hi! I'm Marquee \\(>e<)/\nWhat will we do today? xD\n";
+        public static final String EXIT_MESSAGE = "See you later :3\n";
 
-        public static final String DisplayListSuccessful = "Current item(s) in your list:";
-        public static final String MarkSuccessful = "These item(s) were marked:";
-        public static final String UnmarkSuccessful = "These item(s) were unmarked:";
-        public static final String DeleteSuccessful = "These item(s) were deleted:\n%s\nThere are %d item(s) left in your checklist";
-        public static final String AddTaskSuccessful = "Added task:\n  %s\nto the list (^_-☆ >c\nCurrently have %d item(s) in your checklist";
+        public static final String SUCCESS_LIST = "Current item(s) in your list:\n%s\n";
+        public static final String SUCCESS_ADD = "Added task:\n  %s\nto the list (^_-☆ >c\nCurrently have %d item(s) in your checklist\n";
+        public static final String SUCCESS_MARK = "These item(s) were marked:\n%s\n";
+        public static final String SUCCESS_UNMARK = "These item(s) were unmarked:\n%s\n";
+        public static final String SUCCESS_DELETE = "These item(s) were deleted:\n%s\nThere are %d item(s) left in your checklist\n";
 
-        public static final String ChecklistEmpty = "Your checklist is empty (‾ 3‾)";
-        public static final String MarkNoChange = "No items were marked (‾ 3‾)";
-        public static final String UnmarkNoChange = "No items were unmarked (‾ 3‾)";
-        public static final String DeleteNoChange = "No items were deleted (‾ 3‾)";
+        public static final String WARNING_LIST_EMPTY = "Your checklist is empty (‾ 3‾)\n";
+        public static final String WARNING_MARKED_EMPTY = "No items were marked (‾ 3‾)\n";
+        public static final String WARNING_UNMARK_EMPTY = "No items were unmarked (‾ 3‾)\n";
+        public static final String WARNING_DELETE_EMPTY = "No items were deleted (‾ 3‾)\n";
 
-        public static final String MarkMissingArguments = "Nothing to mark -_-'";
-        public static final String UnmarkMissingArguments = "Nothing to unmark -_-'";
-        public static final String DeleteMissingArguments = "Nothing to delete -_-'";
-        public static final String TaskItemMissingName = "Task name can't be empty, duh °∀°?";
-        public static final String DeadlineMissing = "Task has no deadline? °∀°";
-        public static final String EventMissingStart = "Event can't start without start time °∀°";
-        public static final String EventMissingEnd = "Event can't end without end time °∀°";
+        public static final String ERROR_MARK_MISSING_ARGUMENT = "Nothing to mark -_-'\n";
+        public static final String ERROR_UNMARK_MISSING_ARGUMENT = "Nothing to unmark -_-'\n";
+        public static final String ERROR_DELETE_MISSING_ARGUMENT = "Nothing to delete -_-'\n";
+        public static final String ERROR_TASK_MISSING_NAME = "Task name can't be empty, duh °∀°?\n";
+        public static final String ERROR_DEADLINE_MISSING_DEADLINE = "Task has no deadline? °∀°";
+        public static final String ERROR_EVENT_MISSING_START_TIME = "Event can't start without start time °∀°\n";
+        public static final String ERROR_EVENT_MISSING_END_TIME = "Event can't end without end time °∀°\n";
 
-        public static final String CorruptedCacheFile = "..ca.che..fi.le..cor.rup.te..d.  Σ( ﾟДﾟ)";
-        public static final String IndexInvalid = "%d is not a valid index! >_<";
-        public static final String IndexTooLarge = "%d is too large! Your checklist only has %d item(s) >_<";
-        public static final String ArgumentNAN = "'%s' is not a number! (@ ~ @)";
-        public static final String InvalidDateTime = "Not a valid date! (@ ~ @)";
-        public static final String UnknownCommand = "No clue what %s means `O ᗝ O´╬";
+        public static final String ERROR_SAVE_CORRUPTED = "..ca.che..fi.le..cor.rup.te..d.  Σ( ﾟДﾟ)\n";
+        public static final String ERROR_SAVE_DENIED = "Somehow can't write save file?! Σ( ﾟДﾟ)\nCause: %s\n";
+        public static final String ERROR_INDEX = "%d is not a valid index! >_<\n";
+        public static final String ERROR_NAN = "'%s' is not a number! (@ ~ @)\n";
+        public static final String ERROR_DATETIME = "Not a valid date! (@ ~ @)\n";
+        public static final String ERROR_COMMAND = "No clue what %s means `O ᗝ O´╬\n";
     }
 
     private static final String CSV_SEPARATOR = ";";

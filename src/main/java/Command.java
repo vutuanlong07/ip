@@ -41,14 +41,9 @@ public record Command(Code code, String parameter, Map<String, String> flags) {
         }
     }
 
-    private static final String flagDelimiter = "/";
-    private static final Pattern commandPattern = Pattern.compile(
-            "^\\s*(?<code>"
-                    + Arrays.stream(Code.values()).map(Code::getCodeString).collect(Collectors.joining("|"))
-                    + ")\\b\\s*"
-    );
+    private static final String FLAG_DELIMITER = "/";
 
-    private static final Map<Code, Map<String, Pattern>> availableCommands = Stream
+    private static final Map<Code, Map<String, Pattern>> AVAILABLE_COMMANDS = Stream
             .<Map.Entry<Code, List<String>>>of(
                     Map.entry(Code.EXIT, List.of()),
                     Map.entry(Code.LIST, List.of("from", "to", "completed")),
@@ -67,25 +62,31 @@ public record Command(Code code, String parameter, Map<String, String> flags) {
                     pair.getValue().stream()
                             .map(flagName -> Map.entry(
                                     flagName,
-                                    Pattern.compile("\\s+" + flagDelimiter + flagName + "\\b\\s*")
+                                    Pattern.compile("\\s+" + FLAG_DELIMITER + flagName + "\\b\\s*")
                             ))
                             .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue))
 
             ))
             .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
 
+    private static final Pattern CODE_PATTERN = Pattern.compile(
+            "^\\s*(?<code>"
+                    + Arrays.stream(Code.values()).map(Code::getCodeString).collect(Collectors.joining("|"))
+                    + ")\\b\\s*"
+    );
+
     public static Command parseCommand(String input) {
-        Matcher codeMatcher = commandPattern.matcher(input);
+        Matcher codeMatcher = CODE_PATTERN.matcher(input);
         if (!codeMatcher.find()) {
-            throw new IllegalArgumentException("Invalid command");
+            throw new IllegalArgumentException("Malformed command");
         }
 
         Code code = Code.fromCodeString(codeMatcher.group("code"));
-        if (!availableCommands.containsKey(code)) {
+        if (!AVAILABLE_COMMANDS.containsKey(code)) {
             throw new IllegalArgumentException("Unknown command: " + code);
         }
 
-        Map<String, Matcher> flagMatchers = availableCommands.get(code).entrySet().stream()
+        Map<String, Matcher> flagMatchers = AVAILABLE_COMMANDS.get(code).entrySet().stream()
                 .map(pair -> Map.entry(
                         pair.getKey(),
                         pair.getValue().matcher(input)
