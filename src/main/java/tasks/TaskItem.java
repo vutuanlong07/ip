@@ -1,5 +1,7 @@
 package tasks;
 
+import java.time.LocalDateTime;
+
 public abstract class TaskItem {
     public enum ItemTag {
         Todo("T"),
@@ -44,6 +46,10 @@ public abstract class TaskItem {
         return this.isMarked;
     }
 
+    public boolean isUnmarked() {
+        return !this.isMarked;
+    }
+
     public String content() {
         return this.content;
     }
@@ -58,6 +64,14 @@ public abstract class TaskItem {
 
     public boolean unmark() {
         return this.isMarked != (this.isMarked = false);
+    }
+
+    public boolean isBefore(LocalDateTime end) {
+        return false;
+    }
+
+    public boolean isAfter(LocalDateTime start) {
+        return false;
     }
 
     @Override

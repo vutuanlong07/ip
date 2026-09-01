@@ -21,6 +21,16 @@ public final class DeadlineItem extends TaskItem {
     }
 
     @Override
+    public boolean isBefore(LocalDateTime start) {
+        return this.deadline.isBefore(start);
+    }
+
+    @Override
+    public boolean isAfter(LocalDateTime end) {
+        return this.deadline.isAfter(end);
+    }
+
+    @Override
     public String toString() {
         return super.toString() + " (by: " + DateTimeFormatter.formatDateTime(this.deadline()) + ")";
     }

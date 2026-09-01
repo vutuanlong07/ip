@@ -16,7 +16,7 @@ public final class EventItem extends TaskItem {
         this.start = start;
         this.end = end;
     }
-    public EventItem(String content, LocalDateTime start, LocalDateTime end) {
+    public EventItem(String content, LocalDateTime start, LocalDateTime end) throws IllegalArgumentException {
         super(content, ItemTag.Event);
         if (end.isBefore(start)) {
             throw new IllegalArgumentException("End time must be after start time");
@@ -31,6 +31,16 @@ public final class EventItem extends TaskItem {
 
     public LocalDateTime end() {
         return this.end;
+    }
+
+    @Override
+    public boolean isBefore(LocalDateTime start) {
+        return this.end.isBefore(start);
+    }
+
+    @Override
+    public boolean isAfter(LocalDateTime end) {
+        return this.start.isAfter(end);
     }
 
     @Override
