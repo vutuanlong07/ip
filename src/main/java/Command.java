@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 public record Command(Code code, String parameter, Map<String, String> flags) {
     public enum Code {
         EXIT("bye", List.of()),
+        LOAD("load", List.of()),
         SAVE("save", List.of()),
         LIST("list", List.of()),
         SEARCH("search", List.of("from", "to", "completed", "incomplete")),

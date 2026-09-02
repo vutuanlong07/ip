@@ -33,9 +33,11 @@ public class Marquee {
                                           | |
                                            \\|
             """;
-        public static final String START_MESSAGE = "Hi! I'm Marquee \\(>e<)/\nWhat will we do today? xD\n";
-        public static final String EXIT_MESSAGE = "See you later :3\n";
+        public static final String GREETINGS = "Hi! I'm Marquee \\(>e<)/\nWhat will we do today? xD\n";
 
+        public static final String SUCCESS_EXIT = "See you later :3\n";
+        public static final String SUCCESS_LOAD = "Checklist loaded successfully \\(>e<)/\nCurrent checklist:\n%s\n";
+        public static final String SUCCESS_SAVE = "Checklist saved successfully \\(>e<)/\nItem(s) written to file:\n%s\n";
         public static final String SUCCESS_LIST = "Current item(s) in your list:\n%s\n";
         public static final String SUCCESS_SEARCH = "Item(s) matching your search:\n%s\n";
         public static final String SUCCESS_ADD = "Added items(s):\n%s\nto the list (^_-☆ >c\nCurrently have %d item(s) in your checklist\n";
@@ -87,26 +89,33 @@ public class Marquee {
         loadChecklist();
     }
 
-    public void loadChecklist() {
+    public boolean loadChecklist() {
         try {
             readCSV();
+            System.out.printf(Dialogues.SUCCESS_LOAD, numberedList(checklist));
+            return true;
         } catch (IOException e) {
             System.out.print(Dialogues.ERROR_SAVE_CORRUPTED);
+            return false;
         }
     }
 
-    public void saveChecklist() {
+    public boolean saveChecklist() {
         try {
             writeCSV();
+            System.out.printf(Dialogues.SUCCESS_SAVE, numberedList(checklist));
+            return true;
         } catch (IOException e) {
             System.out.printf(Dialogues.ERROR_SAVE_UNAVAILABLE, e.getMessage());
+            return false;
         }
     }
 
     public void exit() {
-        saveChecklist();
-        System.out.print(Dialogues.EXIT_MESSAGE);
-        isRunning = false;
+        if (saveChecklist()) {
+            System.out.print(Dialogues.SUCCESS_EXIT);
+            isRunning = false;
+        }
     }
 
     public void list() {
@@ -198,7 +207,7 @@ public class Marquee {
     public void run() {
         isRunning = true;
         System.out.print(Dialogues.BANNER);
-        System.out.print(Dialogues.START_MESSAGE);
+        System.out.print(Dialogues.GREETINGS);
         while (isRunning) {
             String input;
             Command command;
@@ -221,6 +230,7 @@ public class Marquee {
             try {
                 switch (command.code()) {
                     case EXIT -> exit();
+                    case LOAD -> loadChecklist();
                     case SAVE -> saveChecklist();
                     case LIST -> list();
                     case SEARCH -> search(
@@ -365,13 +375,13 @@ public class Marquee {
 
     private String getInput() throws IOException {
         System.out.print("\n> ");
-        return this.inputReader.readLine();
+        return inputReader.readLine();
     }
 
     private void readCSV() throws IOException {
-        if (Files.isRegularFile(this.savePath) && Files.isReadable(this.savePath) && Files.isWritable(this.savePath)) {
+        if (Files.isRegularFile(savePath) && Files.isReadable(savePath) && Files.isWritable(savePath)) {
             List<TaskItem> checklist = new ArrayList<>();
-            String[] lines = Files.readString(this.savePath).split("\r\n");
+            String[] lines = Files.readString(savePath).split("\r\n");
 
             List<String> headers = Arrays.asList(lines[0].split(CSV_SEPARATOR));
             int tagIdx = headers.indexOf("tag");
@@ -426,10 +436,10 @@ public class Marquee {
     private void writeCSV() throws IOException {
         Path temp = null;
         try {
-            temp = Files.createTempFile(this.savePath.getParent(), null, null);
+            temp = Files.createTempFile(savePath.getParent(), null, null);
             Files.writeString(temp, Stream.concat(
                     Stream.of(String.join(CSV_SEPARATOR, "tag", "isMarked", "content", "start", "end")),
-                    this.checklist.stream()
+                    checklist.stream()
                             .map(taskItem -> String.join(CSV_SEPARATOR,
                                     taskItem.tag().label,
                                     Boolean.toString(taskItem.isMarked()),
@@ -444,7 +454,7 @@ public class Marquee {
                                               : ""
                             ))
             ).collect(Collectors.joining("\r\n")));
-            Files.move(temp, this.savePath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+            Files.move(temp, savePath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
         } finally {
             if (temp != null) {
                 Files.deleteIfExists(temp);
