@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -46,8 +49,8 @@ public class Marquee {
         public static final String GREETINGS = "Hi! I'm Marquee \\(>e<)/\nWhat will we do today? xD\n";
 
         public static final String SUCCESS_EXIT = "See you later :3\n";
-        public static final String SUCCESS_LOAD = "Checklist loaded successfully \\(>e<)/\nCurrent checklist:\n%s\n";
-        public static final String SUCCESS_SAVE = "Checklist saved successfully \\(>e<)/\nItem(s) written to file:\n%s\n";
+        public static final String SUCCESS_LOAD = "Checklist loaded successfully! :D\n";
+        public static final String SUCCESS_SAVE = "Checklist saved successfully :D\n";
         public static final String SUCCESS_LIST = "Current item(s) in your list:\n%s\n";
         public static final String SUCCESS_SEARCH = "Item(s) matching your search:\n%s\n";
         public static final String SUCCESS_ADD = "Added items(s):\n%s\nto the list (^_-☆ >c\nCurrently have %d item(s) in your checklist\n";
@@ -80,6 +83,7 @@ public class Marquee {
     private static final String CSV_SEPARATOR = ";";
 
     private final BufferedReader inputReader;
+    private final PrintStream outputStream;
     private final Path savePath;
 
     private List<TaskItem> checklist;
@@ -92,8 +96,9 @@ public class Marquee {
      * @param inputStream the input stream Marquee will read commands from
      * @param savePath    the path to the CSV file Marquee will save its checklist to
      */
-    public Marquee(InputStream inputStream, Path savePath) {
+    public Marquee(InputStream inputStream, OutputStream outputStream, Path savePath) {
         this.inputReader = new BufferedReader(new InputStreamReader(inputStream));
+        this.outputStream = new PrintStream(outputStream, true, StandardCharsets.UTF_8);
         this.savePath = savePath;
         this.checklist = new ArrayList<>();
         loadChecklist();
@@ -108,10 +113,10 @@ public class Marquee {
     public boolean loadChecklist() {
         try {
             readCSV();
-            System.out.printf(Dialogues.SUCCESS_LOAD, numberedList(checklist));
+            outputStream.print(Dialogues.SUCCESS_LOAD);
             return true;
         } catch (IOException e) {
-            System.out.print(Dialogues.ERROR_SAVE_CORRUPTED);
+            outputStream.print(Dialogues.ERROR_SAVE_CORRUPTED);
             return false;
         }
     }
@@ -125,10 +130,10 @@ public class Marquee {
     public boolean saveChecklist() {
         try {
             writeCSV();
-            System.out.printf(Dialogues.SUCCESS_SAVE, numberedList(checklist));
+            outputStream.print(Dialogues.SUCCESS_SAVE);
             return true;
         } catch (IOException e) {
-            System.out.printf(Dialogues.ERROR_SAVE_UNAVAILABLE, e.getMessage());
+            outputStream.printf(Dialogues.ERROR_SAVE_UNAVAILABLE, e.getMessage());
             return false;
         }
     }
@@ -136,41 +141,41 @@ public class Marquee {
 
     public void exit() {
         if (saveChecklist()) {
-            System.out.print(Dialogues.SUCCESS_EXIT);
+            outputStream.print(Dialogues.SUCCESS_EXIT);
             isRunning = false;
         }
     }
 
     public void list() {
         if (checklist.isEmpty()) {
-            System.out.print(Dialogues.WARNING_LIST_EMPTY);
+            outputStream.print(Dialogues.WARNING_LIST_EMPTY);
         } else {
-            System.out.printf(Dialogues.SUCCESS_LIST, numberedList(checklist));
+            outputStream.printf(Dialogues.SUCCESS_LIST, numberedList(checklist));
         }
     }
 
     public void search(String search, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
         List<TaskItem> matchingItems = filterTasks(search, start, end, isMarked);
         if (matchingItems.isEmpty()) {
-            System.out.print(Dialogues.WARNING_SEARCH_EMPTY);
+            outputStream.print(Dialogues.WARNING_SEARCH_EMPTY);
         } else {
-            System.out.printf(Dialogues.SUCCESS_SEARCH, numberedList(matchingItems));
+            outputStream.printf(Dialogues.SUCCESS_SEARCH, numberedList(matchingItems));
         }
     }
 
     public void addTasks(TaskItem... tasks) {
         List<TaskItem> newTasks = List.of(tasks);
         checklist.addAll(newTasks);
-        System.out.printf(Dialogues.SUCCESS_ADD, bulletList(newTasks), checklist.size());
+        outputStream.printf(Dialogues.SUCCESS_ADD, bulletList(newTasks), checklist.size());
     }
 
     public void deleteTasks(int... indices) {
         if (checklist.isEmpty()) {
-            System.out.print(Dialogues.WARNING_LIST_EMPTY);
+            outputStream.print(Dialogues.WARNING_LIST_EMPTY);
         }
         for (int i : indices) {
             if (i < 1 || i > checklist.size()) {
-                System.out.printf(Dialogues.ERROR_INDEX, i);
+                outputStream.printf(Dialogues.ERROR_INDEX, i);
                 return;
             }
         }
@@ -179,19 +184,19 @@ public class Marquee {
                 .filter(Objects::nonNull)
                 .toList();
         if (removedItems.isEmpty()) {
-            System.out.print(Dialogues.WARNING_DELETE_EMPTY);
+            outputStream.print(Dialogues.WARNING_DELETE_EMPTY);
         } else {
-            System.out.printf(Dialogues.SUCCESS_DELETE, bulletList(removedItems), checklist.size());
+            outputStream.printf(Dialogues.SUCCESS_DELETE, bulletList(removedItems), checklist.size());
         }
     }
 
     public void markTasks(int... indices) {
         if (checklist.isEmpty()) {
-            System.out.print(Dialogues.WARNING_LIST_EMPTY);
+            outputStream.print(Dialogues.WARNING_LIST_EMPTY);
         }
         for (int i : indices) {
             if (i < 1 || i > checklist.size()) {
-                System.out.printf(Dialogues.ERROR_INDEX, i);
+                outputStream.printf(Dialogues.ERROR_INDEX, i);
                 return;
             }
         }
@@ -200,19 +205,19 @@ public class Marquee {
                 .filter(TaskItem::mark)
                 .toList();
         if (markedItems.isEmpty()) {
-            System.out.print(Dialogues.WARNING_MARK_EMPTY);
+            outputStream.print(Dialogues.WARNING_MARK_EMPTY);
         } else {
-            System.out.printf(Dialogues.SUCCESS_MARK, bulletList(markedItems));
+            outputStream.printf(Dialogues.SUCCESS_MARK, bulletList(markedItems));
         }
     }
 
     public void unmarkTasks(int... indices) {
         if (checklist.isEmpty()) {
-            System.out.print(Dialogues.WARNING_LIST_EMPTY);
+            outputStream.print(Dialogues.WARNING_LIST_EMPTY);
         }
         for (int i : indices) {
             if (i < 1 || i > checklist.size()) {
-                System.out.printf(Dialogues.ERROR_INDEX, i);
+                outputStream.printf(Dialogues.ERROR_INDEX, i);
                 return;
             }
         }
@@ -221,16 +226,16 @@ public class Marquee {
                 .filter(TaskItem::unmark)
                 .toList();
         if (unmarkedItems.isEmpty()) {
-            System.out.print(Dialogues.WARNING_UNMARK_EMPTY);
+            outputStream.print(Dialogues.WARNING_UNMARK_EMPTY);
         } else {
-            System.out.printf(Dialogues.SUCCESS_UNMARK, bulletList(unmarkedItems));
+            outputStream.printf(Dialogues.SUCCESS_UNMARK, bulletList(unmarkedItems));
         }
     }
 
     public void run() {
         isRunning = true;
-        System.out.print(Dialogues.BANNER);
-        System.out.print(Dialogues.GREETINGS);
+        outputStream.print(Dialogues.BANNER);
+        outputStream.print(Dialogues.GREETINGS);
         while (isRunning) {
             String input;
             Command command;
@@ -238,7 +243,7 @@ public class Marquee {
             try {
                 input = getInput();
             } catch (IOException e) {
-                System.out.print(Dialogues.FATAL_ERROR_IO_UNAVAILABLE);
+                outputStream.print(Dialogues.FATAL_ERROR_IO_UNAVAILABLE);
                 exit();
                 continue;
             }
@@ -246,7 +251,7 @@ public class Marquee {
             try {
                 command = Command.parseCommand(input);
             } catch (IllegalArgumentException e) {
-                System.out.printf(Dialogues.ERROR_UNKNOWN_COMMAND, input);
+                outputStream.printf(Dialogues.ERROR_UNKNOWN_COMMAND, input);
                 continue;
             }
 
@@ -270,16 +275,16 @@ public class Marquee {
                     );
                     case TODO -> {
                         if (command.parameter().isEmpty()) {
-                            System.out.print(Dialogues.ERROR_TASK_MISSING_NAME);
+                            outputStream.print(Dialogues.ERROR_TASK_MISSING_NAME);
                         } else {
                             addTasks(new TodoItem(command.parameter()));
                         }
                     }
                     case DEADLINE -> {
                         if (command.parameter().isEmpty()) {
-                            System.out.print(Dialogues.ERROR_TASK_MISSING_NAME);
+                            outputStream.print(Dialogues.ERROR_TASK_MISSING_NAME);
                         } else if (!command.flags().containsKey("by")) {
-                            System.out.print(Dialogues.ERROR_DEADLINE_MISSING_DEADLINE);
+                            outputStream.print(Dialogues.ERROR_DEADLINE_MISSING_DEADLINE);
                         } else {
                             addTasks(new DeadlineItem(
                                     command.parameter(),
@@ -289,11 +294,11 @@ public class Marquee {
                     }
                     case EVENT -> {
                         if (command.parameter().isEmpty()) {
-                            System.out.print(Dialogues.ERROR_TASK_MISSING_NAME);
+                            outputStream.print(Dialogues.ERROR_TASK_MISSING_NAME);
                         } else if (!command.flags().containsKey("from")) {
-                            System.out.print(Dialogues.ERROR_EVENT_MISSING_START_TIME);
+                            outputStream.print(Dialogues.ERROR_EVENT_MISSING_START_TIME);
                         } else if (!command.flags().containsKey("to")) {
-                            System.out.print(Dialogues.ERROR_EVENT_MISSING_END_TIME);
+                            outputStream.print(Dialogues.ERROR_EVENT_MISSING_END_TIME);
                         } else {
                             try {
                                 addTasks(new EventItem(
@@ -302,7 +307,7 @@ public class Marquee {
                                         DateTimeFormatter.parseDateTime(command.flags().get("to"))
                                 ));
                             } catch (IllegalArgumentException _) {
-                                System.out.print(Dialogues.ERROR_EVENT_END_BEFORE_START);
+                                outputStream.print(Dialogues.ERROR_EVENT_END_BEFORE_START);
                             }
                         }
                     }
@@ -310,12 +315,10 @@ public class Marquee {
                         try {
                             deleteTasks(parseIntArray(command.parameter()));
                         } catch (NumberFormatException e) {
-                            System.out.printf(Dialogues.ERROR_NAN, e.getMessage());
+                            outputStream.printf(Dialogues.ERROR_NAN, e.getMessage());
                         }
                     }
-                    case DELETE_ALL -> {
-                        deleteTasks(IntStream.rangeClosed(1, checklist.size()).toArray());
-                    }
+                    case DELETE_ALL -> deleteTasks(IntStream.rangeClosed(1, checklist.size()).toArray());
                     case DELETE_MATCHING -> deleteTasks(
                             filterTasks(
                                     command.parameter(),
@@ -336,12 +339,10 @@ public class Marquee {
                         try {
                             markTasks(parseIntArray(command.parameter()));
                         } catch (NumberFormatException e) {
-                            System.out.printf(Dialogues.ERROR_NAN, e.getMessage());
+                            outputStream.printf(Dialogues.ERROR_NAN, e.getMessage());
                         }
                     }
-                    case MARK_ALL -> {
-                        markTasks(IntStream.rangeClosed(1, checklist.size()).toArray());
-                    }
+                    case MARK_ALL -> markTasks(IntStream.rangeClosed(1, checklist.size()).toArray());
                     case MARK_MATCHING -> markTasks(
                             filterTasks(
                                     command.parameter(),
@@ -362,12 +363,10 @@ public class Marquee {
                         try {
                             unmarkTasks(parseIntArray(command.parameter()));
                         } catch (NumberFormatException e) {
-                            System.out.printf(Dialogues.ERROR_NAN, e.getMessage());
+                            outputStream.printf(Dialogues.ERROR_NAN, e.getMessage());
                         }
                     }
-                    case UNMARK_ALL -> {
-                        unmarkTasks(IntStream.rangeClosed(1, checklist.size()).toArray());
-                    }
+                    case UNMARK_ALL -> unmarkTasks(IntStream.rangeClosed(1, checklist.size()).toArray());
                     case UNMARK_MATCHING -> unmarkTasks(
                             filterTasks(
                                     command.parameter(),
@@ -386,18 +385,18 @@ public class Marquee {
                     );
                 }
             } catch (DateTimeParseException e) {
-                System.out.print(Dialogues.ERROR_DATETIME);
+                outputStream.print(Dialogues.ERROR_DATETIME);
             }
         }
     }
 
     public static void main(String[] args) {
-        Marquee chatbot = new Marquee(System.in, Path.of("./checklist.csv"));
+        Marquee chatbot = new Marquee(System.in, System.out, Path.of("./checklist.csv"));
         chatbot.run();
     }
 
     private String getInput() throws IOException {
-        System.out.print("\n> ");
+        outputStream.print("\n> ");
         return inputReader.readLine();
     }
 
