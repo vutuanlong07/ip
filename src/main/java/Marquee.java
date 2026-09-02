@@ -6,10 +6,11 @@ import time.DateTimeFormatter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -65,43 +66,47 @@ public class Marquee {
     }
 
     private static final String CSV_SEPARATOR = ";";
-    private static final BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
+
+    private final BufferedReader inputReader;
+    private final Path savePath;
 
     private List<TaskItem> checklist;
-    private final Path checklistPath;
     private boolean isRunning;
 
-    public Marquee(Path checklistPath) {
-        this.checklistPath = checklistPath;
+    /**
+     * Instantiates an instance of Marquee and attempts to load its checklist from the given filepath.
+     * If loading fails, starts with an empty checklist.
+     *
+     * @param inputStream The input stream Marquee will read commands from
+     * @param savePath The path to the CSV file Marquee will save its checklist to
+     */
+    public Marquee(InputStream inputStream, Path savePath) {
+        this.inputReader = new BufferedReader(new InputStreamReader(inputStream));
+        this.savePath = savePath;
+        this.checklist = new ArrayList<>();
         loadChecklist();
     }
 
     public void loadChecklist() {
         try {
-            this.checklist = readCSV(checklistPath);
+            readCSV();
         } catch (IOException e) {
-            this.checklist = new ArrayList<>();
             System.out.print(Dialogues.ERROR_SAVE_CORRUPTED);
         }
     }
 
     public void saveChecklist() {
         try {
-            writeCSV(checklist, checklistPath);
+            writeCSV();
         } catch (IOException e) {
             System.out.printf(Dialogues.ERROR_SAVE_UNAVAILABLE, e.getMessage());
         }
     }
 
     public void exit() {
-        try {
-            writeCSV(checklist, checklistPath);
-            System.out.print(Dialogues.EXIT_MESSAGE);
-            isRunning = false;
-        } catch (IOException e) {
-            System.out.printf(Dialogues.ERROR_SAVE_UNAVAILABLE, e.getMessage());
-            list();
-        }
+        saveChecklist();
+        System.out.print(Dialogues.EXIT_MESSAGE);
+        isRunning = false;
     }
 
     public void list() {
@@ -354,23 +359,19 @@ public class Marquee {
     }
 
     public static void main(String[] args) {
-        Marquee chatbot = new Marquee(Path.of("./checklist.csv"));
+        Marquee chatbot = new Marquee(System.in, Path.of("./checklist.csv"));
         chatbot.run();
     }
 
-    private static String getInput() throws IOException {
+    private String getInput() throws IOException {
         System.out.print("\n> ");
-        return inputReader.readLine();
+        return this.inputReader.readLine();
     }
 
-    private static List<TaskItem> readCSV(Path file) throws IOException {
-        try {
-            Files.createFile(file);
-            Files.writeString(file, String.join(CSV_SEPARATOR, "tag", "isMarked", "content", "start", "end"));
-            return new ArrayList<>();
-        } catch (FileAlreadyExistsException _) {
+    private void readCSV() throws IOException {
+        if (Files.isRegularFile(this.savePath) && Files.isReadable(this.savePath) && Files.isWritable(this.savePath)) {
             List<TaskItem> checklist = new ArrayList<>();
-            String[] lines = Files.readString(file).split("\r\n");
+            String[] lines = Files.readString(this.savePath).split("\r\n");
 
             List<String> headers = Arrays.asList(lines[0].split(CSV_SEPARATOR));
             int tagIdx = headers.indexOf("tag");
@@ -416,29 +417,39 @@ public class Marquee {
                     throw new IOException("Save file is corrupted");
                 }
             }
-
-            return checklist;
+            this.checklist = checklist;
+        } else {
+            throw new IOException("File not found or inaccessible");
         }
     }
 
-    private static void writeCSV(List<TaskItem> checklist, Path file) throws IOException {
-        Files.writeString(file, Stream.concat(
-            Stream.of(String.join(CSV_SEPARATOR, "tag", "isMarked", "content", "start", "end")),
-            checklist.stream()
-                    .map(taskItem -> String.join(CSV_SEPARATOR,
-                            taskItem.tag().label,
-                            Boolean.toString(taskItem.isMarked()),
-                            taskItem.content(),
-                            taskItem instanceof EventItem
-                                    ? ((EventItem) taskItem).start().toString()
-                                    : "",
-                            taskItem instanceof DeadlineItem
-                                    ? ((DeadlineItem) taskItem).deadline().toString()
-                                    : taskItem instanceof EventItem
-                                      ? ((EventItem) taskItem).end().toString()
-                                      : ""
-                    ))
-        ).collect(Collectors.joining("\r\n")));
+    private void writeCSV() throws IOException {
+        Path temp = null;
+        try {
+            temp = Files.createTempFile(this.savePath.getParent(), null, null);
+            Files.writeString(temp, Stream.concat(
+                    Stream.of(String.join(CSV_SEPARATOR, "tag", "isMarked", "content", "start", "end")),
+                    this.checklist.stream()
+                            .map(taskItem -> String.join(CSV_SEPARATOR,
+                                    taskItem.tag().label,
+                                    Boolean.toString(taskItem.isMarked()),
+                                    taskItem.content(),
+                                    taskItem instanceof EventItem
+                                            ? ((EventItem) taskItem).start().toString()
+                                            : "",
+                                    taskItem instanceof DeadlineItem
+                                            ? ((DeadlineItem) taskItem).deadline().toString()
+                                            : taskItem instanceof EventItem
+                                              ? ((EventItem) taskItem).end().toString()
+                                              : ""
+                            ))
+            ).collect(Collectors.joining("\r\n")));
+            Files.move(temp, this.savePath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            if (temp != null) {
+                Files.deleteIfExists(temp);
+            }
+        }
     }
 
     private static int[] parseIntArray(String input) throws NumberFormatException {
