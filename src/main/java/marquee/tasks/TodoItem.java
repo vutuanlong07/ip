@@ -1,4 +1,4 @@
-package tasks;
+package marquee.tasks;
 
 public final class TodoItem extends TaskItem {
     public TodoItem(String content, boolean isMarked) {

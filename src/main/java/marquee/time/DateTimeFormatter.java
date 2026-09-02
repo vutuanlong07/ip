@@ -1,4 +1,4 @@
-package time;
+package marquee.time;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;

@@ -1,8 +1,4 @@
-import tasks.DeadlineItem;
-import tasks.EventItem;
-import tasks.TaskItem;
-import tasks.TodoItem;
-import time.DateTimeFormatter;
+package marquee;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,7 +17,21 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import marquee.tasks.DeadlineItem;
+import marquee.tasks.EventItem;
+import marquee.tasks.TaskItem;
+import marquee.tasks.TodoItem;
+import marquee.time.DateTimeFormatter;
+
+/**
+ * Main class for the standalone chatbot Marquee.
+ *
+ * @author Vu Tuan Long
+ */
 public class Marquee {
+    /**
+     * Data class for all dialogues used by Marquee.
+     */
     public static final class Dialogues {
         public static final String BANNER = """
             ____  ___
@@ -79,8 +89,8 @@ public class Marquee {
      * Instantiates an instance of Marquee and attempts to load its checklist from the given filepath.
      * If loading fails, starts with an empty checklist.
      *
-     * @param inputStream The input stream Marquee will read commands from
-     * @param savePath The path to the CSV file Marquee will save its checklist to
+     * @param inputStream the input stream Marquee will read commands from
+     * @param savePath    the path to the CSV file Marquee will save its checklist to
      */
     public Marquee(InputStream inputStream, Path savePath) {
         this.inputReader = new BufferedReader(new InputStreamReader(inputStream));
@@ -89,6 +99,12 @@ public class Marquee {
         loadChecklist();
     }
 
+    /**
+     * Attempts to load the checklist from the save file.
+     * If the operation fails, no change is made to the checklist.
+     *
+     * @return Whether the file was read successfully
+     */
     public boolean loadChecklist() {
         try {
             readCSV();
@@ -100,6 +116,12 @@ public class Marquee {
         }
     }
 
+    /**
+     * Saves the checklist into the save file.
+     * If the operation fails,
+     *
+     * @return Whether the file was written successfully
+     */
     public boolean saveChecklist() {
         try {
             writeCSV();
@@ -110,6 +132,7 @@ public class Marquee {
             return false;
         }
     }
+
 
     public void exit() {
         if (saveChecklist()) {
