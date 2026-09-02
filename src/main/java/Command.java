@@ -2,22 +2,25 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public record Command(Code code, String parameter, Map<String, String> flags) {
     public enum Code {
-        EXIT("bye"),
-        LIST("list"),
-        SEARCH("search"),
-        TODO("todo"),
-        DEADLINE("deadline"),
-        EVENT("event"),
-        DELETE("delete"),
-        DELETE_MANY("delete many"),
-        MARK("mark"),
-        MARK_MANY("mark many"),
-        UNMARK("unmark"),
-        UNMARK_MANY("unmark many");
+        EXIT("bye", List.of()),
+        SAVE("save", List.of()),
+        LIST("list", List.of()),
+        SEARCH("search", List.of("from", "to", "completed", "incomplete")),
+        TODO("todo", List.of("completed")),
+        DEADLINE("deadline", List.of("by", "completed", "incomplete")),
+        EVENT("event", List.of("from", "to", "completed", "incomplete")),
+        DELETE("delete", List.of()),
+        DELETE_ALL("delete all", List.of()),
+        DELETE_MATCHING("delete matching", List.of("from", "to", "completed", "incomplete")),
+        MARK("mark", List.of()),
+        MARK_ALL("mark all", List.of()),
+        MARK_MATCHING("mark matching", List.of("from", "to", "completed", "incomplete")),
+        UNMARK("unmark", List.of()),
+        UNMARK_ALL("unmark all", List.of()),
+        UNMARK_MATCHING("unmark matching", List.of("from", "to", "completed", "incomplete"));
 
         private static final Map<String, Code> BY_CODE_STRING = new HashMap<>();
 
@@ -28,9 +31,11 @@ public record Command(Code code, String parameter, Map<String, String> flags) {
         }
 
         private final String codeString;
+        private final List<String> flagNames;
 
-        Code(String codeString) {
+        Code(String codeString, List<String> flagNames) {
             this.codeString = codeString;
+            this.flagNames = flagNames;
         }
 
         public static Code fromCodeString(String codeString) {
@@ -40,28 +45,18 @@ public record Command(Code code, String parameter, Map<String, String> flags) {
         public String getCodeString() {
             return this.codeString;
         }
+
+        public List<String> getFlagNames() {
+            return this.flagNames;
+        }
     }
 
     private static final String FLAG_DELIMITER = "/";
 
-    private static final Map<Code, Map<String, Pattern>> AVAILABLE_COMMANDS = Stream
-            .<Map.Entry<Code, List<String>>>of(
-                    Map.entry(Code.EXIT, List.of()),
-                    Map.entry(Code.LIST, List.of()),
-                    Map.entry(Code.SEARCH, List.of("from", "to", "completed")),
-                    Map.entry(Code.TODO, List.of("completed")),
-                    Map.entry(Code.DEADLINE, List.of("by", "completed")),
-                    Map.entry(Code.EVENT, List.of("from", "to", "completed")),
-                    Map.entry(Code.DELETE, List.of()),
-                    Map.entry(Code.DELETE_MANY, List.of("from", "to", "completed", "containing")),
-                    Map.entry(Code.MARK, List.of()),
-                    Map.entry(Code.MARK_MANY, List.of("from", "to", "completed", "containing")),
-                    Map.entry(Code.UNMARK, List.of()),
-                    Map.entry(Code.UNMARK_MANY, List.of("from", "to", "completed", "containing"))
-            )
-            .map(pair -> Map.entry(
-                    pair.getKey(),
-                    pair.getValue().stream()
+    private static final Map<Code, Map<String, Pattern>> AVAILABLE_COMMANDS = Arrays.stream(Code.values())
+            .map(code -> Map.entry(
+                    code,
+                    code.getFlagNames().stream()
                             .map(flagName -> Map.entry(
                                     flagName,
                                     Pattern.compile("\\s+" + FLAG_DELIMITER + flagName + "\\b\\s*")
@@ -73,11 +68,17 @@ public record Command(Code code, String parameter, Map<String, String> flags) {
 
     private static final Pattern CODE_PATTERN = Pattern.compile(
             "^\\s*(?<code>"
-                    + Arrays.stream(Code.values()).map(Code::getCodeString).collect(Collectors.joining("|"))
+                    + Arrays.stream(Code.values())
+                    .sorted(Comparator
+                            .<Code>comparingInt(code -> code.getCodeString().length())
+                            .reversed()
+                    )
+                    .map(Code::getCodeString)
+                    .collect(Collectors.joining("|"))
                     + ")\\b\\s*"
     );
 
-    public static Command parseCommand(String input) {
+    public static Command parseCommand(String input) throws IllegalArgumentException {
         Matcher codeMatcher = CODE_PATTERN.matcher(input);
         if (!codeMatcher.find()) {
             throw new IllegalArgumentException("Malformed command");

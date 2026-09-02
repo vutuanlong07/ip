@@ -12,7 +12,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -27,158 +30,335 @@ public class Marquee {
             |_| |/ |_| \\____/\\_ |_|   \\___  | \\_____\\ \\____) \\____)
                                           | |
                                           | |
-                                           \\|""";
+                                           \\|
+            """;
         public static final String START_MESSAGE = "Hi! I'm Marquee \\(>e<)/\nWhat will we do today? xD\n";
         public static final String EXIT_MESSAGE = "See you later :3\n";
 
         public static final String SUCCESS_LIST = "Current item(s) in your list:\n%s\n";
-        public static final String SUCCESS_ADD = "Added task:\n  %s\nto the list (^_-☆ >c\nCurrently have %d item(s) in your checklist\n";
+        public static final String SUCCESS_SEARCH = "Item(s) matching your search:\n%s\n";
+        public static final String SUCCESS_ADD = "Added items(s):\n%s\nto the list (^_-☆ >c\nCurrently have %d item(s) in your checklist\n";
+        public static final String SUCCESS_DELETE = "Deleted items(s):\n%s\nfrom the list (σ_σ.╒══⚟\nThere are %d item(s) left in your checklist\n";
         public static final String SUCCESS_MARK = "These item(s) were marked:\n%s\n";
         public static final String SUCCESS_UNMARK = "These item(s) were unmarked:\n%s\n";
-        public static final String SUCCESS_DELETE = "These item(s) were deleted:\n%s\nThere are %d item(s) left in your checklist\n";
 
         public static final String WARNING_LIST_EMPTY = "Your checklist is empty (‾ 3‾)\n";
-        public static final String WARNING_MARKED_EMPTY = "No items were marked (‾ 3‾)\n";
+        public static final String WARNING_SEARCH_EMPTY = "No items matched your search (‾ 3‾)\n";
+        public static final String WARNING_MARK_EMPTY = "No items were marked (‾ 3‾)\n";
         public static final String WARNING_UNMARK_EMPTY = "No items were unmarked (‾ 3‾)\n";
         public static final String WARNING_DELETE_EMPTY = "No items were deleted (‾ 3‾)\n";
 
-        public static final String ERROR_MARK_MISSING_ARGUMENT = "Nothing to mark -_-'\n";
-        public static final String ERROR_UNMARK_MISSING_ARGUMENT = "Nothing to unmark -_-'\n";
-        public static final String ERROR_DELETE_MISSING_ARGUMENT = "Nothing to delete -_-'\n";
         public static final String ERROR_TASK_MISSING_NAME = "Task name can't be empty, duh °∀°?\n";
-        public static final String ERROR_DEADLINE_MISSING_DEADLINE = "Task has no deadline? °∀°";
-        public static final String ERROR_EVENT_MISSING_START_TIME = "Event can't start without start time °∀°\n";
-        public static final String ERROR_EVENT_MISSING_END_TIME = "Event can't end without end time °∀°\n";
+        public static final String ERROR_DEADLINE_MISSING_DEADLINE = "Task has no deadline? °∀°?";
+        public static final String ERROR_EVENT_MISSING_START_TIME = "Event can't start without start time °∀°?\n";
+        public static final String ERROR_EVENT_MISSING_END_TIME = "Event can't end without end time °∀°?\n";
+        public static final String ERROR_EVENT_END_BEFORE_START = "Event ending before it starts? °∀°?\n";
 
-        public static final String ERROR_SAVE_CORRUPTED = "..ca.che..fi.le..cor.rup.te..d.  Σ( ﾟДﾟ)\n";
-        public static final String ERROR_SAVE_DENIED = "Somehow can't write save file?! Σ( ﾟДﾟ)\nCause: %s\n";
+        public static final String ERROR_SAVE_CORRUPTED = "..ca.che..fi.le..cor.rup.te..d.  Σ( ﾟДﾟ)!\n";
+        public static final String ERROR_SAVE_UNAVAILABLE = "Somehow can't write save file?! Σ( ﾟДﾟ)!\nCause: %s\n";
         public static final String ERROR_INDEX = "%d is not a valid index! >_<\n";
         public static final String ERROR_NAN = "'%s' is not a number! (@ ~ @)\n";
         public static final String ERROR_DATETIME = "Not a valid date! (@ ~ @)\n";
-        public static final String ERROR_COMMAND = "No clue what %s means `O ᗝ O´╬\n";
+        public static final String ERROR_UNKNOWN_COMMAND = "No clue what '%s' means `O ᗝ O´╬\n";
+
+        public static final String FATAL_ERROR_IO_UNAVAILABLE = "I can't see anything #.#\n";
     }
 
     private static final String CSV_SEPARATOR = ";";
-
-    private static final Path checklistPath = Path.of("./checklist.csv");
     private static final BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
 
-    public static void main(String[] args) throws IOException {
-        System.out.println(Dialogues.Banner);
-        List<TaskItem> checklist = readCSV();
-        System.out.println(Dialogues.Greetings);
-        while (true) {
-            String rawInput = getInput();
-            Command command = Command.parseCommand(rawInput);
-            switch (command.code()) {
-                case Command.Code.EXIT -> {
-                    System.out.println(Dialogues.Goodbye);
-                    writeCSV(checklist);
-                    return;
-                }
-                case Command.Code.LIST -> {
-                    if (checklist.isEmpty()) {
-                        System.out.println(Dialogues.DisplayListEmpty);
-                    } else {
-                        System.out.println(Dialogues.DisplayListSuccessful);
-                        System.out.print(numberedList(checklist));
+    private List<TaskItem> checklist;
+    private final Path checklistPath;
+    private boolean isRunning;
+
+    public Marquee(Path checklistPath) {
+        this.checklistPath = checklistPath;
+        loadChecklist();
+    }
+
+    public void loadChecklist() {
+        try {
+            this.checklist = readCSV(checklistPath);
+        } catch (IOException e) {
+            this.checklist = new ArrayList<>();
+            System.out.print(Dialogues.ERROR_SAVE_CORRUPTED);
+        }
+    }
+
+    public void saveChecklist() {
+        try {
+            writeCSV(checklist, checklistPath);
+        } catch (IOException e) {
+            System.out.printf(Dialogues.ERROR_SAVE_UNAVAILABLE, e.getMessage());
+        }
+    }
+
+    public void exit() {
+        try {
+            writeCSV(checklist, checklistPath);
+            System.out.print(Dialogues.EXIT_MESSAGE);
+            isRunning = false;
+        } catch (IOException e) {
+            System.out.printf(Dialogues.ERROR_SAVE_UNAVAILABLE, e.getMessage());
+            list();
+        }
+    }
+
+    public void list() {
+        if (checklist.isEmpty()) {
+            System.out.print(Dialogues.WARNING_LIST_EMPTY);
+        } else {
+            System.out.printf(Dialogues.SUCCESS_LIST, numberedList(checklist));
+        }
+    }
+
+    public void search(String search, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
+        List<TaskItem> matchingItems = filterTasks(search, start, end, isMarked);
+        if (matchingItems.isEmpty()) {
+            System.out.print(Dialogues.WARNING_SEARCH_EMPTY);
+        } else {
+            System.out.printf(Dialogues.SUCCESS_SEARCH, numberedList(matchingItems));
+        }
+    }
+
+    public void addTasks(TaskItem... tasks) {
+        List<TaskItem> newTasks = List.of(tasks);
+        checklist.addAll(newTasks);
+        System.out.printf(Dialogues.SUCCESS_ADD, bulletList(newTasks), checklist.size());
+    }
+
+    public void deleteTasks(int... indices) {
+        if (checklist.isEmpty()) {
+            System.out.print(Dialogues.WARNING_LIST_EMPTY);
+        }
+        for (int i : indices) {
+            if (i < 1 || i > checklist.size()) {
+                System.out.printf(Dialogues.ERROR_INDEX, i);
+                return;
+            }
+        }
+        List<TaskItem> removedItems = IntStream.of(indices)
+                .mapToObj(i -> checklist.remove(i - 1))
+                .filter(Objects::nonNull)
+                .toList();
+        if (removedItems.isEmpty()) {
+            System.out.print(Dialogues.WARNING_DELETE_EMPTY);
+        } else {
+            System.out.printf(Dialogues.SUCCESS_DELETE, bulletList(removedItems), checklist.size());
+        }
+    }
+
+    public void markTasks(int... indices) {
+        if (checklist.isEmpty()) {
+            System.out.print(Dialogues.WARNING_LIST_EMPTY);
+        }
+        for (int i : indices) {
+            if (i < 1 || i > checklist.size()) {
+                System.out.printf(Dialogues.ERROR_INDEX, i);
+                return;
+            }
+        }
+        List<TaskItem> markedItems = IntStream.of(indices)
+                .mapToObj(i -> checklist.get(i - 1))
+                .filter(TaskItem::mark)
+                .toList();
+        if (markedItems.isEmpty()) {
+            System.out.print(Dialogues.WARNING_MARK_EMPTY);
+        } else {
+            System.out.printf(Dialogues.SUCCESS_MARK, bulletList(markedItems));
+        }
+    }
+
+    public void unmarkTasks(int... indices) {
+        if (checklist.isEmpty()) {
+            System.out.print(Dialogues.WARNING_LIST_EMPTY);
+        }
+        for (int i : indices) {
+            if (i < 1 || i > checklist.size()) {
+                System.out.printf(Dialogues.ERROR_INDEX, i);
+                return;
+            }
+        }
+        List<TaskItem> unmarkedItems = IntStream.of(indices)
+                .mapToObj(i -> checklist.get(i - 1))
+                .filter(TaskItem::unmark)
+                .toList();
+        if (unmarkedItems.isEmpty()) {
+            System.out.print(Dialogues.WARNING_UNMARK_EMPTY);
+        } else {
+            System.out.printf(Dialogues.SUCCESS_UNMARK, bulletList(unmarkedItems));
+        }
+    }
+
+    public void run() {
+        isRunning = true;
+        System.out.print(Dialogues.BANNER);
+        System.out.print(Dialogues.START_MESSAGE);
+        while (isRunning) {
+            String input;
+            Command command;
+
+            try {
+                input = getInput();
+            } catch (IOException e) {
+                System.out.print(Dialogues.FATAL_ERROR_IO_UNAVAILABLE);
+                exit();
+                continue;
+            }
+
+            try {
+                command = Command.parseCommand(input);
+            } catch (IllegalArgumentException e) {
+                System.out.printf(Dialogues.ERROR_UNKNOWN_COMMAND, input);
+                continue;
+            }
+
+            try {
+                switch (command.code()) {
+                    case EXIT -> exit();
+                    case SAVE -> saveChecklist();
+                    case LIST -> list();
+                    case SEARCH -> search(
+                            command.parameter(),
+                            command.flags().containsKey("from")
+                                    ? DateTimeFormatter.parseDateTime(command.flags().get("from"))
+                                    : null,
+                            command.flags().containsKey("to")
+                                    ? DateTimeFormatter.parseDateTime(command.flags().get("to"))
+                                    : null,
+                            command.flags().containsKey("completed") != command.flags().containsKey("incomplete")
+                                    ? command.flags().containsKey("completed")
+                                    : null
+                    );
+                    case TODO -> {
+                        if (command.parameter().isEmpty()) {
+                            System.out.print(Dialogues.ERROR_TASK_MISSING_NAME);
+                        } else {
+                            addTasks(new TodoItem(command.parameter()));
+                        }
                     }
-                }
-                case Command.Code.TODO -> {
-                    if (command.parameter().isEmpty()) {
-                        System.out.println(Dialogues.TaskItemMissingName);
-                    } else {
-                        TodoItem toDoItem = new TodoItem(command.parameter());
-                        checklist.add(toDoItem);
-                        System.out.printf(Dialogues.AddTaskSuccessful + "\n", toDoItem, checklist.size());
-                    }
-                }
-                case Command.Code.DEADLINE -> {
-                    if (command.parameter().isEmpty()) {
-                        System.out.println(Dialogues.TaskItemMissingName);
-                    } else if (!command.flags().containsKey("by")) {
-                        System.out.println(Dialogues.DeadlineMissing);
-                    } else {
-                        try {
-                            DeadlineItem deadlineItem = new DeadlineItem(
+                    case DEADLINE -> {
+                        if (command.parameter().isEmpty()) {
+                            System.out.print(Dialogues.ERROR_TASK_MISSING_NAME);
+                        } else if (!command.flags().containsKey("by")) {
+                            System.out.print(Dialogues.ERROR_DEADLINE_MISSING_DEADLINE);
+                        } else {
+                            addTasks(new DeadlineItem(
                                     command.parameter(),
                                     DateTimeFormatter.parseDateTime(command.flags().get("by"))
-                            );
-                            checklist.add(deadlineItem);
-                            System.out.printf(Dialogues.AddTaskSuccessful + "\n", deadlineItem, checklist.size());
-                        } catch (DateTimeParseException e) {
-                            System.out.println(Dialogues.InvalidDateTime);
+                            ));
                         }
                     }
-                }
-                case Command.Code.EVENT -> {
-                    if (command.parameter().isEmpty()) {
-                        System.out.println(Dialogues.TaskItemMissingName);
-                    } else if (!command.flags().containsKey("from")) {
-                        System.out.println(Dialogues.EventMissingStart);
-                    } else if (!command.flags().containsKey("to")) {
-                        System.out.println(Dialogues.EventMissingEnd);
-                    } else {
-                        EventItem eventItem = new EventItem(
-                                command.parameter(),
-                                DateTimeFormatter.parseDateTime(command.flags().get("from")),
-                                DateTimeFormatter.parseDateTime(command.flags().get("to"))
-                        );
-                        checklist.add(eventItem);
-                        System.out.printf(Dialogues.AddTaskSuccessful + "\n", eventItem, checklist.size());
-                    }
-                }
-                case Command.Code.DELETE -> {
-                    if (command.parameter().isEmpty()) {
-                        System.out.println(Dialogues.DeleteMissingArguments);
-                    } else {
-                        List<TaskItem> modified = parseIndexArray(command.parameter(), checklist.size())
-                                .mapToObj(checklist::remove)
-                                .toList();
-                        if (modified.isEmpty()) {
-                            System.out.println(Dialogues.DeleteNoChange);
+                    case EVENT -> {
+                        if (command.parameter().isEmpty()) {
+                            System.out.print(Dialogues.ERROR_TASK_MISSING_NAME);
+                        } else if (!command.flags().containsKey("from")) {
+                            System.out.print(Dialogues.ERROR_EVENT_MISSING_START_TIME);
+                        } else if (!command.flags().containsKey("to")) {
+                            System.out.print(Dialogues.ERROR_EVENT_MISSING_END_TIME);
                         } else {
-                            System.out.printf(Dialogues.DeleteSuccessful + "\n", bulletList(modified), checklist.size());
+                            try {
+                                addTasks(new EventItem(
+                                        command.parameter(),
+                                        DateTimeFormatter.parseDateTime(command.flags().get("from")),
+                                        DateTimeFormatter.parseDateTime(command.flags().get("to"))
+                                ));
+                            } catch (IllegalArgumentException _) {
+                                System.out.print(Dialogues.ERROR_EVENT_END_BEFORE_START);
+                            }
                         }
                     }
-                }
-                case Command.Code.MARK -> {
-                    if (command.parameter().isEmpty()) {
-                        System.out.println(Dialogues.MarkMissingArguments);
-                    } else {
-                        List<TaskItem> modified = parseIndexArray(command.parameter(), checklist.size())
-                                .mapToObj(checklist::get)
-                                .filter(TaskItem::mark)
-                                .toList();
-                        if (modified.isEmpty()) {
-                            System.out.println(Dialogues.MarkNoChange);
-                        } else {
-                            System.out.println(Dialogues.MarkSuccessful);
-                            System.out.print(bulletList(modified));
+                    case DELETE -> {
+                        try {
+                            deleteTasks(parseIntArray(command.parameter()));
+                        } catch (NumberFormatException e) {
+                            System.out.printf(Dialogues.ERROR_NAN, e.getMessage());
                         }
                     }
-                }
-                case Command.Code.UNMARK -> {
-                    if (command.parameter().isEmpty()) {
-                        System.out.println(Dialogues.UnmarkMissingArguments);
-                    } else {
-                        List<TaskItem> modified = parseIndexArray(command.parameter(), checklist.size())
-                                .mapToObj(checklist::get)
-                                .filter(TaskItem::unmark)
-                                .toList();
-                        if (modified.isEmpty()) {
-                            System.out.println(Dialogues.UnmarkNoChange);
-                        } else {
-                            System.out.println(Dialogues.UnmarkSuccessful);
-                            System.out.print(bulletList(modified));
+                    case DELETE_ALL -> {
+                        deleteTasks(IntStream.rangeClosed(1, checklist.size()).toArray());
+                    }
+                    case DELETE_MATCHING -> deleteTasks(
+                            filterTasks(
+                                    command.parameter(),
+                                    command.flags().containsKey("from")
+                                            ? DateTimeFormatter.parseDateTime(command.flags().get("from"))
+                                            : null,
+                                    command.flags().containsKey("to")
+                                            ? DateTimeFormatter.parseDateTime(command.flags().get("to"))
+                                            : null,
+                                    command.flags().containsKey("completed") != command.flags().containsKey("incomplete")
+                                            ? command.flags().containsKey("completed")
+                                            : null
+                            ).stream()
+                                    .mapToInt(item -> checklist.indexOf(item) + 1)
+                                    .toArray()
+                    );
+                    case MARK -> {
+                        try {
+                            markTasks(parseIntArray(command.parameter()));
+                        } catch (NumberFormatException e) {
+                            System.out.printf(Dialogues.ERROR_NAN, e.getMessage());
                         }
                     }
+                    case MARK_ALL -> {
+                        markTasks(IntStream.rangeClosed(1, checklist.size()).toArray());
+                    }
+                    case MARK_MATCHING -> markTasks(
+                            filterTasks(
+                                    command.parameter(),
+                                    command.flags().containsKey("from")
+                                            ? DateTimeFormatter.parseDateTime(command.flags().get("from"))
+                                            : null,
+                                    command.flags().containsKey("to")
+                                            ? DateTimeFormatter.parseDateTime(command.flags().get("to"))
+                                            : null,
+                                    command.flags().containsKey("completed") != command.flags().containsKey("incomplete")
+                                            ? command.flags().containsKey("completed")
+                                            : null
+                            ).stream()
+                                    .mapToInt(item -> checklist.indexOf(item) + 1)
+                                    .toArray()
+                    );
+                    case UNMARK -> {
+                        try {
+                            unmarkTasks(parseIntArray(command.parameter()));
+                        } catch (NumberFormatException e) {
+                            System.out.printf(Dialogues.ERROR_NAN, e.getMessage());
+                        }
+                    }
+                    case UNMARK_ALL -> {
+                        unmarkTasks(IntStream.rangeClosed(1, checklist.size()).toArray());
+                    }
+                    case UNMARK_MATCHING -> unmarkTasks(
+                            filterTasks(
+                                    command.parameter(),
+                                    command.flags().containsKey("from")
+                                            ? DateTimeFormatter.parseDateTime(command.flags().get("from"))
+                                            : null,
+                                    command.flags().containsKey("to")
+                                            ? DateTimeFormatter.parseDateTime(command.flags().get("to"))
+                                            : null,
+                                    command.flags().containsKey("completed") != command.flags().containsKey("incomplete")
+                                            ? command.flags().containsKey("completed")
+                                            : null
+                            ).stream()
+                                    .mapToInt(item -> checklist.indexOf(item) + 1)
+                                    .toArray()
+                    );
                 }
+            } catch (DateTimeParseException e) {
+                System.out.print(Dialogues.ERROR_DATETIME);
             }
         }
     }
 
-    public static String getInput() throws IOException {
+    public static void main(String[] args) {
+        Marquee chatbot = new Marquee(Path.of("./checklist.csv"));
+        chatbot.run();
+    }
+
+    private static String getInput() throws IOException {
         System.out.print("\n> ");
         return inputReader.readLine();
     }
@@ -186,66 +366,68 @@ public class Marquee {
     private static List<TaskItem> readCSV(Path file) throws IOException {
         try {
             Files.createFile(file);
-            Files.writeString(file, String.join(CSV_SEPARATOR, "tag", "marked", "content", "start", "end"));
+            Files.writeString(file, String.join(CSV_SEPARATOR, "tag", "isMarked", "content", "start", "end"));
             return new ArrayList<>();
         } catch (FileAlreadyExistsException _) {
             List<TaskItem> checklist = new ArrayList<>();
             String[] lines = Files.readString(file).split("\r\n");
-            boolean corrupted = false;
 
             List<String> headers = Arrays.asList(lines[0].split(CSV_SEPARATOR));
             int tagIdx = headers.indexOf("tag");
-            int markedIdx = headers.indexOf("marked");
+            int isMarkedIdx = headers.indexOf("isMarked");
             int contentIdx =  headers.indexOf("content");
             int startIdx = headers.indexOf("start");
             int endIdx = headers.indexOf("end");
-            if (tagIdx != -1 && contentIdx != -1 && markedIdx != -1 && startIdx != -1 && endIdx != -1) {
-                for (int i = 1; i < lines.length; i++) {
-                    if (lines[i].isEmpty()) continue;
-
-                    String[] fields = lines[i].split(CSV_SEPARATOR, -1);
-                    if (fields.length != headers.size()) corrupted = true;
-                    try {
-                        String content = fields[contentIdx];
-                        boolean marked = Boolean.parseBoolean(fields[markedIdx]);
-                        String start = fields[startIdx];
-                        String end = fields[endIdx];
-                        switch (TaskItem.ItemTag.fromLabel(fields[tagIdx])) {
-                            case Todo -> checklist.add(new TodoItem(
-                                    content,
-                                    marked
-                            ));
-                            case Deadline -> checklist.add(new DeadlineItem(
-                                    content,
-                                    LocalDateTime.parse(end),
-                                    marked
-                            ));
-                            case Event -> checklist.add(new EventItem(content,
-                                    LocalDateTime.parse(start),
-                                    LocalDateTime.parse(end),
-                                    marked
-                            ));
-                            case null -> {}
-                        }
-                    }
-                    catch (IllegalArgumentException | IndexOutOfBoundsException _) { corrupted = true; }
-                }
-            } else corrupted = true;
-
-            if (corrupted) {
-                System.out.println(Dialogues.CorruptedCacheFile);
+            if (tagIdx == -1 || contentIdx == -1 || isMarkedIdx == -1 || startIdx == -1 || endIdx == -1) {
+                throw new IOException("Save file is corrupted");
             }
+
+            for (int i = 1; i < lines.length; i++) {
+                if (lines[i].isEmpty()) continue;
+
+                String[] fields = lines[i].split(CSV_SEPARATOR, -1);
+                if (fields.length != headers.size()) {
+                    throw new IOException("Save file is corrupted");
+                }
+
+                String content = fields[contentIdx];
+                boolean isMarked = Boolean.parseBoolean(fields[isMarkedIdx]);
+                String start = fields[startIdx];
+                String end = fields[endIdx];
+                try {
+                    switch (TaskItem.ItemTag.fromLabel(fields[tagIdx])) {
+                        case Todo -> checklist.add(new TodoItem(
+                                content,
+                                isMarked
+                        ));
+                        case Deadline -> checklist.add(new DeadlineItem(
+                                content,
+                                LocalDateTime.parse(end),
+                                isMarked
+                        ));
+                        case Event -> checklist.add(new EventItem(content,
+                                LocalDateTime.parse(start),
+                                LocalDateTime.parse(end),
+                                isMarked
+                        ));
+                        case null -> {}
+                    }
+                } catch (IllegalArgumentException | DateTimeParseException _) {
+                    throw new IOException("Save file is corrupted");
+                }
+            }
+
             return checklist;
         }
     }
 
     private static void writeCSV(List<TaskItem> checklist, Path file) throws IOException {
         Files.writeString(file, Stream.concat(
-            Stream.of(String.join(CSV_SEPARATOR, "tag", "marked", "content", "start", "end")),
+            Stream.of(String.join(CSV_SEPARATOR, "tag", "isMarked", "content", "start", "end")),
             checklist.stream()
                     .map(taskItem -> String.join(CSV_SEPARATOR,
                             taskItem.tag().label,
-                            Boolean.toString(taskItem.marked()),
+                            Boolean.toString(taskItem.isMarked()),
                             taskItem.content(),
                             taskItem instanceof EventItem
                                     ? ((EventItem) taskItem).start().toString()
@@ -259,24 +441,39 @@ public class Marquee {
         ).collect(Collectors.joining("\r\n")));
     }
 
-    private static IntStream parseIndexArray(String input, int capacity) {
-        return Arrays.stream(input.split(" ", -1))
-                .mapToInt(idxStr -> {
-                    if (!idxStr.isEmpty()) try {
-                        int idx = Integer.parseInt(idxStr) - 1;
-                        if (idx < 0)
-                            System.out.printf(Dialogues.IndexInvalid + "\n", idx + 1);
-                        else if (idx >= capacity)
-                            System.out.printf(Dialogues.IndexTooLarge + "\n", idx + 1, capacity);
-                        else
-                            return idx;
-                    } catch (NumberFormatException e) {
-                        System.out.printf(Dialogues.ArgumentNAN + "\n", idxStr);
+    private static int[] parseIntArray(String input) throws NumberFormatException {
+        return Arrays.stream(input.split("\\s+", -1))
+                .mapToInt(str -> {
+                    try {
+                        return Integer.parseInt(str);
+                    } catch (NumberFormatException _) {
+                        throw new NumberFormatException(str);
                     }
-                    return -1;
                 })
-                .filter(idx -> idx != -1);
+                .toArray();
     }
+
+    private List<TaskItem> filterTasks(String search, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
+        return (search == null || search.isEmpty()) && start == null && end == null && isMarked == null
+                ? List.of()
+                : checklist.stream()
+                .filter(isMarked == null
+                        ? _ -> true
+                        : item -> item.isMarked() == isMarked
+                )
+                .filter(start == null
+                        ? _ -> true
+                        : item -> item.isAfter(start)
+                )
+                .filter(end == null
+                        ? _ -> true
+                        : item -> item.isBefore(end)
+                )
+                .filter(search == null || search.isEmpty()
+                        ? _ -> true
+                        : item -> item.content().contains(search))
+                .toList();
+        }
 
     private static String numberedList(List<TaskItem> list) {
         StringBuilder builder = IntStream.range(0, list.size())
