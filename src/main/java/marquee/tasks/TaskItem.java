@@ -4,9 +4,9 @@ import java.time.LocalDateTime;
 
 public abstract class TaskItem {
     public enum ItemTag {
-        Todo("T"),
-        Deadline("D"),
-        Event("E");
+        TODO("T"),
+        DEADLINE("D"),
+        EVENT("E");
 
         public final String label;
 
@@ -30,16 +30,16 @@ public abstract class TaskItem {
     }
 
     private boolean isMarked;
-    private final String content;
+    private final String description;
     private final ItemTag tag;
 
-    public TaskItem(String content, ItemTag tag, boolean isMarked) {
+    public TaskItem(String description, ItemTag tag, boolean isMarked) {
         this.isMarked = isMarked;
-        this.content = content;
+        this.description = description;
         this.tag = tag;
     }
-    public TaskItem(String content, ItemTag tag) {
-        this(content, tag, false);
+    public TaskItem(String description, ItemTag tag) {
+        this(description, tag, false);
     }
 
     public boolean isMarked() {
@@ -50,11 +50,11 @@ public abstract class TaskItem {
         return !this.isMarked;
     }
 
-    public String content() {
-        return this.content;
+    public String getContent() {
+        return this.description;
     }
 
-    public ItemTag tag() {
+    public ItemTag getTag() {
         return this.tag;
     }
 
@@ -76,6 +76,6 @@ public abstract class TaskItem {
 
     @Override
     public String toString() {
-        return (this.tag() == null? "[?]" : this.tag().toString()) + (this.isMarked()? " [x] " : " [ ] ") + this.content();
+        return (this.getTag() == null? "[?]" : this.getTag().toString()) + (this.isMarked()? " [x] " : " [ ] ") + this.getContent();
     }
 }

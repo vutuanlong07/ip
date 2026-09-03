@@ -9,7 +9,7 @@ public final class EventItem extends TaskItem {
     private final LocalDateTime end;
 
     public EventItem(String content, LocalDateTime start, LocalDateTime end, boolean isMarked) {
-        super(content, ItemTag.Event, isMarked);
+        super(content, ItemTag.EVENT, isMarked);
         if (end.isBefore(start)) {
             throw new IllegalArgumentException("End time must be after start time");
         }
@@ -17,7 +17,7 @@ public final class EventItem extends TaskItem {
         this.end = end;
     }
     public EventItem(String content, LocalDateTime start, LocalDateTime end) throws IllegalArgumentException {
-        super(content, ItemTag.Event);
+        super(content, ItemTag.EVENT);
         if (end.isBefore(start)) {
             throw new IllegalArgumentException("End time must be after start time");
         }
@@ -25,11 +25,11 @@ public final class EventItem extends TaskItem {
         this.end = end;
     }
 
-    public LocalDateTime start() {
+    public LocalDateTime getStart() {
         return this.start;
     }
 
-    public LocalDateTime end() {
+    public LocalDateTime getEnd() {
         return this.end;
     }
 
@@ -45,6 +45,8 @@ public final class EventItem extends TaskItem {
 
     @Override
     public String toString() {
-        return super.toString() + " (from " + DateTimeFormatter.formatDateTime(this.start()) + " to " + DateTimeFormatter.formatDateTime(this.end()) + ")";
+        return super.toString()
+                + " (from " + DateTimeFormatter.formatDateTime(this.getStart())
+                + " to " + DateTimeFormatter.formatDateTime(this.getEnd()) + ")";
     }
 }

@@ -81,7 +81,7 @@ public final class DateTimeFormatter {
         boolean setTime = false, setDate = false;
         while (index < input.length()) {
             if (!setTime) {
-                boolean hasMatchedTime = false;
+                boolean isTimeMatched = false;
                 for (Matcher timeMatcher : timeMatchers) {
                     if (timeMatcher.find(index)) {
                         second = timeMatcher.group("second") != null
@@ -90,11 +90,11 @@ public final class DateTimeFormatter {
                         minute = Integer.parseInt(timeMatcher.group("minute"));
                         hour = Integer.parseInt(timeMatcher.group("hour"));
                         index = timeMatcher.end();
-                        setTime = hasMatchedTime = true;
+                        setTime = isTimeMatched = true;
                         break;
                     }
                 }
-                if (hasMatchedTime) continue;
+                if (isTimeMatched) continue;
             }
             if (!setDate) {
                 if (todayMatcher.find(index)) {
@@ -138,29 +138,29 @@ public final class DateTimeFormatter {
                     setDate = true;
                     continue;
                 }
-                boolean hasMatchedDate = false;
+                boolean isDateMatched = false;
                 for (Matcher dateTextMatcher : dateTextMatchers) {
                     if (dateTextMatcher.find(index)) {
                         day = Integer.parseInt(dateTextMatcher.group("day"));
                         month = MONTHS_PREFIX.indexOf(dateTextMatcher.group("month")) + 1;
                         year = Integer.parseInt(dateTextMatcher.group("year"));
                         index = dateTextMatcher.end();
-                        setDate = hasMatchedDate = true;
+                        setDate = isDateMatched = true;
                         break;
                     }
                 }
-                if (hasMatchedDate) continue;
+                if (isDateMatched) continue;
                 for (Matcher dateNumberMatcher : dateNumberMatchers) {
                     if (dateNumberMatcher.find(index)) {
                         day = Integer.parseInt(dateNumberMatcher.group("day"));
                         month = Integer.parseInt(dateNumberMatcher.group("month"));
                         year = Integer.parseInt(dateNumberMatcher.group("year"));
                         index = dateNumberMatcher.end();
-                        setDate = hasMatchedDate = true;
+                        setDate = isDateMatched = true;
                         break;
                     }
                 }
-                if (hasMatchedDate) continue;
+                if (isDateMatched) continue;
             }
             throw new DateTimeParseException("Invalid date-time", input, index);
         }
@@ -183,34 +183,34 @@ public final class DateTimeFormatter {
 
         int index = 0;
         int seconds = 0, minutes = 0, hours = 0, days = 0;
-        boolean setSeconds = false, setMinutes = false, setHours = false, setDays = false;
+        boolean isSecondsSet = false, isMinutesSet = false, isHoursSet = false, isDaysSet = false;
         while (index < input.length()) {
             if (secondsMatcher.find(index)) {
                 seconds += Integer.parseInt(secondsMatcher.group("seconds"));
-                setSeconds = true;
+                isSecondsSet = true;
                 index = secondsMatcher.end();
             } else if (minutesMatcher.find(index)) {
                 minutes += Integer.parseInt(minutesMatcher.group("minutes"));
-                setMinutes = true;
+                isMinutesSet = true;
                 index = minutesMatcher.end();
             } else if (hoursMatcher.find(index)) {
                 hours += Integer.parseInt(hoursMatcher.group("hours"));
-                setHours = true;
+                isHoursSet = true;
                 index = hoursMatcher.end();
             } else if (daysMatcher.find(index)) {
                 days += Integer.parseInt(daysMatcher.group("days"));
-                setDays = true;
+                isDaysSet = true;
                 index = daysMatcher.end();
             } else {
                 throw new DateTimeParseException("Invalid duration", input, index);
             }
         }
 
-        return (setSeconds
+        return (isSecondsSet
                 ? LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-                : setMinutes
+                : isMinutesSet
                   ? LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)
-                  : setHours
+                  : isHoursSet
                     ? LocalDateTime.now().truncatedTo(ChronoUnit.HOURS)
                     : LocalDateTime.now().truncatedTo(ChronoUnit.DAYS))
                 .plusSeconds(seconds)

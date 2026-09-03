@@ -117,7 +117,7 @@ public class Marquee {
      */
     public boolean loadChecklist() {
         try {
-            readCSV();
+            readCsv();
             outputStream.print(Dialogues.SUCCESS_LOAD);
             return true;
         } catch (IOException e) {
@@ -134,7 +134,7 @@ public class Marquee {
      */
     public boolean saveChecklist() {
         try {
-            writeCSV();
+            writeCsv();
             outputStream.print(Dialogues.SUCCESS_SAVE);
             return true;
         } catch (IOException e) {
@@ -411,7 +411,7 @@ public class Marquee {
         return inputReader.readLine();
     }
 
-    private void readCSV() throws IOException {
+    private void readCsv() throws IOException {
         if (Files.isRegularFile(savePath) && Files.isReadable(savePath) && Files.isWritable(savePath)) {
             List<TaskItem> checklist = new ArrayList<>();
             String[] lines = Files.readString(savePath).split("\r\n");
@@ -427,7 +427,9 @@ public class Marquee {
             }
 
             for (int i = 1; i < lines.length; i++) {
-                if (lines[i].isEmpty()) continue;
+                if (lines[i].isEmpty()) {
+                    continue;
+                }
 
                 String[] fields = lines[i].split(CSV_SEPARATOR, -1);
                 if (fields.length != headers.size()) {
@@ -440,16 +442,16 @@ public class Marquee {
                 String end = fields[endIdx];
                 try {
                     switch (TaskItem.ItemTag.fromLabel(fields[tagIdx])) {
-                        case Todo -> checklist.add(new TodoItem(
+                        case TODO -> checklist.add(new TodoItem(
                                 content,
                                 isMarked
                         ));
-                        case Deadline -> checklist.add(new DeadlineItem(
+                        case DEADLINE -> checklist.add(new DeadlineItem(
                                 content,
                                 LocalDateTime.parse(end),
                                 isMarked
                         ));
-                        case Event -> checklist.add(new EventItem(content,
+                        case EVENT -> checklist.add(new EventItem(content,
                                 LocalDateTime.parse(start),
                                 LocalDateTime.parse(end),
                                 isMarked
@@ -466,7 +468,7 @@ public class Marquee {
         }
     }
 
-    private void writeCSV() throws IOException {
+    private void writeCsv() throws IOException {
         Path temp = null;
         try {
             temp = Files.createTempFile(savePath.getParent(), null, null);
@@ -474,16 +476,16 @@ public class Marquee {
                     Stream.of(String.join(CSV_SEPARATOR, "tag", "isMarked", "content", "start", "end")),
                     checklist.stream()
                             .map(taskItem -> String.join(CSV_SEPARATOR,
-                                    taskItem.tag().label,
+                                    taskItem.getTag().label,
                                     Boolean.toString(taskItem.isMarked()),
-                                    taskItem.content(),
+                                    taskItem.getContent(),
                                     taskItem instanceof EventItem
-                                            ? ((EventItem) taskItem).start().toString()
+                                            ? ((EventItem) taskItem).getStart().toString()
                                             : "",
                                     taskItem instanceof DeadlineItem
                                             ? ((DeadlineItem) taskItem).deadline().toString()
                                             : taskItem instanceof EventItem
-                                              ? ((EventItem) taskItem).end().toString()
+                                              ? ((EventItem) taskItem).getEnd().toString()
                                               : ""
                             ))
             ).collect(Collectors.joining("\r\n")));
@@ -525,7 +527,7 @@ public class Marquee {
                 )
                 .filter(search == null || search.isEmpty()
                         ? _ -> true
-                        : item -> item.content().contains(search))
+                        : item -> item.getContent().contains(search))
                 .toList();
         }
 

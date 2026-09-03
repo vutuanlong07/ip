@@ -8,11 +8,11 @@ public final class DeadlineItem extends TaskItem {
     private final LocalDateTime deadline;
 
     public DeadlineItem(String content, LocalDateTime deadline, boolean isMarked) {
-        super(content, ItemTag.Deadline, isMarked);
+        super(content, ItemTag.DEADLINE, isMarked);
         this.deadline = deadline;
     }
     public DeadlineItem(String content, LocalDateTime deadline) {
-        super(content, ItemTag.Deadline);
+        super(content, ItemTag.DEADLINE);
         this.deadline = deadline;
     }
 
@@ -32,6 +32,7 @@ public final class DeadlineItem extends TaskItem {
 
     @Override
     public String toString() {
-        return super.toString() + " (by " + DateTimeFormatter.formatDateTime(this.deadline()) + ")";
+        return super.toString()
+                + " (by " + DateTimeFormatter.formatDateTime(this.deadline()) + ")";
     }
 }
