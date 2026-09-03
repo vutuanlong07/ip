@@ -21,6 +21,8 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import marquee.commands.Command;
+import marquee.commands.exceptions.DuplicateFlagException;
+import marquee.commands.exceptions.UnknownFlagException;
 import marquee.tasks.DeadlineItem;
 import marquee.tasks.EventItem;
 import marquee.tasks.TaskItem;
@@ -77,6 +79,8 @@ public class Marquee {
         public static final String ERROR_NAN = "'%s' is not a number! (@ ~ @)\n";
         public static final String ERROR_DATETIME = "Not a valid date! (@ ~ @)\n";
         public static final String ERROR_UNKNOWN_COMMAND = "No clue what '%s' means `O ᗝ O´╬\n";
+        public static final String ERROR_UNKNOWN_FLAG = "Flag /%s doesn't mean anything in %s `O ᗝ O´╬\n";
+        public static final String ERROR_DUPLICATE_FLAG = "Too many /%s `O ᗝ O´╬\n";
 
         public static final String FATAL_ERROR_IO_UNAVAILABLE = "I can't see anything #.#\n";
     }
@@ -251,6 +255,12 @@ public class Marquee {
 
             try {
                 command = Command.parseCommand(input);
+            } catch (UnknownFlagException e) {
+                outputStream.printf(Dialogues.ERROR_UNKNOWN_FLAG, e.getFlagName(), e.getCode().getCodeString());
+                continue;
+            } catch (DuplicateFlagException e) {
+                outputStream.printf(Dialogues.ERROR_DUPLICATE_FLAG, e.getFlagName());
+                continue;
             } catch (IllegalArgumentException e) {
                 outputStream.printf(Dialogues.ERROR_UNKNOWN_COMMAND, input);
                 continue;

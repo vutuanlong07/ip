@@ -45,6 +45,6 @@ public final class EventItem extends TaskItem {
 
     @Override
     public String toString() {
-        return super.toString() + " (from: " + DateTimeFormatter.formatDateTime(this.start()) + " to: " + DateTimeFormatter.formatDateTime(this.end()) + ")";
+        return super.toString() + " (from " + DateTimeFormatter.formatDateTime(this.start()) + " to " + DateTimeFormatter.formatDateTime(this.end()) + ")";
     }
 }

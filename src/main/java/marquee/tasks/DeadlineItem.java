@@ -32,6 +32,6 @@ public final class DeadlineItem extends TaskItem {
 
     @Override
     public String toString() {
-        return super.toString() + " (by: " + DateTimeFormatter.formatDateTime(this.deadline()) + ")";
+        return super.toString() + " (by " + DateTimeFormatter.formatDateTime(this.deadline()) + ")";
     }
 }

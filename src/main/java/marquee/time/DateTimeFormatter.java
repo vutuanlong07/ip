@@ -16,54 +16,55 @@ public final class DateTimeFormatter {
     public static final List<String> DAYS_OF_WEEK = List.of("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
     public static final List<String> MONTHS = List.of("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
 
+    private static final String RELATIVE_TIME_TAG = "later";
+
     private static final List<String> DAYS_OF_WEEK_PREFIX = DAYS_OF_WEEK.stream().map(dow -> dow.substring(0, 3)).toList();
     private static final List<String> MONTHS_PREFIX = MONTHS.stream().map(month -> month.substring(0, 3)).toList();
 
     private static final List<Pattern> TIME_PATTERNS = List.of(
-            Pattern.compile("^\\b(?<hour>\\d{2}):?(?<minute>\\d{2})\\b\\s*"),
-            Pattern.compile("^\\b(?<hour>\\d{2}):(?<minute>\\d{2}):(?<second>\\d{2})\\b\\s*")
+            Pattern.compile("\\G\\s*\\b(?<hour>\\d{2}):?(?<minute>\\d{2})(?::(?<second>\\d{2}))?\\b\\s*")
     );
 
     private static final Pattern TODAY_PATTERN = Pattern.compile(
-            "^\\btoday\\b\\s*"
+            "\\G\\s*\\btoday\\b\\s*"
     );
     private static final Pattern YESTERDAY_PATTERN = Pattern.compile(
-            "^\\byesterday(?<yesterday>(?: yesterday)*)\\b\\s*"
+            "\\G\\s*\\byesterday(?<yesterday>(?: yesterday)*)\\b\\s*"
     );
     private static final Pattern TOMORROW_PATTERN = Pattern.compile(
-            "^\\btomorrow(?<tomorrow>(?: tomorrow)*)\\b\\s*"
+            "\\G\\s*\\btomorrow(?<tomorrow>(?: tomorrow)*)\\b\\s*"
     );
     private static final Pattern DAYS_OF_WEEK_PATTERN = Pattern.compile(
-            "^\\b(?<next>next )*(?<dayOfWeek>"
-                    + DAYS_OF_WEEK_PREFIX.stream()
+            "\\G\\s*\\b(?<next>(?:next )*)(?<dayOfWeek>"
+                    + DAYS_OF_WEEK.stream()
                     .map(dow -> dow.substring(0, 3) + "(?:" + dow.substring(3) + ")?")
                     .collect(Collectors.joining("|"))
                     + ")\\b\\s*"
     );
     private static final List<Pattern> DATE_TEXT_PATTERNS = List.of(
             Pattern.compile(
-                    "^\\b(?<month>"
-                            + MONTHS_PREFIX.stream()
+                    "\\G\\s*\\b(?<month>"
+                            + MONTHS.stream()
                             .map(dow -> dow.substring(0, 3) + "(?:" + dow.substring(3) + ")?")
                             .collect(Collectors.joining("|"))
                             + ")\\s+(?<day>\\d{1,2}),\\s*(?<year>\\d{1,4})\\b\\s*"
             ),
             Pattern.compile(
-                    "^\\b(?<day>\\d{1,2})\\s+(?<month>"
-                            + MONTHS_PREFIX.stream()
+                    "\\G\\s*\\b(?<day>\\d{1,2})\\s+(?<month>"
+                            + MONTHS.stream()
                             .map(dow -> dow.substring(0, 3) + "(?:" + dow.substring(3) + ")?")
                             .collect(Collectors.joining("|"))
                             + ")[, ]\\s*(?<year>\\d{1,4})\\b\\s*"
             )
     );
     private static final List<Pattern> DATE_NUMBER_PATTERNS = List.of(
-            Pattern.compile("^\\b(?<day>\\d{1,2})([/-])(?<month>\\d{1,2})\\2(?<year>\\d{1,4})\\b\\s*")
+            Pattern.compile("\\G\\s*\\b(?<day>\\d{1,2})([/-])(?<month>\\d{1,2})\\2(?<year>\\d{1,4})\\b\\s*")
     );
 
-    private static final Pattern SECONDS_PATTERN = Pattern.compile("^\\b(?<seconds>\\d+)\\s*(?: seconds|sec|s)\\b\\s*");
-    private static final Pattern MINUTES_PATTERN = Pattern.compile("^\\b(?<minutes>\\d+)\\s*(?: minutes|min|m)\\b\\s*");
-    private static final Pattern HOURS_PATTERN = Pattern.compile("^\\b(?<hours>\\d+)\\s*(?: hours|hrs|hr|h)\\b\\s*");
-    private static final Pattern DAYS_PATTERN = Pattern.compile("^\\b(?<days>\\d+)\\s*(?: days|d)\\b\\s*");
+    private static final Pattern SECONDS_PATTERN = Pattern.compile("\\G\\s*\\b(?<seconds>\\d+)\\s*(?: seconds|sec|s)\\b\\s*");
+    private static final Pattern MINUTES_PATTERN = Pattern.compile("\\G\\s*\\b(?<minutes>\\d+)\\s*(?: minutes|min|m)\\b\\s*");
+    private static final Pattern HOURS_PATTERN = Pattern.compile("\\G\\s*\\b(?<hours>\\d+)\\s*(?: hours|hrs|hr|h)\\b\\s*");
+    private static final Pattern DAYS_PATTERN = Pattern.compile("\\G\\s*\\b(?<days>\\d+)\\s*(?: days|d)\\b\\s*");
 
     private static LocalDateTime parseTimestamp(String input) throws DateTimeParseException {
         List<Matcher> timeMatchers = TIME_PATTERNS.stream().map(pattern -> pattern.matcher(input)).toList();
@@ -82,9 +83,9 @@ public final class DateTimeFormatter {
             if (!setTime) {
                 boolean hasMatchedTime = false;
                 for (Matcher timeMatcher : timeMatchers) {
-                    if (timeMatcher.find()) {
-                        second = timeMatcher.namedGroups().containsKey("seconds")
-                                ? Integer.parseInt(timeMatcher.group("seconds"))
+                    if (timeMatcher.find(index)) {
+                        second = timeMatcher.group("second") != null
+                                ? Integer.parseInt(timeMatcher.group("second"))
                                 : 0;
                         minute = Integer.parseInt(timeMatcher.group("minute"));
                         hour = Integer.parseInt(timeMatcher.group("hour"));
@@ -106,7 +107,7 @@ public final class DateTimeFormatter {
                     continue;
                 }
                 if (yesterdayMatcher.find(index)) {
-                    int count = dayOfWeekMatcher.group("yesterday").length() / 10 + 1;
+                    int count = yesterdayMatcher.group("yesterday").length() / 10 + 1;
                     LocalDate targetDate = LocalDate.now().minusDays(count);
                     day = targetDate.getDayOfMonth();
                     month = targetDate.getMonthValue();
@@ -167,10 +168,13 @@ public final class DateTimeFormatter {
     }
 
     private static LocalDateTime parseRelativeTime(String input) throws DateTimeParseException {
-        if (!input.endsWith("later")) {
-            throw new DateTimeParseException("No 'later' indicator", input, input.length() < 5 ? 0 : input.length() - 5);
+        if (!input.endsWith(RELATIVE_TIME_TAG)) {
+            throw new DateTimeParseException(
+                    "No '" + RELATIVE_TIME_TAG + "' indicator",
+                    input,
+                    input.length() < RELATIVE_TIME_TAG.length() ? 0 : input.length() - RELATIVE_TIME_TAG.length());
         }
-        input =  input.substring(0, input.length() - 5);
+        input =  input.substring(0, input.length() - RELATIVE_TIME_TAG.length());
 
         Matcher secondsMatcher = SECONDS_PATTERN.matcher(input);
         Matcher minutesMatcher = MINUTES_PATTERN.matcher(input);

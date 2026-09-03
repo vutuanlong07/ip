@@ -10,14 +10,15 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import marquee.commands.exceptions.DuplicateFlagException;
-import marquee.commands.exceptions.UnexpectedFlagException;
+import marquee.commands.exceptions.UnknownFlagException;
 
 public record Command(Code code, String parameter, Map<String, String> flags) {
 
     private static final String FLAG_DELIMITER = "/";
+    private static final String FLAG_DELIMITER_ESCAPE = "/";
 
     private static final Pattern CODE_PATTERN = Pattern.compile(
-            "^\\s*(?<code>"
+            "\\G\\s*(?<code>"
                     + Arrays.stream(Code.values())
                     .sorted(Comparator
                             .<Code>comparingInt(code -> code.getCodeString().length())
@@ -30,8 +31,11 @@ public record Command(Code code, String parameter, Map<String, String> flags) {
 
     private static final Pattern FLAG_PATTERN = Pattern.compile(
             "\\s*"
-                    + FLAG_DELIMITER
-                    + "(?<flagName>\\S*)\\b\\s*"
+                    + "(?:"
+                        + FLAG_DELIMITER_ESCAPE + "(?<flagDelimiterEscaped>" + FLAG_DELIMITER + ")"
+                    + "|"
+                        + FLAG_DELIMITER + "(?<flagName>\\S*\\b)"
+                    + ")\\s*"
     );
 
     public static Command parseCommand(String input) throws IllegalArgumentException {
@@ -50,18 +54,10 @@ public record Command(Code code, String parameter, Map<String, String> flags) {
         while (flagMatcher.find(index)) {
             argument.append(input, index, flagMatcher.start());
 
-            if (flagMatcher.group("flagName").startsWith(FLAG_DELIMITER)) {
-                index = flagMatcher.start() + FLAG_DELIMITER.length() * 2;
-                argument.append(FLAG_DELIMITER);
+            if (flagMatcher.group("flagDelimiterEscaped") != null) {
+                argument.append(flagMatcher.group().replace(FLAG_DELIMITER_ESCAPE + FLAG_DELIMITER, FLAG_DELIMITER));
+                index = flagMatcher.end();
                 continue;
-            }
-
-            if (!expectedFlags.contains(lastFlagName)) {
-                throw new UnexpectedFlagException(lastFlagName);
-            }
-
-            if (flags.containsKey(lastFlagName)) {
-                throw new DuplicateFlagException(lastFlagName);
             }
 
             flags.put(lastFlagName, argument.toString());
@@ -69,6 +65,14 @@ public record Command(Code code, String parameter, Map<String, String> flags) {
 
             lastFlagName = flagMatcher.group("flagName");
             index = flagMatcher.end();
+
+            if (!expectedFlags.contains(lastFlagName)) {
+                throw new UnknownFlagException(lastFlagName, code);
+            }
+
+            if (flags.containsKey(lastFlagName)) {
+                throw new DuplicateFlagException(lastFlagName);
+            }
         }
         flags.put(lastFlagName, argument.append(input, index, input.length()).toString());
 
