@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import marquee.commands.Command;
 import marquee.tasks.DeadlineItem;
 import marquee.tasks.EventItem;
 import marquee.tasks.TaskItem;

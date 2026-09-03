@@ -15,8 +15,9 @@ import java.util.stream.Collectors;
 public final class DateTimeFormatter {
     public static final List<String> DAYS_OF_WEEK = List.of("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
     public static final List<String> MONTHS = List.of("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
-    public static final List<String> DAYS_OF_WEEK_PREFIX = DAYS_OF_WEEK.stream().map(dow -> dow.substring(0, 3)).toList();
-    public static final List<String> MONTHS_PREFIX = MONTHS.stream().map(month -> month.substring(0, 3)).toList();
+
+    private static final List<String> DAYS_OF_WEEK_PREFIX = DAYS_OF_WEEK.stream().map(dow -> dow.substring(0, 3)).toList();
+    private static final List<String> MONTHS_PREFIX = MONTHS.stream().map(month -> month.substring(0, 3)).toList();
 
     private static final List<Pattern> TIME_PATTERNS = List.of(
             Pattern.compile("^\\b(?<hour>\\d{2}):?(?<minute>\\d{2})\\b\\s*"),
