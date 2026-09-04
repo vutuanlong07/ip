@@ -4,20 +4,41 @@ import java.time.LocalDateTime;
 
 import marquee.time.DateTimeFormatter;
 
+/**
+ * Representation of an event, modeled as a {@link TodoTask}
+ * that has a starting time and an ending time.
+ *
+ * @author Vu Tuan Long
+ */
 public final class EventTask extends TodoTask {
     private final LocalDateTime start;
     private final LocalDateTime end;
 
-    public EventTask(String content, LocalDateTime start, LocalDateTime end, boolean isMarked) throws IllegalArgumentException {
-        super(TaskTag.EVENT, content, isMarked);
+    /**
+     * Creates a new event with the specified description
+     * and mark it as either completed or incomplete.
+     *
+     * @param description description of the event
+     * @param start       when the event starts
+     * @param end         when the event ends
+     * @param isMarked    whether the task is completed or not
+     */
+    public EventTask(String description, LocalDateTime start, LocalDateTime end, boolean isMarked) throws IllegalArgumentException {
+        super(TaskTag.EVENT, description, isMarked);
         if (end.isBefore(start)) {
             throw new IllegalArgumentException("End time must be after start time");
         }
         this.start = start;
         this.end = end;
     }
-    public EventTask(String content, LocalDateTime start, LocalDateTime end) throws IllegalArgumentException {
-        this(content, start, end, false);
+    
+    /**
+     * Creates a new event with the specified description.
+     *
+     * @param description description of the task
+     */
+    public EventTask(String description, LocalDateTime start, LocalDateTime end) throws IllegalArgumentException {
+        this(description, start, end, false);
     }
 
     public LocalDateTime getStart() {
@@ -29,13 +50,13 @@ public final class EventTask extends TodoTask {
     }
 
     @Override
-    public boolean isBefore(LocalDateTime start) {
-        return this.end.isBefore(start);
+    public boolean isBefore(LocalDateTime time) {
+        return this.end.isBefore(time);
     }
 
     @Override
-    public boolean isAfter(LocalDateTime end) {
-        return this.start.isAfter(end);
+    public boolean isAfter(LocalDateTime time) {
+        return this.start.isAfter(time);
     }
 
     @Override

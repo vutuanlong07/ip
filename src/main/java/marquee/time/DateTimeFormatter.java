@@ -341,11 +341,11 @@ public final class DateTimeFormatter {
     }
 
     /**
-     * Parse the given string as a {@link LocalDateTime}, according to the class-defined format.
+     * Parses the given string as a {@link LocalDateTime}, according to the class-defined format.
      *
      * @param input the string to be parsed
      * @return the parsed {@link LocalDateTime}
-     * @throws DateTimeParseException if the string doesn't follow the class-defined format
+     * @throws DateTimeParseException If the string doesn't follow the class-defined format
      */
     public static LocalDateTime parseDateTime(String input) throws DateTimeParseException {
         if (input.equals("now")) {

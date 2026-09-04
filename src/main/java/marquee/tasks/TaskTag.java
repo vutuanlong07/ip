@@ -1,8 +1,14 @@
 package marquee.tasks;
 
+/**
+ * Tags for {@link TodoTask}
+ */
 public enum TaskTag {
+    /** Tag for a to-do task */
     TODO("T"),
+    /** Tag for a deadline */
     DEADLINE("D"),
+    /** Tag for an event */
     EVENT("E");
 
     private final String label;

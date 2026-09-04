@@ -518,7 +518,7 @@ public class Marquee {
                             .map(todoTask -> String.join(CSV_SEPARATOR,
                                     todoTask.getTag().getLabel(),
                                     Boolean.toString(todoTask.isMarked()),
-                                    todoTask.getContent(),
+                                    todoTask.getDescription(),
                                     todoTask instanceof EventTask
                                             ? ((EventTask) todoTask).getStart().toString()
                                             : "",
@@ -567,7 +567,7 @@ public class Marquee {
                 )
                 .filter(search == null || search.isEmpty()
                         ? _ -> true
-                        : item -> item.getContent().contains(search))
+                        : item -> item.getDescription().contains(search))
                 .toList();
         }
 
