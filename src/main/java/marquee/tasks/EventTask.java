@@ -4,25 +4,20 @@ import java.time.LocalDateTime;
 
 import marquee.time.DateTimeFormatter;
 
-public final class EventItem extends TaskItem {
+public final class EventTask extends TodoTask {
     private final LocalDateTime start;
     private final LocalDateTime end;
 
-    public EventItem(String content, LocalDateTime start, LocalDateTime end, boolean isMarked) {
-        super(content, ItemTag.EVENT, isMarked);
+    public EventTask(String content, LocalDateTime start, LocalDateTime end, boolean isMarked) throws IllegalArgumentException {
+        super(TaskTag.EVENT, content, isMarked);
         if (end.isBefore(start)) {
             throw new IllegalArgumentException("End time must be after start time");
         }
         this.start = start;
         this.end = end;
     }
-    public EventItem(String content, LocalDateTime start, LocalDateTime end) throws IllegalArgumentException {
-        super(content, ItemTag.EVENT);
-        if (end.isBefore(start)) {
-            throw new IllegalArgumentException("End time must be after start time");
-        }
-        this.start = start;
-        this.end = end;
+    public EventTask(String content, LocalDateTime start, LocalDateTime end) throws IllegalArgumentException {
+        this(content, start, end, false);
     }
 
     public LocalDateTime getStart() {

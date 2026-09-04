@@ -23,10 +23,10 @@ import java.util.stream.Stream;
 import marquee.commands.Command;
 import marquee.commands.exceptions.DuplicateFlagException;
 import marquee.commands.exceptions.UnknownFlagException;
-import marquee.tasks.DeadlineItem;
-import marquee.tasks.EventItem;
-import marquee.tasks.TaskItem;
-import marquee.tasks.TodoItem;
+import marquee.tasks.DeadlineTask;
+import marquee.tasks.EventTask;
+import marquee.tasks.TaskTag;
+import marquee.tasks.TodoTask;
 import marquee.time.DateTimeFormatter;
 
 /**
@@ -91,7 +91,7 @@ public class Marquee {
     private final PrintStream outputStream;
     private final Path savePath;
 
-    private List<TaskItem> checklist;
+    private List<TodoTask> checklist;
     private boolean isRunning;
 
     /**
@@ -159,8 +159,8 @@ public class Marquee {
         }
     }
 
-    public void search(String search, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
-        List<TaskItem> matchingItems = filterTasks(search, start, end, isMarked);
+    public void search(String description, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
+        List<TodoTask> matchingItems = filterTasks(description, start, end, isMarked);
         if (matchingItems.isEmpty()) {
             outputStream.print(Dialogues.WARNING_SEARCH_EMPTY);
         } else {
@@ -168,8 +168,8 @@ public class Marquee {
         }
     }
 
-    public void addTasks(TaskItem... tasks) {
-        List<TaskItem> newTasks = List.of(tasks);
+    public void addTasks(TodoTask... tasks) {
+        List<TodoTask> newTasks = List.of(tasks);
         checklist.addAll(newTasks);
         outputStream.printf(Dialogues.SUCCESS_ADD, bulletList(newTasks), checklist.size());
     }
@@ -184,7 +184,7 @@ public class Marquee {
                 return;
             }
         }
-        List<TaskItem> removedItems = IntStream.of(indices)
+        List<TodoTask> removedItems = IntStream.of(indices)
                 .mapToObj(i -> checklist.remove(i - 1))
                 .filter(Objects::nonNull)
                 .toList();
@@ -205,9 +205,9 @@ public class Marquee {
                 return;
             }
         }
-        List<TaskItem> markedItems = IntStream.of(indices)
+        List<TodoTask> markedItems = IntStream.of(indices)
                 .mapToObj(i -> checklist.get(i - 1))
-                .filter(TaskItem::mark)
+                .filter(TodoTask::mark)
                 .toList();
         if (markedItems.isEmpty()) {
             outputStream.print(Dialogues.WARNING_MARK_EMPTY);
@@ -226,9 +226,9 @@ public class Marquee {
                 return;
             }
         }
-        List<TaskItem> unmarkedItems = IntStream.of(indices)
+        List<TodoTask> unmarkedItems = IntStream.of(indices)
                 .mapToObj(i -> checklist.get(i - 1))
-                .filter(TaskItem::unmark)
+                .filter(TodoTask::unmark)
                 .toList();
         if (unmarkedItems.isEmpty()) {
             outputStream.print(Dialogues.WARNING_UNMARK_EMPTY);
@@ -288,7 +288,7 @@ public class Marquee {
                         if (command.parameter().isEmpty()) {
                             outputStream.print(Dialogues.ERROR_TASK_MISSING_NAME);
                         } else {
-                            addTasks(new TodoItem(command.parameter()));
+                            addTasks(new TodoTask(command.parameter()));
                         }
                     }
                     case DEADLINE -> {
@@ -297,7 +297,7 @@ public class Marquee {
                         } else if (!command.flags().containsKey("by")) {
                             outputStream.print(Dialogues.ERROR_DEADLINE_MISSING_DEADLINE);
                         } else {
-                            addTasks(new DeadlineItem(
+                            addTasks(new DeadlineTask(
                                     command.parameter(),
                                     DateTimeFormatter.parseDateTime(command.flags().get("by"))
                             ));
@@ -312,7 +312,7 @@ public class Marquee {
                             outputStream.print(Dialogues.ERROR_EVENT_MISSING_END_TIME);
                         } else {
                             try {
-                                addTasks(new EventItem(
+                                addTasks(new EventTask(
                                         command.parameter(),
                                         DateTimeFormatter.parseDateTime(command.flags().get("from")),
                                         DateTimeFormatter.parseDateTime(command.flags().get("to"))
@@ -413,7 +413,7 @@ public class Marquee {
 
     private void readCsv() throws IOException {
         if (Files.isRegularFile(savePath) && Files.isReadable(savePath) && Files.isWritable(savePath)) {
-            List<TaskItem> checklist = new ArrayList<>();
+            List<TodoTask> checklist = new ArrayList<>();
             String[] lines = Files.readString(savePath).split("\r\n");
 
             List<String> headers = Arrays.asList(lines[0].split(CSV_SEPARATOR));
@@ -441,17 +441,17 @@ public class Marquee {
                 String start = fields[startIdx];
                 String end = fields[endIdx];
                 try {
-                    switch (TaskItem.ItemTag.fromLabel(fields[tagIdx])) {
-                        case TODO -> checklist.add(new TodoItem(
+                    switch (TaskTag.fromLabel(fields[tagIdx])) {
+                        case TODO -> checklist.add(new TodoTask(
                                 content,
                                 isMarked
                         ));
-                        case DEADLINE -> checklist.add(new DeadlineItem(
+                        case DEADLINE -> checklist.add(new DeadlineTask(
                                 content,
                                 LocalDateTime.parse(end),
                                 isMarked
                         ));
-                        case EVENT -> checklist.add(new EventItem(content,
+                        case EVENT -> checklist.add(new EventTask(content,
                                 LocalDateTime.parse(start),
                                 LocalDateTime.parse(end),
                                 isMarked
@@ -475,17 +475,17 @@ public class Marquee {
             Files.writeString(temp, Stream.concat(
                     Stream.of(String.join(CSV_SEPARATOR, "tag", "isMarked", "content", "start", "end")),
                     checklist.stream()
-                            .map(taskItem -> String.join(CSV_SEPARATOR,
-                                    taskItem.getTag().label,
-                                    Boolean.toString(taskItem.isMarked()),
-                                    taskItem.getContent(),
-                                    taskItem instanceof EventItem
-                                            ? ((EventItem) taskItem).getStart().toString()
+                            .map(todoTask -> String.join(CSV_SEPARATOR,
+                                    todoTask.getTag().getLabel(),
+                                    Boolean.toString(todoTask.isMarked()),
+                                    todoTask.getContent(),
+                                    todoTask instanceof EventTask
+                                            ? ((EventTask) todoTask).getStart().toString()
                                             : "",
-                                    taskItem instanceof DeadlineItem
-                                            ? ((DeadlineItem) taskItem).deadline().toString()
-                                            : taskItem instanceof EventItem
-                                              ? ((EventItem) taskItem).getEnd().toString()
+                                    todoTask instanceof DeadlineTask
+                                            ? ((DeadlineTask) todoTask).deadline().toString()
+                                            : todoTask instanceof EventTask
+                                              ? ((EventTask) todoTask).getEnd().toString()
                                               : ""
                             ))
             ).collect(Collectors.joining("\r\n")));
@@ -509,7 +509,7 @@ public class Marquee {
                 .toArray();
     }
 
-    private List<TaskItem> filterTasks(String search, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
+    private List<TodoTask> filterTasks(String search, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
         return (search == null || search.isEmpty()) && start == null && end == null && isMarked == null
                 ? List.of()
                 : checklist.stream()
@@ -531,7 +531,7 @@ public class Marquee {
                 .toList();
         }
 
-    private static String numberedList(List<TaskItem> list) {
+    private static String numberedList(List<TodoTask> list) {
         StringBuilder builder = IntStream.range(0, list.size())
                 .mapToObj(idx -> String.format("%d. %s\n", idx + 1, list.get(idx)))
                 .collect(
@@ -542,7 +542,7 @@ public class Marquee {
         return builder.toString();
     }
 
-    private static String bulletList(List<TaskItem> list) {
+    private static String bulletList(List<TodoTask> list) {
         StringBuilder builder = list.stream()
                 .map(item -> String.format("  %s\n", item))
                 .collect(

@@ -183,7 +183,7 @@ public final class DateTimeFormatter {
 
         int index = 0;
         int seconds = 0, minutes = 0, hours = 0, days = 0;
-        boolean isSecondsSet = false, isMinutesSet = false, isHoursSet = false, isDaysSet = false;
+        boolean isSecondsSet = false, isMinutesSet = false, isHoursSet = false;
         while (index < input.length()) {
             if (secondsMatcher.find(index)) {
                 seconds += Integer.parseInt(secondsMatcher.group("seconds"));
@@ -199,7 +199,6 @@ public final class DateTimeFormatter {
                 index = hoursMatcher.end();
             } else if (daysMatcher.find(index)) {
                 days += Integer.parseInt(daysMatcher.group("days"));
-                isDaysSet = true;
                 index = daysMatcher.end();
             } else {
                 throw new DateTimeParseException("Invalid duration", input, index);

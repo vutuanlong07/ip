@@ -4,16 +4,15 @@ import java.time.LocalDateTime;
 
 import marquee.time.DateTimeFormatter;
 
-public final class DeadlineItem extends TaskItem {
+public final class DeadlineTask extends TodoTask {
     private final LocalDateTime deadline;
 
-    public DeadlineItem(String content, LocalDateTime deadline, boolean isMarked) {
-        super(content, ItemTag.DEADLINE, isMarked);
+    public DeadlineTask(String content, LocalDateTime deadline, boolean isMarked) {
+        super(TaskTag.DEADLINE, content, isMarked);
         this.deadline = deadline;
     }
-    public DeadlineItem(String content, LocalDateTime deadline) {
-        super(content, ItemTag.DEADLINE);
-        this.deadline = deadline;
+    public DeadlineTask(String content, LocalDateTime deadline) {
+        this(content, deadline, false);
     }
 
     public LocalDateTime deadline() {
