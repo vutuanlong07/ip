@@ -12,6 +12,14 @@ import java.util.stream.Collectors;
 import marquee.commands.exceptions.DuplicateFlagException;
 import marquee.commands.exceptions.UnknownFlagException;
 
+/**
+ * Record class containing details of a command such as
+ * the command code, the parameter, and set flags.
+ *
+ * @param code      the name of the command, represented by a {@link Code}
+ * @param parameter the parameter of the command
+ * @param flags     the flags set and their values
+ */
 public record Command(Code code, String parameter, Map<String, String> flags) {
 
     private static final String FLAG_DELIMITER = "/";
@@ -38,6 +46,31 @@ public record Command(Code code, String parameter, Map<String, String> flags) {
                     + ")\\s*"
     );
 
+    /**
+     * Parses the given string as a {@code Command}.
+     * <p>
+     *     A command string should be in the format of:
+     *     <ol>
+     *         <li>command name</li>
+     *         <li>parameter</li>
+     *         <li>forward slash {@code /} and flag name</li>
+     *         <li>flag value (optional depending on the flag)</li>
+     *     </ol>
+     *     (repeat 3 to 5 for every flag)
+     * </p>
+     * <p>
+     *     The command components should be separated by 1 or more spaces <code>&nbsp;</code>
+     * </p>
+     * <p>
+     *     To include a forward slash in the parameter or flag value, prepend a backslash to it ({@code \/})
+     * </p>
+     *
+     * @param input the string to parse
+     * @return the parsed {@code Command}
+     * @throws UnknownFlagException     if a flag not applicable to the command is found
+     * @throws DuplicateFlagException   if a flag appears more than once
+     * @throws IllegalArgumentException if there are no supported command names found
+     */
     public static Command parseCommand(String input)
             throws UnknownFlagException, DuplicateFlagException, IllegalArgumentException {
         Matcher codeMatcher = CODE_PATTERN.matcher(input);

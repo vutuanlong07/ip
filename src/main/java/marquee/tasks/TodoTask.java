@@ -4,8 +4,6 @@ import java.time.LocalDateTime;
 
 /**
  * Representation of a task with a description, tag and completion marker.
- *
- * @author Vu Tuan Long
  */
 public class TodoTask {
     private boolean isMarked;
@@ -15,10 +13,10 @@ public class TodoTask {
     /**
      * Constructor reserved for subclasses that need to change task tag.
      *
-     * @param tag         new tag for this task
-     * @param description description of the task
+     * @param tag         the new tag for this task
+     * @param description the description of the task
      * @param isMarked    whether the task is completed or not
-     * @throws NullPointerException If {@code tag} is {@code null}
+     * @throws NullPointerException if {@code tag} is {@code null}
      */
     protected TodoTask(TaskTag tag, String description, boolean isMarked) throws NullPointerException {
         if (tag == null) {
@@ -34,7 +32,7 @@ public class TodoTask {
      * Creates a new task item with the specified description
      * and mark it as either completed or incomplete.
      *
-     * @param description description of the task
+     * @param description the description of the task
      * @param isMarked    whether the task is completed
      */
     public TodoTask(String description, boolean isMarked){
@@ -44,7 +42,7 @@ public class TodoTask {
     /**
      * Creates a new task item with the specified description.
      *
-     * @param description description of the task
+     * @param description the description of the task
      */
     public TodoTask(String description) {
         this(description, false);
@@ -54,10 +52,20 @@ public class TodoTask {
         return this.isMarked;
     }
 
+    /**
+     * Gets the description of this task.
+     *
+     * @return the description of this task
+     */
     public String getDescription() {
         return this.description;
     }
 
+    /**
+     * Gets the tag of this task.
+     *
+     * @return the tag of this task
+     */
     public TaskTag getTag() {
         return this.tag;
     }

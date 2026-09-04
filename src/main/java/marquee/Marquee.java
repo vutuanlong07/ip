@@ -31,8 +31,6 @@ import marquee.time.DateTimeFormatter;
 
 /**
  * Main class for the standalone chatbot Marquee.
- *
- * @author Vu Tuan Long
  */
 public class Marquee {
     /**
@@ -145,7 +143,7 @@ public class Marquee {
     }
 
     /**
-     * Tells the chatbot to save checklist and stop operations.
+     * Tells the chatbot to save checklist and ends the session.
      */
     public void exit() {
         if (saveChecklist()) {
@@ -187,7 +185,7 @@ public class Marquee {
     /**
      * Adds tasks to the checklist, then list the added tasks.
      *
-     * @param tasks tasks to be added to the checklist
+     * @param tasks the tasks to be added to the checklist
      */
     public void addTasks(TodoTask... tasks) {
         List<TodoTask> newTasks = List.of(tasks);
@@ -198,7 +196,7 @@ public class Marquee {
     /**
      * Deletes tasks from the checklist by index, then list the deleted tasks.
      *
-     * @param indices indices of the tasks to be deleted
+     * @param indices the indices of the tasks to be deleted
      */
     public void deleteTasks(int... indices) {
         if (checklist.isEmpty()) {
@@ -224,7 +222,7 @@ public class Marquee {
     /**
      * Marks tasks from the checklist as completed by index, then list the marked tasks.
      *
-     * @param indices indices of the tasks to be marked
+     * @param indices the indices of the tasks to be marked
      */
     public void markTasks(int... indices) {
         if (checklist.isEmpty()) {
@@ -250,7 +248,7 @@ public class Marquee {
     /**
      * Unmarks (mark as incomplete) tasks from the checklist by index, then list the unmarked tasks.
      *
-     * @param indices indices of the tasks to be unmarked
+     * @param indices the indices of the tasks to be unmarked
      */
     public void unmarkTasks(int... indices) {
         if (checklist.isEmpty()) {
