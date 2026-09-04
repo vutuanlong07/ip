@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Custom {@link LocalDateTime} formatter and parser that supports many date-time formats used in daily life.
+ * Custom {@code LocalDateTime} formatter and parser that supports many date-time formats used in daily life.
  * <h1>Absolute time format</h1>
  * <p>
  *     This format consist of a date component and a time component.
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * </p>
  * <p>
  *     If time component exist but date component is missing,
- *     it is assumed to be on the current day (date component taken from {@link LocalDate#now()}.
+ *     it is assumed to be on the current day, taken from {@link LocalDate#now()}.
  * </p>
  * <p>
  *     If date component exist but time component is missing,
@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  * </p>
  * <p>
  *     Year component can be omitted, then it is assumed to be the current year
- *     from {@link LocalDateTime#now()}{@link LocalDateTime#getYear() .getYear()}.
+ *     taken from {@link LocalDateTime#now()}{@link LocalDateTime#getYear() .getYear()}.
  * </p>
  * <h3>Available time component formats</h3>
  * <p>
@@ -88,6 +88,7 @@ import java.util.stream.Collectors;
  *     then shifted by the duration specified in the string
  * </p>
  *
+ * @see LocalDateTime
  * @author Vu Tuan Long
  */
 public final class DateTimeFormatter {
@@ -341,11 +342,11 @@ public final class DateTimeFormatter {
     }
 
     /**
-     * Parses the given string as a {@link LocalDateTime}, according to the class-defined format.
+     * Parses the given string as a {@code LocalDateTime}, according to the class-defined format.
      *
      * @param input the string to be parsed
      * @return the parsed {@link LocalDateTime}
-     * @throws DateTimeParseException If the string doesn't follow the class-defined format
+     * @throws DateTimeParseException if the string doesn't follow the class-defined format
      */
     public static LocalDateTime parseDateTime(String input) throws DateTimeParseException {
         if (input.equals("now")) {
@@ -364,9 +365,9 @@ public final class DateTimeFormatter {
     }
 
     /**
-     * Returns a string representation of the given {@link LocalDateTime}, according to the class-defined format.
+     * Returns a string representation of the given {@code LocalDateTime}, according to the class-defined format.
      *
-     * @param dateTime the date-time to format
+     * @param dateTime the {@link LocalDateTime} to format
      * @return the formatted date-time string
      */
     public static String formatDateTime(LocalDateTime dateTime) {

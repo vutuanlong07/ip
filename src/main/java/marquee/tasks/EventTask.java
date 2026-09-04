@@ -5,10 +5,8 @@ import java.time.LocalDateTime;
 import marquee.time.DateTimeFormatter;
 
 /**
- * Representation of an event, modeled as a {@link TodoTask}
+ * Representation of an event. It is modeled as a {@link TodoTask}
  * that has a starting time and an ending time.
- *
- * @author Vu Tuan Long
  */
 public final class EventTask extends TodoTask {
     private final LocalDateTime start;
@@ -35,16 +33,24 @@ public final class EventTask extends TodoTask {
     /**
      * Creates a new event with the specified description.
      *
-     * @param description description of the task
+     * @param description the description of the task
      */
     public EventTask(String description, LocalDateTime start, LocalDateTime end) throws IllegalArgumentException {
         this(description, start, end, false);
     }
 
+    /**
+     * Get the starting time of this event.
+     * @return the starting time of this event
+     */
     public LocalDateTime getStart() {
         return this.start;
     }
 
+    /**
+     * Get the ending time of this event.
+     * @return the ending time of this event
+     */
     public LocalDateTime getEnd() {
         return this.end;
     }
