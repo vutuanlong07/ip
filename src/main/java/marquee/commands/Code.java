@@ -19,7 +19,7 @@ public enum Code {
     /** Lists all tasks in the checklist */
     LIST("list", List.of()),
     /** Searches for tasks that matches the filters */
-    SEARCH("search", List.of("from", "to", "completed", "incomplete")),
+    FIND("find", List.of("from", "to", "completed", "incomplete")),
     /** Create a new to-do task and add it to the checklist */
     TODO("todo", List.of("completed")),
     /** Create a new task with deadline and add it to the checklist */
@@ -73,7 +73,7 @@ public enum Code {
 
     /**
      * Gets the command name associated with this code.
-     * 
+     *
      * @return the command name
      */
     public String getCodeString() {
@@ -82,7 +82,7 @@ public enum Code {
 
     /**
      * Gets the flag names associated with this code.
-     * 
+     *
      * @return the flag names
      */
     public List<String> getFlagNames() {
