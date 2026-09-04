@@ -9,7 +9,7 @@ public enum Code {
     LOAD("load", List.of()),
     SAVE("save", List.of()),
     LIST("list", List.of()),
-    SEARCH("search", List.of("from", "to", "completed", "incomplete")),
+    FIND("find", List.of("from", "to", "completed", "incomplete")),
     TODO("todo", List.of("completed")),
     DEADLINE("deadline", List.of("by", "completed", "incomplete")),
     EVENT("event", List.of("from", "to", "completed", "incomplete")),

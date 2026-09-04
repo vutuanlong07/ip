@@ -55,14 +55,14 @@ public class Marquee {
         public static final String SUCCESS_LOAD = "Checklist loaded successfully! :D\n";
         public static final String SUCCESS_SAVE = "Checklist saved successfully :D\n";
         public static final String SUCCESS_LIST = "Current item(s) in your list:\n%s\n";
-        public static final String SUCCESS_SEARCH = "Item(s) matching your search:\n%s\n";
+        public static final String SUCCESS_FIND = "Item(s) matching your search:\n%s\n";
         public static final String SUCCESS_ADD = "Added items(s):\n%s\nto the list (^_-☆ >c\nCurrently have %d item(s) in your checklist\n";
         public static final String SUCCESS_DELETE = "Deleted items(s):\n%s\nfrom the list (σ_σ.╒══⚟\nThere are %d item(s) left in your checklist\n";
         public static final String SUCCESS_MARK = "These item(s) were marked:\n%s\n";
         public static final String SUCCESS_UNMARK = "These item(s) were unmarked:\n%s\n";
 
         public static final String WARNING_LIST_EMPTY = "Your checklist is empty (‾ 3‾)\n";
-        public static final String WARNING_SEARCH_EMPTY = "No items matched your search (‾ 3‾)\n";
+        public static final String WARNING_FIND_EMPTY = "No items matched your search (‾ 3‾)\n";
         public static final String WARNING_MARK_EMPTY = "No items were marked (‾ 3‾)\n";
         public static final String WARNING_UNMARK_EMPTY = "No items were unmarked (‾ 3‾)\n";
         public static final String WARNING_DELETE_EMPTY = "No items were deleted (‾ 3‾)\n";
@@ -159,12 +159,12 @@ public class Marquee {
         }
     }
 
-    public void search(String search, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
+    public void find(String search, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
         List<TaskItem> matchingItems = filterTasks(search, start, end, isMarked);
         if (matchingItems.isEmpty()) {
-            outputStream.print(Dialogues.WARNING_SEARCH_EMPTY);
+            outputStream.print(Dialogues.WARNING_FIND_EMPTY);
         } else {
-            outputStream.printf(Dialogues.SUCCESS_SEARCH, numberedList(matchingItems));
+            outputStream.printf(Dialogues.SUCCESS_FIND, numberedList(matchingItems));
         }
     }
 
@@ -272,7 +272,7 @@ public class Marquee {
                     case LOAD -> loadChecklist();
                     case SAVE -> saveChecklist();
                     case LIST -> list();
-                    case SEARCH -> search(
+                    case FIND -> find(
                             command.parameter(),
                             command.flags().containsKey("from")
                                     ? DateTimeFormatter.parseDateTime(command.flags().get("from"))
