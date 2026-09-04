@@ -38,7 +38,8 @@ public record Command(Code code, String parameter, Map<String, String> flags) {
                     + ")\\s*"
     );
 
-    public static Command parseCommand(String input) throws IllegalArgumentException {
+    public static Command parseCommand(String input)
+            throws UnknownFlagException, DuplicateFlagException, IllegalArgumentException {
         Matcher codeMatcher = CODE_PATTERN.matcher(input);
         if (!codeMatcher.find()) {
             throw new IllegalArgumentException("Unknown command");
