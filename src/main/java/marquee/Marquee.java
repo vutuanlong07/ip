@@ -95,11 +95,12 @@ public class Marquee {
     private boolean isRunning;
 
     /**
-     * Instantiates an instance of Marquee and attempts to load its checklist from the given filepath.
+     * Instantiates an instance of Marquee and attempts to load its checklist from {@code savePath}.
      * If loading fails, starts with an empty checklist.
      *
-     * @param inputStream the input stream Marquee will read commands from
-     * @param savePath    the path to the CSV file Marquee will save its checklist to
+     * @param inputStream  the input stream Marquee will read commands from
+     * @param outputStream the output stream Marquee will direct outputs from its methods to
+     * @param savePath     the path to the CSV file Marquee will save its checklist to
      */
     public Marquee(InputStream inputStream, OutputStream outputStream, Path savePath) {
         this.inputReader = new BufferedReader(new InputStreamReader(inputStream));
@@ -128,7 +129,7 @@ public class Marquee {
 
     /**
      * Saves the checklist into the save file.
-     * If the operation fails,
+     * If the operation fails, the original save file will not be changed.
      *
      * @return Whether the file was written successfully
      */
@@ -143,7 +144,9 @@ public class Marquee {
         }
     }
 
-
+    /**
+     * Tells the chatbot to save checklist and stop operations.
+     */
     public void exit() {
         if (saveChecklist()) {
             outputStream.print(Dialogues.SUCCESS_EXIT);
@@ -151,6 +154,10 @@ public class Marquee {
         }
     }
 
+    /**
+     * Lists the items in the checklist to the output stream.
+     * If there are none, output a different message clarifying that the checklist is empty.
+     */
     public void list() {
         if (checklist.isEmpty()) {
             outputStream.print(Dialogues.WARNING_LIST_EMPTY);
@@ -159,8 +166,17 @@ public class Marquee {
         }
     }
 
-    public void search(String search, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
-        List<TaskItem> matchingItems = filterTasks(search, start, end, isMarked);
+    /**
+     * Searches for items in the checklist satisfying the search conditions, then list those tasks.
+     * If description is empty or {@code null}, and all other parameters are {@code null}, no result is returned.
+     *
+     * @param description match items containing this substring in its description
+     * @param start       match items starting after this time
+     * @param end         match items ending before this time
+     * @param isMarked    match items with this mark status
+     */
+    public void search(String description, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
+        List<TaskItem> matchingItems = filterTasks(description, start, end, isMarked);
         if (matchingItems.isEmpty()) {
             outputStream.print(Dialogues.WARNING_SEARCH_EMPTY);
         } else {
@@ -168,12 +184,22 @@ public class Marquee {
         }
     }
 
+    /**
+     * Adds tasks to the checklist, then list the added tasks.
+     *
+     * @param tasks tasks to be added to the checklist
+     */
     public void addTasks(TaskItem... tasks) {
         List<TaskItem> newTasks = List.of(tasks);
         checklist.addAll(newTasks);
         outputStream.printf(Dialogues.SUCCESS_ADD, bulletList(newTasks), checklist.size());
     }
 
+    /**
+     * Deletes tasks from the checklist by index, then list the deleted tasks.
+     *
+     * @param indices indices of the tasks to be deleted
+     */
     public void deleteTasks(int... indices) {
         if (checklist.isEmpty()) {
             outputStream.print(Dialogues.WARNING_LIST_EMPTY);
@@ -195,6 +221,11 @@ public class Marquee {
         }
     }
 
+    /**
+     * Marks tasks from the checklist as completed by index, then list the marked tasks.
+     *
+     * @param indices indices of the tasks to be marked
+     */
     public void markTasks(int... indices) {
         if (checklist.isEmpty()) {
             outputStream.print(Dialogues.WARNING_LIST_EMPTY);
@@ -216,6 +247,11 @@ public class Marquee {
         }
     }
 
+    /**
+     * Unmarks (mark as incomplete) tasks from the checklist by index, then list the unmarked tasks.
+     *
+     * @param indices indices of the tasks to be unmarked
+     */
     public void unmarkTasks(int... indices) {
         if (checklist.isEmpty()) {
             outputStream.print(Dialogues.WARNING_LIST_EMPTY);
@@ -237,6 +273,10 @@ public class Marquee {
         }
     }
 
+    /**
+     * Starts the chatbot loop. Marquee will listen from the input stream
+     * and print to the output stream given in the constructor.
+     */
     public void run() {
         isRunning = true;
         outputStream.print(Dialogues.BANNER);
