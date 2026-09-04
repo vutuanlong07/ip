@@ -87,7 +87,7 @@ import java.util.stream.Collectors;
  *     The final date-time is the current time truncated to the shortest unit used in the string,
  *     then shifted by the duration specified in the string
  * </p>
- * 
+ *
  * @author Vu Tuan Long
  */
 public final class DateTimeFormatter {
@@ -306,34 +306,33 @@ public final class DateTimeFormatter {
 
         int index = 0;
         int seconds = 0, minutes = 0, hours = 0, days = 0;
-        boolean setSeconds = false, setMinutes = false, setHours = false, setDays = false;
+        boolean isSecondsSet = false, isMinutesSet = false, isHoursSet = false;
         while (index < input.length()) {
             if (secondsMatcher.find(index)) {
                 seconds += Integer.parseInt(secondsMatcher.group("seconds"));
-                setSeconds = true;
+                isSecondsSet = true;
                 index = secondsMatcher.end();
             } else if (minutesMatcher.find(index)) {
                 minutes += Integer.parseInt(minutesMatcher.group("minutes"));
-                setMinutes = true;
+                isMinutesSet = true;
                 index = minutesMatcher.end();
             } else if (hoursMatcher.find(index)) {
                 hours += Integer.parseInt(hoursMatcher.group("hours"));
-                setHours = true;
+                isHoursSet = true;
                 index = hoursMatcher.end();
             } else if (daysMatcher.find(index)) {
                 days += Integer.parseInt(daysMatcher.group("days"));
-                setDays = true;
                 index = daysMatcher.end();
             } else {
                 throw new DateTimeParseException("Invalid duration", input, index);
             }
         }
 
-        LocalDateTime truncatedNow = setSeconds
+        LocalDateTime truncatedNow = isSecondsSet
                 ? LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS)
-                : setMinutes
+                : isMinutesSet
                   ? LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES)
-                  : setHours
+                  : isHoursSet
                     ? LocalDateTime.now().truncatedTo(ChronoUnit.HOURS)
                     : LocalDateTime.now().truncatedTo(ChronoUnit.DAYS);
         return isFuture
