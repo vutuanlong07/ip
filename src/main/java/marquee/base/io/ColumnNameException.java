@@ -1,4 +1,4 @@
-package marquee.io;
+package marquee.base.io;
 
 public class ColumnNameException extends IllegalArgumentException {
     private final String columnName;

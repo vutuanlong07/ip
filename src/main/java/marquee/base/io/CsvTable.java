@@ -1,4 +1,4 @@
-package marquee.io;
+package marquee.base.io;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class CsvFile {
+public final class CsvTable {
     private final String[] header;
     private final List<Record> values;
     private final Map<String, Integer> columnsByName;
@@ -62,11 +62,11 @@ public final class CsvFile {
 
         @Override
         public String toString() {
-            return String.join(CsvFile.this.getSeparator(), fields);
+            return String.join(CsvTable.this.getSeparator(), fields);
         }
     }
 
-    public CsvFile(List<String> header, String separator) throws ColumnNameException {
+    public CsvTable(List<String> header, String separator) throws ColumnNameException {
         this.header = header.toArray(String[]::new);
         this.separator = separator;
         this.values = new ArrayList<>();
@@ -105,7 +105,7 @@ public final class CsvFile {
         values.addAll(List.of(rows));
     }
 
-    public static CsvFile read(Path filepath, String separator)
+    public static CsvTable readFile(Path filepath, String separator)
             throws NoSuchFileException, IOException, ParseException, ColumnCountException, ColumnNameException {
         if (!Files.isRegularFile(filepath)) {
             throw new NoSuchFileException(filepath.toString());
@@ -126,14 +126,14 @@ public final class CsvFile {
         }
         List<String> header = List.of(lines.getFirst().split(separator, -1));
 
-        CsvFile csv = new CsvFile(header, separator);
+        CsvTable csv = new CsvTable(header, separator);
         lines.stream().skip(1)
                 .map(line -> Pattern.compile(separator, Pattern.LITERAL).split(line, -1))
                 .forEach(csv::add);
         return csv;
     }
 
-    public static void writeCsv(Path filepath, CsvFile csv) throws IOException {
+    public static void writeFile(Path filepath, CsvTable csv) throws IOException {
         Path temp = null;
         try {
             temp = Files.createTempFile(filepath.getParent(), null, null);
@@ -147,5 +147,10 @@ public final class CsvFile {
                 Files.deleteIfExists(temp);
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Table(" + String.join(", ", this.getHeader()) + ")";
     }
 }

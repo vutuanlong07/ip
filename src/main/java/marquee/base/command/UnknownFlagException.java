@@ -1,4 +1,4 @@
-package marquee.command;
+package marquee.base.command;
 
 /**
  * Exception class for when an unknown flag for a command is encountered.
@@ -19,7 +19,7 @@ public class UnknownFlagException extends IllegalArgumentException {
         if (code == null) {
             throw new NullPointerException();
         }
-        super("Unknown flag name in " + code.getCodeString() + ": " + flagName);
+        super("Unknown flag name in " + code.name() + ": " + flagName);
         this.flagName = flagName;
         this.code = code;
     }

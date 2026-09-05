@@ -2,7 +2,8 @@ package marquee.task;
 
 import java.time.LocalDateTime;
 
-import marquee.task.tag.TaskTag;
+import marquee.base.task.Task;
+import marquee.base.task.TaskTag;
 
 /**
  * Representation of a generic task with no starting or ending time.

@@ -2,8 +2,9 @@ package marquee.task;
 
 import java.time.LocalDateTime;
 
-import marquee.task.tag.TaskTag;
-import marquee.time.DateTimeFormatter;
+import marquee.base.task.Task;
+import marquee.base.task.TaskTag;
+import marquee.base.time.DateTimeFormatter;
 
 /**
  * Representation of an event with a concrete starting and ending time.

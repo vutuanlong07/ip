@@ -1,8 +1,6 @@
-package marquee.task;
+package marquee.base.task;
 
 import java.time.LocalDateTime;
-
-import marquee.task.tag.TaskTag;
 
 /**
  * Base class for all tasks.

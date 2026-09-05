@@ -1,4 +1,4 @@
-package marquee.io;
+package marquee.base.io;
 
 public class ColumnCountException extends IllegalArgumentException {
     public ColumnCountException() {
