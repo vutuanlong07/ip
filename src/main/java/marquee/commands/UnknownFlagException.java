@@ -1,6 +1,4 @@
-package marquee.commands.exceptions;
-
-import marquee.commands.Code;
+package marquee.commands;
 
 /**
  * Exception class for when an unknown flag for a command is encountered.

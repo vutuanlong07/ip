@@ -9,9 +9,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import marquee.commands.exceptions.DuplicateFlagException;
-import marquee.commands.exceptions.UnknownFlagException;
-
 /**
  * Record class containing details of a command such as
  * the command code, the parameter, and set flags.

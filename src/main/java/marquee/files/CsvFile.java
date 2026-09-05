@@ -16,9 +16,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import marquee.files.exceptions.ColumnCountException;
-import marquee.files.exceptions.ColumnNameException;
-
 public final class CsvFile {
     private final String[] header;
     private final List<Record> values;
