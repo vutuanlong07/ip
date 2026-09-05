@@ -7,18 +7,14 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import marquee.commands.Command;
 import marquee.commands.DuplicateFlagException;
@@ -26,7 +22,7 @@ import marquee.commands.UnknownFlagException;
 import marquee.files.CsvFile;
 import marquee.tasks.DeadlineTask;
 import marquee.tasks.EventTask;
-import marquee.tasks.TaskTag;
+import marquee.tasks.Task;
 import marquee.tasks.TodoTask;
 import marquee.time.DateTimeFormatter;
 
@@ -90,7 +86,7 @@ public class Marquee {
     private final PrintStream outputStream;
     private final Path savePath;
 
-    private List<TodoTask> checklist;
+    private final List<Task> checklist;
     private boolean isRunning;
 
     /**
@@ -175,7 +171,7 @@ public class Marquee {
      * @param isMarked    match items with this mark status
      */
     public void find(String description, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
-        List<TodoTask> matchingItems = filterTasks(description, start, end, isMarked);
+        List<Task> matchingItems = filterTasks(description, start, end, isMarked);
         if (matchingItems.isEmpty()) {
             outputStream.print(Dialogues.WARNING_FIND_EMPTY);
         } else {
@@ -188,8 +184,8 @@ public class Marquee {
      *
      * @param tasks the tasks to be added to the checklist
      */
-    public void addTasks(TodoTask... tasks) {
-        List<TodoTask> newTasks = List.of(tasks);
+    public void addTasks(Task... tasks) {
+        List<Task> newTasks = List.of(tasks);
         checklist.addAll(newTasks);
         outputStream.printf(Dialogues.SUCCESS_ADD, bulletList(newTasks), checklist.size());
     }
@@ -209,7 +205,7 @@ public class Marquee {
                 return;
             }
         }
-        List<TodoTask> removedItems = IntStream.of(indices)
+        List<Task> removedItems = IntStream.of(indices)
                 .mapToObj(i -> checklist.remove(i - 1))
                 .filter(Objects::nonNull)
                 .toList();
@@ -235,9 +231,9 @@ public class Marquee {
                 return;
             }
         }
-        List<TodoTask> markedItems = IntStream.of(indices)
+        List<Task> markedItems = IntStream.of(indices)
                 .mapToObj(i -> checklist.get(i - 1))
-                .filter(TodoTask::mark)
+                .filter(Task::mark)
                 .toList();
         if (markedItems.isEmpty()) {
             outputStream.print(Dialogues.WARNING_MARK_EMPTY);
@@ -261,9 +257,9 @@ public class Marquee {
                 return;
             }
         }
-        List<TodoTask> unmarkedItems = IntStream.of(indices)
+        List<Task> unmarkedItems = IntStream.of(indices)
                 .mapToObj(i -> checklist.get(i - 1))
-                .filter(TodoTask::unmark)
+                .filter(Task::unmark)
                 .toList();
         if (unmarkedItems.isEmpty()) {
             outputStream.print(Dialogues.WARNING_UNMARK_EMPTY);
@@ -548,7 +544,7 @@ public class Marquee {
                 .toArray();
     }
 
-    private List<TodoTask> filterTasks(String search, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
+    private List<Task> filterTasks(String search, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
         return (search == null || search.isEmpty()) && start == null && end == null && isMarked == null
                 ? List.of()
                 : checklist.stream()
@@ -558,11 +554,11 @@ public class Marquee {
                 )
                 .filter(start == null
                         ? _ -> true
-                        : item -> item.isAfter(start)
+                        : item -> !item.getStart().isBefore(start)
                 )
                 .filter(end == null
                         ? _ -> true
-                        : item -> item.isBefore(end)
+                        : item -> !item.getEnd().isAfter(end)
                 )
                 .filter(search == null || search.isEmpty()
                         ? _ -> true
@@ -570,7 +566,7 @@ public class Marquee {
                 .toList();
         }
 
-    private static String numberedList(List<TodoTask> list) {
+    private static String numberedList(List<Task> list) {
         StringBuilder builder = IntStream.range(0, list.size())
                 .mapToObj(idx -> String.format("%d. %s\n", idx + 1, list.get(idx)))
                 .collect(
@@ -581,7 +577,7 @@ public class Marquee {
         return builder.toString();
     }
 
-    private static String bulletList(List<TodoTask> list) {
+    private static String bulletList(List<Task> list) {
         StringBuilder builder = list.stream()
                 .map(item -> String.format("  %s\n", item))
                 .collect(

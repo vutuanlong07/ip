@@ -5,64 +5,45 @@ import java.time.LocalDateTime;
 import marquee.time.DateTimeFormatter;
 
 /**
- * Representation of an event. It is modeled as a {@link TodoTask}
- * that has a starting time and an ending time.
+ * Representation of an event with a concrete starting and ending time.
+ * 
+ * @see Task
  */
-public final class EventTask extends TodoTask {
-    private final LocalDateTime start;
-    private final LocalDateTime end;
+public final class EventTask extends Task {
+    /** Tag for an event */
+    public static final TaskTag EVENT_TASK_TAG = new TaskTag("E");
+
+    @Override
+    public TaskTag getTaskTag() {
+        return EVENT_TASK_TAG;
+    }
 
     /**
-     * Creates a new event with the specified description
-     * and mark it as either completed or incomplete.
+     * Creates a new {@code EventTask} with the given description,
+     * starting time and ending time, then mark it as either completed or incomplete.
      *
-     * @param description description of the event
+     * @param description the description of the event
      * @param start       when the event starts
      * @param end         when the event ends
-     * @param isMarked    whether the task is completed or not
+     * @param isMarked    whether the event has been completed or not
      */
     public EventTask(String description, LocalDateTime start, LocalDateTime end, boolean isMarked) throws IllegalArgumentException {
-        super(TaskTag.EVENT, description, isMarked);
+        super(description, start, end, isMarked);
         if (end.isBefore(start)) {
             throw new IllegalArgumentException("End time must be after start time");
         }
-        this.start = start;
-        this.end = end;
     }
     
     /**
-     * Creates a new event with the specified description.
+     * Creates a new {@code EventTask} with the given description,
+     * starting time and ending time.
      *
-     * @param description the description of the task
+     * @param description the description of the event
+     * @param start       when the event starts
+     * @param end         when the event ends
      */
     public EventTask(String description, LocalDateTime start, LocalDateTime end) throws IllegalArgumentException {
         this(description, start, end, false);
-    }
-
-    /**
-     * Get the starting time of this event.
-     * @return the starting time of this event
-     */
-    public LocalDateTime getStart() {
-        return this.start;
-    }
-
-    /**
-     * Get the ending time of this event.
-     * @return the ending time of this event
-     */
-    public LocalDateTime getEnd() {
-        return this.end;
-    }
-
-    @Override
-    public boolean isBefore(LocalDateTime time) {
-        return this.end.isBefore(time);
-    }
-
-    @Override
-    public boolean isAfter(LocalDateTime time) {
-        return this.start.isAfter(time);
     }
 
     @Override

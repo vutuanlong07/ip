@@ -6,26 +6,34 @@ import marquee.time.DateTimeFormatter;
 
 /**
  * Representation of a task that must be completed within a deadline.
- * It is modeled as a {@link TodoTask} that has an ending time.
+ * It is modeled as a {@link Task} that starts and end at the same time as the deadline.
  */
-public final class DeadlineTask extends TodoTask {
+public final class DeadlineTask extends Task {
+    /** Tag for a task with deadline */
+    public static final TaskTag DEADLINE_TASK_TAG = new TaskTag("D");
+
+    @Override
+    public TaskTag getTaskTag() {
+        return DEADLINE_TASK_TAG;
+    }
+
     private final LocalDateTime deadline;
 
     /**
-     * Creates a new task with deadline with the specified description
-     * and mark it as either completed or incomplete.
+     * Creates a new {@code DeadlineTask} with the given description
+     * and deadline, then mark it as either completed or incomplete.
      *
      * @param description the description of the task
      * @param deadline    when the deadline is up
-     * @param isMarked    whether the task is completed or not
+     * @param isMarked    whether the task has been completed or not
      */
     public DeadlineTask(String description, LocalDateTime deadline, boolean isMarked) {
-        super(TaskTag.DEADLINE, description, isMarked);
+        super(description, deadline, deadline, isMarked);
         this.deadline = deadline;
     }
 
     /**
-     * Creates a new task with deadline with the specified description.
+     * Creates a new {@code DeadlineTask} with the given description and deadline
      *
      * @param description the description of the task
      * @param deadline    when the deadline is up
@@ -43,18 +51,8 @@ public final class DeadlineTask extends TodoTask {
     }
 
     @Override
-    public boolean isBefore(LocalDateTime time) {
-        return this.deadline.isBefore(time);
-    }
-
-    @Override
-    public boolean isAfter(LocalDateTime time) {
-        return this.deadline.isAfter(time);
-    }
-
-    @Override
     public String toString() {
         return super.toString()
-                + " (by " + DateTimeFormatter.formatDateTime(this.deadline()) + ")";
+                + " (complete by " + DateTimeFormatter.formatDateTime(this.deadline()) + ")";
     }
 }

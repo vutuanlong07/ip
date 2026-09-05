@@ -3,44 +3,32 @@ package marquee.tasks;
 import java.time.LocalDateTime;
 
 /**
- * Representation of a task with a description, tag and completion marker.
+ * Representation of a generic task with no starting or ending time.
+ *
+ * @see Task
  */
-public class TodoTask {
-    private boolean isMarked;
-    private final String description;
-    private final TaskTag tag;
+public final class TodoTask extends Task {
+    /** Tag for a to-do task */
+    private static final TaskTag TODO_TASK_TAG = new TaskTag("T");
 
-    /**
-     * Constructor reserved for subclasses that need to change task tag.
-     *
-     * @param tag         the new tag for this task
-     * @param description the description of the task
-     * @param isMarked    whether the task is completed or not
-     * @throws NullPointerException if {@code tag} is {@code null}
-     */
-    protected TodoTask(TaskTag tag, String description, boolean isMarked) throws NullPointerException {
-        if (tag == null) {
-            throw new NullPointerException("Task tag cannot be null");
-        }
-
-        this.tag = tag;
-        this.description = description;
-        this.isMarked = isMarked;
+    @Override
+    public TaskTag getTaskTag() {
+        return TODO_TASK_TAG;
     }
 
     /**
-     * Creates a new task item with the specified description
-     * and mark it as either completed or incomplete.
+     * Creates a new {@code TodoTask} with the given description,
+     * then mark it as either completed or incomplete.
      *
      * @param description the description of the task
-     * @param isMarked    whether the task is completed
+     * @param isMarked    whether the task has been completed or not
      */
     public TodoTask(String description, boolean isMarked){
-        this(TaskTag.TODO, description, isMarked);
+        super(description, null, null, isMarked);
     }
 
     /**
-     * Creates a new task item with the specified description.
+     * Creates a new {@code TodoTask} with the given description
      *
      * @param description the description of the task
      */
@@ -48,68 +36,13 @@ public class TodoTask {
         this(description, false);
     }
 
-    public boolean isMarked() {
-        return this.isMarked;
-    }
-
-    /**
-     * Gets the description of this task.
-     *
-     * @return the description of this task
-     */
-    public String getDescription() {
-        return this.description;
-    }
-
-    /**
-     * Gets the tag of this task.
-     *
-     * @return the tag of this task
-     */
-    public TaskTag getTag() {
-        return this.tag;
-    }
-
-    /**
-     * Marks the task as completed.
-     *
-     * @return whether the task was incomplete before
-     */
-    public boolean mark() {
-        return this.isMarked != (this.isMarked = true);
-    }
-
-    /**
-     * Marks the task as incomplete.
-     *
-     * @return whether the task was completed before
-     */
-    public boolean unmark() {
-        return this.isMarked != (this.isMarked = false);
-    }
-
-    /**
-     * Checks if the task ends before the given time.
-     *
-     * @param time the time to check against
-     * @return whether the task ends before {@code time}
-     */
-    public boolean isBefore(LocalDateTime time) {
-        return false;
-    }
-
-    /**
-     * Checks if the task starts after the given time.
-     *
-     * @param time the time to check against
-     * @return whether the task starts after {@code time}
-     */
-    public boolean isAfter(LocalDateTime time) {
-        return false;
+    @Override
+    public LocalDateTime getStart() throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("To-do task does not have a starting time");
     }
 
     @Override
-    public String toString() {
-        return this.getTag().toString() + (this.isMarked()? " [x] " : " [ ] ") + this.getDescription();
+    public LocalDateTime getEnd() throws UnsupportedOperationException {
+        throw new UnsupportedOperationException("To-do task does not have an ending time");
     }
 }
