@@ -1,7 +1,8 @@
-package marquee.tasks;
+package marquee.task;
 
 import java.time.LocalDateTime;
 
+import marquee.task.tag.TaskTag;
 import marquee.time.DateTimeFormatter;
 
 /**

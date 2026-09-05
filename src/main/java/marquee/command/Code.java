@@ -1,11 +1,11 @@
-package marquee.commands;
+package marquee.command;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Enum of the command codes.
+ * Enum of the basic command codes.
  * Command codes are names of the commands supported by Marquee,
  * as well as their supported flags.
  */

@@ -1,4 +1,4 @@
-package marquee.commands;
+package marquee.command;
 
 /**
  * Exception class for when a duplicate flag is encountered.

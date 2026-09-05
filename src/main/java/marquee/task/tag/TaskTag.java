@@ -1,4 +1,4 @@
-package marquee.tasks;
+package marquee.task.tag;
 
 import java.util.HashMap;
 import java.util.Map;

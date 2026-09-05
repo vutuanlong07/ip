@@ -1,4 +1,4 @@
-package marquee.commands;
+package marquee.command;
 
 import java.util.Arrays;
 import java.util.Comparator;

@@ -16,14 +16,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.IntStream;
 
-import marquee.commands.Command;
-import marquee.commands.DuplicateFlagException;
-import marquee.commands.UnknownFlagException;
 import marquee.files.CsvFile;
-import marquee.tasks.DeadlineTask;
-import marquee.tasks.EventTask;
-import marquee.tasks.Task;
-import marquee.tasks.TodoTask;
+import marquee.command.Command;
+import marquee.command.DuplicateFlagException;
+import marquee.command.UnknownFlagException;
+import marquee.task.DeadlineTask;
+import marquee.task.EventTask;
+import marquee.task.Task;
+import marquee.task.TodoTask;
 import marquee.time.DateTimeFormatter;
 
 /**
