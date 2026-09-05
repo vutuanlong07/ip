@@ -12,7 +12,7 @@ import marquee.base.task.TaskTag;
  */
 public final class TodoTask extends Task {
     /** Tag for a to-do task */
-    private static final TaskTag TODO_TASK_TAG = new TaskTag("T");
+    public static final TaskTag TODO_TASK_TAG = new TaskTag("T");
 
     @Override
     public TaskTag getTaskTag() {

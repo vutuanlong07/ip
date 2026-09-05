@@ -16,7 +16,7 @@ public abstract class Task {
      * Gets the tag of this task.
      *
      * @return the tag of this task
-     * @implSpec Must override to use the correct tag
+     * @implSpec Must return the same constant for every class instance.
      */
     public abstract TaskTag getTaskTag();
 
