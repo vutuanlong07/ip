@@ -1,5 +1,5 @@
 /**
- * Contains base classes for chatbot commands, task items, file handling and time parsing
- * that can be extended for extra functionalities.
+ * Contains command and date-time formatters, as well as base classes for
+ * chatbot commands, task items, save file format that can be extended for extra functionalities.
  */
 package marquee.base;

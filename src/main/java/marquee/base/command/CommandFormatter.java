@@ -48,6 +48,9 @@ public final class CommandFormatter {
                     + Pattern.quote(Code.FLAG_DELIMITER) + "(?<flagName>\\S*\\b))\\s*"
     );
 
+    // prevents instantiation
+    private CommandFormatter() {}
+
     /**
      * Parses the given string as a {@code Command} according to the class-defined format.
      *

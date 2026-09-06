@@ -152,6 +152,9 @@ public final class DateTimeFormatter {
             "\\G\\s*(?<days>\\d+)\\s*(?:\\s+days|d)\\s+"
     );
 
+    // prevents instantiation
+    private DateTimeFormatter() {}
+
     /**
      * Parses the given string as a {@code LocalDateTime}, according to the class-defined format.
      *
