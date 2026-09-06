@@ -31,7 +31,7 @@ public final class TodoTask extends Task {
     }
 
     /**
-     * Creates a new {@code TodoTask} with the given description
+     * Creates a new {@code TodoTask} with the given description.
      *
      * @param description the description of the task
      */

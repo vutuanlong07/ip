@@ -13,93 +13,73 @@ import java.util.stream.Collectors;
 
 /**
  * Custom {@code LocalDateTime} formatter and parser that supports many date-time formats used in daily life.
- * <h1>Absolute time format</h1>
+ * <h1>
+ * Absolute time format
  * <p>
- *     This format consist of a date component and a time component.
- *     At least 1 of date or time component below must exist to be considered a valid date-time string.
- * </p>
+ * This format consist of a date component and a time component.
+ * At least 1 of date or time component below must exist to be considered a valid date-time string.
  * <p>
- *     If time component exist but date component is missing,
- *     it is assumed to be on the current day, taken from {@link LocalDate#now()}.
- * </p>
+ * If time component exist but date component is missing,
+ * it is assumed to be on the current day, taken from {@link LocalDate#now()}.
  * <p>
- *     If date component exist but time component is missing,
- *     it is assumed to be midnight at the start of that day (00:00:00).
- * </p>
- * <h3>Available date component formats</h3>
+ * If date component exist but time component is missing,
+ * it is assumed to be midnight at the start of that day (00:00:00).
+ * <h3>
+ * Available date component formats
+ * <ul>
+ *     <li>{@code today}</li>
+ *     <li>{@code yesterday} and {@code tomorrow}, can be repeated for further future and past days</li>
+ *     <li>{@code last} day-of-week for last or current day-of-week</li>
+ *     <li>{@code next} day-of-week, {@code next} can be repeated for future days-of-week</li>
+ *     <li>Day, month, year, separated by forward-slash {@code /} or hyphen {@code -}</li>
+ *     <li>Day, written month, year, separated by 1 or more spaces <code>&nbsp;</code>, comma {@code ,} with optional trailing spaces, or hyphen {@code -}</li>
+ *     <li>Written month, day, year, same separator as above except for spaces</li>
+ * </ul>
+ * Separator choices must be consistent throughout the date component
  * <p>
- *     <ul>
- *         <li>{@code today}</li>
- *         <li>{@code yesterday} and {@code tomorrow}, can be repeated for further future and past days</li>
- *         <li>{@code last} day-of-week for last or current day-of-week</li>
- *         <li>{@code next} day-of-week, {@code next} can be repeated for future days-of-week</li>
- *         <li>Day, month, year, separated by forward-slash {@code /} or hyphen {@code -}</li>
- *         <li>Day, written month, year, separated by 1 or more spaces <code>&nbsp;</code>, comma {@code ,} with optional trailing spaces, or hyphen {@code -}</li>
- *         <li>Written month, day, year, same separator as above except for spaces</li>
- *     </ul>
- * </p>
+ * Day-of-week and written month can be full or abbreviated.
  * <p>
- *     Separator choices must be consistent throughout the date component
- * </p>
+ * Year component can be omitted, then it is assumed to be the current year
+ * taken from {@link LocalDateTime#now()}{@link LocalDateTime#getYear() .getYear()}.
+ * <h3>
+ * Available time component formats
+ * <ul>
+ *     <li>Hour, minute, second, separated by semicolon {@code :}</li>
+ *     <li>Hour, minute, separator optional</li>
+ * </ul>
+ * Hour, minute and seconds must be 2 digits.
  * <p>
- *     Day-of-week and written month can be full or abbreviated.
- * </p>
+ * Second component can be omitted, then it is assumed to be 00.
+ * <h1>
+ * Relative time format
  * <p>
- *     Year component can be omitted, then it is assumed to be the current year
- *     taken from {@link LocalDateTime#now()}{@link LocalDateTime#getYear() .getYear()}.
- * </p>
- * <h3>Available time component formats</h3>
+ * Strings following this format must end in {@code later} or {@code ago} to indicate relative time.
  * <p>
- *     <ul>
- *         <li>Hour, minute, second, separated by semicolon {@code :}</li>
- *         <li>Hour, minute, separator optional</li>
- *     </ul>
- * </p>
+ * This format consist of any amount of duration component separated by spaces.
+ * Duration components can have duplicate units, in which case they are added up.
  * <p>
- *     Hour, minute and seconds must be 2 digits.
- * </p>
+ * Negative durations are not allowed. Use {@code ago} instead to indicate time in the past.
  * <p>
- *     Second component can be omitted, then it is assumed to be 00.
- * </p>
- * <h1>Relative time format</h1>
- * <p>
- *     Strings following this format must end in {@code later} or {@code ago} to indicate relative time.
- * </p>
- * <p>
- *     This format consist of any amount of duration component separated by spaces.
- *     Duration components can have duplicate units, in which case they are added up.
- * </p>
- * <p>
- *     Negative durations are not allowed. Use {@code ago} instead to indicate time in the past.
- * </p>
- * <p>
- *     All duration components follow the format of number and duration abbreviation,
- *     or number, 1 or more spaces <code>&nbsp;</code> and duration full name.
- * </p>
- * <h3>Available duration components and abbreviations</h3>
+ * All duration components follow the format of number and duration abbreviation,
+ * or number, 1 or more spaces <code>&nbsp;</code> and duration full name.
+ * <h3>
+ * Available duration components and abbreviations
  * <ul>
  *     <li>{@code seconds} component: {@code s}, {@code sec}</li>
  *     <li>{@code minutes} component: {@code m}, {@code min}</li>
  *     <li>{@code hours} component: {@code h}, {@code hrs}</li>
  *     <li>{@code days} component: {@code d}</li>
  * </ul>
- * <p>
- *     The final date-time is the current time truncated to the shortest unit used in the string,
- *     then shifted by the duration specified in the string
- * </p>
+ * The final date-time is the current time truncated to the shortest unit used in the string,
+ * then shifted by the duration specified in the string
  *
  * @see LocalDateTime
- * @author Vu Tuan Long
  */
 public final class DateTimeFormatter {
-    /**
-     * Full names for the days-of-week
-     */
+    /*** Full names for the days-of-week. */
     public static final List<String> DAYS_OF_WEEK = List.of("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
 
-    /**
-     * Full names for the months
-     */
+    /*** Full names for the months. */
     public static final List<String> MONTHS = List.of("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
 
     private static final String RELATIVE_TIME_FUTURE_SUFFIX = "later";
@@ -171,6 +151,60 @@ public final class DateTimeFormatter {
     private static final Pattern DAYS_PATTERN = Pattern.compile(
             "\\G\\s*(?<days>\\d+)\\s*(?:\\s+days|d)\\s+"
     );
+
+    /**
+     * Parses the given string as a {@code LocalDateTime}, according to the class-defined format.
+     *
+     * @param input the string to be parsed
+     * @return the parsed {@link LocalDateTime}
+     * @throws DateTimeParseException if the string doesn't follow the class-defined format
+     */
+    public static LocalDateTime parseDateTime(String input) throws DateTimeParseException {
+        if (input.equals("now")) {
+            return LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
+        } else {
+            try {
+                return parseRelativeTime(input);
+            } catch (DateTimeParseException e) {
+                if (e.getMessage().equals("Not a relative time")) {
+                    return parseTimestamp(input);
+                } else {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    /**
+     * Returns a string representation of the given {@code LocalDateTime}, according to the class-defined format.
+     *
+     * @param dateTime the {@link LocalDateTime} to format
+     * @return the formatted date-time string
+     */
+    public static String formatDateTime(LocalDateTime dateTime) {
+        StringBuilder res =  new StringBuilder();
+        res.append(String.format("%02d:%02d:%02d ", dateTime.getHour(), dateTime.getMinute(), dateTime.getSecond()));
+
+        LocalDate today = LocalDate.now();
+        LocalDate target = dateTime.toLocalDate();
+
+        long daysDifference = today.until(dateTime, ChronoUnit.DAYS);
+        if (daysDifference == 0) {
+            res.append("today");
+        } else if (daysDifference == -1) {
+            res.append("yesterday");
+        } else if (daysDifference == 1) {
+            res.append("tomorrow");
+        } else if (daysDifference > -7 && daysDifference <= 7) {
+            res.append(daysDifference > 0 ? "next " : "last ");
+            res.append(DAYS_OF_WEEK.get(target.getDayOfWeek().getValue() - 1));
+        } else if (today.getYear() == target.getYear()) {
+            res.append(dateTime.getDayOfMonth()).append(' ').append(MONTHS.get(dateTime.getMonthValue() - 1));
+        } else {
+            res.append(dateTime.getDayOfMonth()).append(' ').append(MONTHS.get(dateTime.getMonthValue() - 1)).append(' ').append(target.getYear());
+        }
+        return res.toString();
+    }
 
     private static LocalDateTime parseTimestamp(String input) throws DateTimeParseException {
         Matcher timeFullMatcher = TIME_FULL_PATTERN.matcher(input);
@@ -339,59 +373,5 @@ public final class DateTimeFormatter {
         return isFuture
                 ? truncatedNow.plusSeconds(seconds).plusMinutes(minutes).plusHours(hours).plusDays(days)
                 : truncatedNow.minusSeconds(seconds).minusMinutes(minutes).minusHours(hours).minusDays(days);
-    }
-
-    /**
-     * Parses the given string as a {@code LocalDateTime}, according to the class-defined format.
-     *
-     * @param input the string to be parsed
-     * @return the parsed {@link LocalDateTime}
-     * @throws DateTimeParseException if the string doesn't follow the class-defined format
-     */
-    public static LocalDateTime parseDateTime(String input) throws DateTimeParseException {
-        if (input.equals("now")) {
-            return LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
-        } else {
-            try {
-                return parseRelativeTime(input);
-            } catch (DateTimeParseException e) {
-                if (e.getMessage().equals("Not a relative time")) {
-                    return parseTimestamp(input);
-                } else {
-                    throw e;
-                }
-            }
-        }
-    }
-
-    /**
-     * Returns a string representation of the given {@code LocalDateTime}, according to the class-defined format.
-     *
-     * @param dateTime the {@link LocalDateTime} to format
-     * @return the formatted date-time string
-     */
-    public static String formatDateTime(LocalDateTime dateTime) {
-        StringBuilder res =  new StringBuilder();
-        res.append(String.format("%02d:%02d:%02d ", dateTime.getHour(), dateTime.getMinute(), dateTime.getSecond()));
-
-        LocalDate today = LocalDate.now();
-        LocalDate target = dateTime.toLocalDate();
-
-        long daysDifference = today.until(dateTime, ChronoUnit.DAYS);
-        if (daysDifference == 0) {
-            res.append("today");
-        } else if (daysDifference == -1) {
-            res.append("yesterday");
-        } else if (daysDifference == 1) {
-            res.append("tomorrow");
-        } else if (daysDifference > -7 && daysDifference <= 7) {
-            res.append(daysDifference > 0 ? "next " : "last ");
-            res.append(DAYS_OF_WEEK.get(target.getDayOfWeek().getValue() - 1));
-        } else if (today.getYear() == target.getYear()) {
-            res.append(dateTime.getDayOfMonth()).append(' ').append(MONTHS.get(dateTime.getMonthValue() - 1));
-        } else {
-            res.append(dateTime.getDayOfMonth()).append(' ').append(MONTHS.get(dateTime.getMonthValue() - 1)).append(' ').append(target.getYear());
-        }
-        return res.toString();
     }
 }

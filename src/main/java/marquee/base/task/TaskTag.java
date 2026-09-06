@@ -12,7 +12,7 @@ public record TaskTag(String label) {
     private static final Map<String, TaskTag> TAG_BY_LABEL = new HashMap<>();
 
     /**
-     * Create a new {@code TaskTag}. Tag instances are considered unique if their labels are different.
+     * Create a new {@code TaskTag}. Tag instances are considered unique if their labels are different<p>
      * All tag instances must be unique. Reuse old instances if you need to tag multiple tasks with the same tag.
      *
      * @param label the label of the tag, which is what
@@ -43,7 +43,7 @@ public record TaskTag(String label) {
     }
 
     /**
-     * Returns a {@code List} view of available task tags.
+     * Returns a {@code List} view of available task tags<p>
      *
      * @return an unmodifiable {@link List} of available task tags
      */
@@ -52,7 +52,7 @@ public record TaskTag(String label) {
     }
 
     /**
-     * Returns the decorated version of the tag for printing.
+     * Returns the decorated version of the tag for printing<p>
      *
      * @return a decorated version of the tag
      */

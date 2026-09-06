@@ -8,7 +8,8 @@ import marquee.base.time.DateTimeFormatter;
 
 /**
  * Representation of a task that must be completed within a deadline.
- * It is modeled as a {@link Task} that starts and end at the same time as the deadline.
+ *
+ * @see Task
  */
 public final class DeadlineTask extends Task {
     /** Tag for a task with deadline */
@@ -30,12 +31,12 @@ public final class DeadlineTask extends Task {
      * @param isMarked    whether the task has been completed or not
      */
     public DeadlineTask(String description, LocalDateTime deadline, boolean isMarked) {
-        super(description, deadline, deadline, isMarked);
+        super(description, null, deadline, isMarked);
         this.deadline = deadline;
     }
 
     /**
-     * Creates a new {@code DeadlineTask} with the given description and deadline
+     * Creates a new {@code DeadlineTask} with the given description and deadline.
      *
      * @param description the description of the task
      * @param deadline    when the deadline is up
@@ -46,6 +47,7 @@ public final class DeadlineTask extends Task {
 
     /**
      * Get the deadline of this task.
+     *
      * @return the deadline of this task
      */
     public LocalDateTime deadline() {

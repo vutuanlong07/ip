@@ -6,6 +6,7 @@ import java.util.Map;
 
 /**
  * A {@code Code} defines the name of a command and the flags it accepts.
+ * <p>
  * Do not create new instances repeatedly. All instances are tracked and may cause collisions.
  *
  * @param name the command name associated with this code
@@ -19,8 +20,9 @@ public record Code(String name, List<String> flagNames) {
     private static final Map<String, Code> DICTIONARY = new HashMap<>();
 
     /**
-     * Create a new {@code Code}. Code instances are considered unique
-     * if their command names are different. All code instances must be unique.
+     * Create a new {@code Code}.
+     * <p>
+     * All code instances must have unique command names are different.
      * The argument is considered to be the parameter of the empty flag {@code ""}.
      *
      * @param name      the name of the code, which is what would be
@@ -43,7 +45,7 @@ public record Code(String name, List<String> flagNames) {
     }
 
     /**
-     * Gets the {@code Code} with the given name
+     * Gets the {@code Code} with the given name.
      *
      * @param name the name of the {@code Code}
      * @return the {@code Code} with the given name, or {@code null} if there are none

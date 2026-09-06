@@ -25,16 +25,16 @@ public final class CsvTable {
     public class Record {
         private final String[] fields;
 
-        public Record(String... fields) throws ColumnCountException {
+        public Record(String... fields) throws IllegalArgumentException {
             if (fields.length != header.length) {
-                throw new ColumnCountException();
+                throw new IllegalArgumentException("Inconsistent column count");
             }
             this.fields = fields.clone();
         }
 
-        public Record(Map<String, String> fieldsByName) throws ColumnCountException, ColumnNameException {
+        public Record(Map<String, String> fieldsByName) throws ColumnNameException, IllegalArgumentException {
             if (fieldsByName.size() != header.length) {
-                throw new ColumnCountException();
+                throw new IllegalArgumentException("Inconsistent column count");
             }
             this.fields = new String[header.length];
             fieldsByName.forEach(this::setField);
@@ -93,7 +93,7 @@ public final class CsvTable {
         return Collections.unmodifiableList(values);
     }
 
-    public void add(String... fields) throws ColumnCountException {
+    public void add(String... fields) throws IllegalArgumentException {
         values.add(new Record(fields));
     }
 
@@ -101,12 +101,12 @@ public final class CsvTable {
         values.add(row);
     }
 
-    public void addAll(Record... rows) throws ColumnCountException, ColumnNameException {
+    public void addAll(Record... rows) throws ColumnNameException, IllegalArgumentException {
         values.addAll(List.of(rows));
     }
 
     public static CsvTable readFile(Path filepath, String separator)
-            throws NoSuchFileException, IOException, ParseException, ColumnCountException, ColumnNameException {
+            throws NoSuchFileException, IOException, ParseException, ColumnNameException, IllegalArgumentException {
         if (!Files.isRegularFile(filepath)) {
             throw new NoSuchFileException(filepath.toString());
         }

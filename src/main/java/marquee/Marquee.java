@@ -19,10 +19,12 @@ import java.util.Objects;
 import java.util.stream.IntStream;
 
 import marquee.base.command.Command;
+import marquee.base.command.CommandFormatter;
 import marquee.base.command.DuplicateFlagException;
 import marquee.base.command.UnknownFlagException;
 import marquee.base.io.CsvTable;
 import marquee.base.task.Task;
+import marquee.base.task.TaskTag;
 import marquee.base.time.DateTimeFormatter;
 import marquee.command.BaseCodes;
 import marquee.task.DeadlineTask;
@@ -123,13 +125,13 @@ public class Marquee {
             return "Somehow can't write save file?! Σ( ﾟДﾟ)!\nCause: " + cause + "\n";
         }
         public String ERROR_INDEX(int index) {
-            return index + " is not a valid index! >_<\n";
+            return index + " is not a valid index! (@ ~ @)\n";
         }
-        public String ERROR_NAN(String numStr) {
-            return "'" + numStr + "' is not a number! (@ ~ @)\n";
+        public String ERROR_NAN(String string) {
+            return "'" + string + "' is not a number! (@ ~ @)\n";
         }
-        public String ERROR_DATETIME() {
-            return "Not a valid date! (@ ~ @)\n";
+        public String ERROR_DATETIME(String string) {
+            return "'" + string + "' is not a valid date! (@ ~ @)\n";
         }
 
         public String ERROR_UNSUPPORTED_COMMAND() {
@@ -152,17 +154,27 @@ public class Marquee {
             return "I can't see anything #.#\n";
         }
     }
+    
+    private static final String TASK_TAG_COLUMN = "tag";
+    private static final String DESCRIPTION_COLUMN = "desc";
+    private static final String MARK_COLUMN = "mark";
+    private static final String START_TIME_COLUMN = "start";
+    private static final String END_TIME_COLUMN = "end";
+    private static final List<String> CSV_HEADER = List.of(
+            TASK_TAG_COLUMN, DESCRIPTION_COLUMN, START_TIME_COLUMN, END_TIME_COLUMN, MARK_COLUMN
+    );
 
     private final BufferedReader inputReader;
     private final PrintStream outputStream;
     private final Path savePath;
-    private final Dialogues dialogues;
 
     private List<Task> checklist;
     private boolean isRunning;
+    private Dialogues dialogues;
 
     /**
      * Instantiates an instance of Marquee and attempts to load its checklist from {@code savePath}.
+     * <p>
      * If loading fails, starts with an empty checklist.
      *
      * @param inputStream  the input stream Marquee will read commands from
@@ -170,23 +182,96 @@ public class Marquee {
      * @param savePath     the path to the CSV file Marquee will save its checklist to
      */
     public Marquee(InputStream inputStream, OutputStream outputStream, Path savePath) {
-        this.dialogues = new Dialogues();
         this.inputReader = new BufferedReader(new InputStreamReader(inputStream));
         this.outputStream = new PrintStream(outputStream, true, StandardCharsets.UTF_8);
         this.savePath = savePath;
+
         this.checklist = new ArrayList<>();
+        loadDialogues(new Dialogues());
         loadChecklist();
     }
 
     /**
+     * Loads a dialogue set that {@code Marquee} will use to communicate to the user.
+     * <p>
+     * To use a custom dialogue set, override the {@link Dialogues} class
+     * then pass an instance to this method.
+     * 
+     * @param dialogues the dialogue set to use
+     */
+    protected final void loadDialogues(Dialogues dialogues) {
+        this.dialogues = dialogues;
+    }
+
+    /**
+     * Formats the list of {@code Task} into a {@code CsvTable} for storage.
+     * <p>
+     *
+     * @param list the list of {@link Task} to format
+     * @return a new {@link CsvTable} containing the formatted tasks
+     * @implSpec Override this to account for new {@link Task} subclasses
+     */
+    protected CsvTable listToCsv(List<Task> list) {
+        CsvTable csv = new CsvTable(CSV_HEADER, ";");
+        list.forEach(task -> csv.add(
+                task.getTaskTag().label(),
+                task.getDescription(),
+                task.getStart() != null ? task.getStart().toString() : "",
+                task.getEnd() != null ? task.getEnd().toString() : ""
+        ));
+        return csv;
+    }
+
+    /**
+     * Extracts {@code Task} items from {@code CsvTable} into the checklist.
+     * <p>
+     *
+     * @param csv the {@link CsvTable} to read from
+     * @return a new list containing the parsed {@link Task}
+     * @throws IllegalArgumentException if an unsupported or unknown task tag is found
+     * @implSpec Override this to account for new {@link Task} subclasses
+     */
+    protected List<Task> csvToLlist(CsvTable csv) throws IllegalArgumentException {
+        List<Task> list = new ArrayList<>();
+        csv.getValues().forEach(record -> {
+            TaskTag tag = TaskTag.fromLabel(record.getField(TASK_TAG_COLUMN));
+            if (TodoTask.TODO_TASK_TAG.equals(tag)) {
+                list.add(new TodoTask(
+                        record.getField(DESCRIPTION_COLUMN),
+                        Boolean.parseBoolean(record.getField(MARK_COLUMN))
+                ));
+            } else if (DeadlineTask.DEADLINE_TASK_TAG.equals(tag)) {
+                list.add(new DeadlineTask(
+                        record.getField(DESCRIPTION_COLUMN),
+                        LocalDateTime.parse(record.getField(END_TIME_COLUMN)),
+                        Boolean.parseBoolean(record.getField(MARK_COLUMN))
+                ));
+            } else if (EventTask.EVENT_TASK_TAG.equals(tag)) {
+                list.add(new EventTask(
+                        record.getField(DESCRIPTION_COLUMN),
+                        LocalDateTime.parse(record.getField(START_TIME_COLUMN)),
+                        LocalDateTime.parse(record.getField(END_TIME_COLUMN)),
+                        Boolean.parseBoolean(record.getField(MARK_COLUMN))
+                ));
+            } else {
+                throw new IllegalArgumentException("Unknown task tag");
+            }
+        });
+        return list;
+    }
+
+    /**
      * Attempts to load the checklist from the save file.
+     * <p>
      * If the operation fails, no change is made to the checklist.
      *
      * @return Whether the file was read successfully
      */
     public final boolean loadChecklist() {
         try {
-            CsvTable.readFile(savePath, ";");
+            List<Task> newChecklist = csvToLlist(CsvTable.readFile(savePath, ";"));
+            checklist.clear();
+            checklist.addAll(newChecklist);
             outputStream.print(this.dialogues.SUCCESS_LOAD());
             return true;
         } catch (NoSuchFileException _) {
@@ -199,14 +284,14 @@ public class Marquee {
 
     /**
      * Saves the checklist into the save file.
+     * <p>
      * If the operation fails, the original save file will not be changed.
      *
      * @return Whether the file was written successfully
      */
     public final boolean saveChecklist() {
         try {
-            CsvTable csv = new CsvTable(List.of("task"), ";");
-            CsvTable.writeFile(savePath, csv);
+            CsvTable.writeFile(savePath, listToCsv(checklist));
             outputStream.print(this.dialogues.SUCCESS_SAVE());
             return true;
         } catch (IOException e) {
@@ -227,6 +312,7 @@ public class Marquee {
 
     /**
      * Lists the items in the checklist to the output stream.
+     * <p>
      * If there are none, output a different message clarifying that the checklist is empty.
      */
     public final void list() {
@@ -239,6 +325,7 @@ public class Marquee {
 
     /**
      * Searches for items in the checklist satisfying the search conditions, then list those tasks.
+     * <p>
      * If description is empty or {@code null}, and all other parameters are {@code null}, no result is returned.
      *
      * @param description match items containing this substring in its description
@@ -345,14 +432,12 @@ public class Marquee {
     }
 
     /**
-     * Processes the command
-     */
-
-    /**
-     * Starts the chatbot loop. Marquee will listen from the input stream
+     * Starts the chatbot loop.
+     * <p>
+     * Marquee will listen from the input stream
      * and print to the output stream given in the constructor.
      */
-    public final void run() {
+    public void run() {
         isRunning = true;
         outputStream.print(this.dialogues.BANNER());
         outputStream.print(this.dialogues.GREETINGS());
@@ -369,7 +454,7 @@ public class Marquee {
             }
 
             try {
-                command = Command.parseCommand(input);
+                command = CommandFormatter.parseCommand(input);
             } catch (UnknownFlagException e) {
                 if (e.getFlagName() == null) {
                     outputStream.print(this.dialogues.ERROR_UNUSED_ARGUMENT(e.getCode().name()));
@@ -509,7 +594,7 @@ public class Marquee {
                     outputStream.print(this.dialogues.ERROR_UNSUPPORTED_COMMAND());
                 }
             } catch (DateTimeParseException e) {
-                outputStream.print(this.dialogues.ERROR_DATETIME());
+                outputStream.print(this.dialogues.ERROR_DATETIME(e.getParsedString()));
             } catch (NumberFormatException e) {
                 outputStream.print(this.dialogues.ERROR_NAN(e.getMessage()));
             }

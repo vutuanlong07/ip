@@ -4,7 +4,6 @@ package marquee.base.command;
  * Exception class for when a duplicate flag is encountered.
  */
 public class DuplicateFlagException extends IllegalArgumentException {
-    /**  */
     private final String flagName;
 
     /**

@@ -4,8 +4,9 @@ import java.time.LocalDateTime;
 
 /**
  * Base class for all tasks.
+ * <p>
  * Provide fields for description, starting time, ending time and completion status.
- * Subclasses are identified by their associated {@link TaskTag}.
+ * Task type is determined by the class' associated {@link TaskTag}.
  *
  * @implSpec Subclasses must define their own task tag and unique label,
  * then override {@link #getTaskTag()} to use the new tag.
@@ -33,8 +34,13 @@ public abstract class Task {
      * @param start       when the task starts
      * @param end         when the task ends
      * @param isMarked    whether the task has been completed or not
+     * @throws NullPointerException if description is {@code null}
      */
-    public Task(String description, LocalDateTime start, LocalDateTime end, boolean isMarked){
+    public Task(String description, LocalDateTime start, LocalDateTime end, boolean isMarked)
+        throws NullPointerException {
+        if (description == null) {
+            throw new NullPointerException("Description cannot be null");
+        }
         this.description = description;
         this.isMarked = isMarked;
         this.start = start;
@@ -60,20 +66,20 @@ public abstract class Task {
     }
 
     /**
-     * Get the starting time of this event.
+     * Get the starting time of this event, or {@code null} if not applicable.
      *
-     * @return the starting time of this event
+     * @return the starting time of this event, or {@code null} if not applicable
      */
-    public LocalDateTime getStart() throws UnsupportedOperationException {
+    public LocalDateTime getStart() {
         return this.start;
     }
 
     /**
-     * Get the ending time of this event.
+     * Get the ending time of this event, or {@code null} if not applicable.
      *
-     * @return the ending time of this event
+     * @return the ending time of this event, or {@code null} if not applicable
      */
-    public LocalDateTime getEnd() throws UnsupportedOperationException {
+    public LocalDateTime getEnd() {
         return this.end;
     }
 
