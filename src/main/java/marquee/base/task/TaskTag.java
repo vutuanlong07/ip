@@ -1,18 +1,23 @@
 package marquee.base.task;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Base class for tags used by {@code TodoTask} and its subclasses.
+ * <p>
  * Do not create new instances repeatedly. All instances are tracked and may cause collisions.
  */
-public record TaskTag(String label) {
+public final class TaskTag {
     private static final Map<String, TaskTag> TAG_BY_LABEL = new HashMap<>();
 
+    private final String label;
+
     /**
-     * Create a new {@code TaskTag}. Tag instances are considered unique if their labels are different<p>
+     * Create a new {@code TaskTag}. Tag instances are considered unique if their labels are different.
+     * <p>
      * All tag instances must be unique. Reuse old instances if you need to tag multiple tasks with the same tag.
      *
      * @param label the label of the tag, which is what
@@ -35,7 +40,7 @@ public record TaskTag(String label) {
     /**
      * Gets the {@code TaskTag} with the given label
      *
-     * @param label the label displayed by the {@code TaskTag} when invoking {@link #label()}
+     * @param label the label displayed by the {@code TaskTag} when invoking {@link #getLabel()}
      * @return the {@code TaskTag} with the given label, or {@code null} if there are none
      */
     public static TaskTag fromLabel(String label) {
@@ -43,12 +48,16 @@ public record TaskTag(String label) {
     }
 
     /**
-     * Returns a {@code List} view of available task tags<p>
+     * Returns an unmodifiable view of available task tags<p>
      *
-     * @return an unmodifiable {@link List} of available task tags
+     * @return an unmodifiable {@link Collection} of available task tags
      */
-    public static List<TaskTag> getAvailableTags() {
-        return List.copyOf(TAG_BY_LABEL.values());
+    public static Collection<TaskTag> getAvailableTags() {
+        return TAG_BY_LABEL.values();
+    }
+
+    public String getLabel() {
+        return label;
     }
 
     /**
@@ -58,11 +67,17 @@ public record TaskTag(String label) {
      */
     @Override
     public String toString() {
-        return "[" + this.label() + "]";
+        return "[" + this.getLabel() + "]";
     }
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof TaskTag && this.label().equals(((TaskTag) obj).label());
+        return obj instanceof TaskTag && this.getLabel().equals(((TaskTag) obj).getLabel());
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(label);
+    }
+
 }

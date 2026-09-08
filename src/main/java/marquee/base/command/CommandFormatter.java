@@ -1,10 +1,12 @@
 package marquee.base.command;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Formatter and parser for {@code Command}
@@ -31,25 +33,61 @@ import java.util.stream.Collectors;
  * @see Command
  * @see Code
  */
-public final class CommandFormatter {
-    private static final Map<String, Code> CODE_BY_NAME = Code.getAvailableCodes().stream()
-            .collect(Collectors.toUnmodifiableMap(
-                    Code::name,
-                    code -> code
-            ));
-    private static final Pattern CODE_PATTERN = Pattern.compile(
-            "\\G\\s*(?<code>"
-                    + String.join("|", CODE_BY_NAME.keySet())
-                    + ")\\b\\s*"
-    );
-    private static final Pattern FLAG_PATTERN = Pattern.compile(
-            "\\s*(?:" + Pattern.quote(Code.ESCAPE_SEQUENCE)
-                    + "(?<flagDelimiterEscaped>" + Pattern.quote(Code.FLAG_DELIMITER) + ")|"
-                    + Pattern.quote(Code.FLAG_DELIMITER) + "(?<flagName>\\S*\\b))\\s*"
-    );
+public class CommandFormatter {
+    private final String flagDelimiter;
+    private final String escapeSequence;
+    private final Map<String, Code> codeByName;
+    private final Pattern codePattern;
+    private final Pattern flagPattern;
 
-    // prevents instantiation
-    private CommandFormatter() {}
+    /**
+     * Creates a new {@code CommandFormatter} with a dictionary of all the
+     * currently defined {@code Code} in the application.
+     *
+     * @param flagDelimiter  the sequence of characters that marks the start of a flag
+     * @param escapeSequence the sequence of characters that, when put in front of {@code flagDelimiter},
+     *                       turn it into a literal character sequence
+     * @see Code
+     */
+    public CommandFormatter(String flagDelimiter, String escapeSequence) {
+        this.flagDelimiter = flagDelimiter;
+        this.escapeSequence = escapeSequence;
+        this.codeByName = Code.getAvailableCodes().stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        Code::getName,
+                        code -> code
+                ));
+        this.codePattern = Pattern.compile(
+                "\\G\\s*(?<code>"
+                        + String.join("|", codeByName.keySet())
+                        + ")\\b\\s*"
+        );
+        this.flagPattern = Pattern.compile(
+                "\\s*(?:" + Pattern.quote(this.escapeSequence)
+                        + "(?<flagDelimiterEscaped>" + Pattern.quote(this.flagDelimiter) + ")|"
+                        + Pattern.quote(this.flagDelimiter) + "(?<flagName>\\S*\\b))\\s*"
+        );
+    }
+
+    public String getEscapeSequence() {
+        return escapeSequence;
+    }
+
+    public String getFlagDelimiter() {
+        return flagDelimiter;
+    }
+
+    protected Map<String, Code> getCodeByName() {
+        return Collections.unmodifiableMap(codeByName);
+    }
+
+    protected Pattern getCodePattern() {
+        return codePattern;
+    }
+
+    protected Pattern getFlagPattern() {
+        return flagPattern;
+    }
 
     /**
      * Parses the given string as a {@code Command} according to the class-defined format.
@@ -60,20 +98,20 @@ public final class CommandFormatter {
      * @throws UnknownFlagException   if an unrecognized flag is found
      * @throws DuplicateFlagException if a duplicate flag is found
      * @implSpec Subclasses must call this method first, only after this method
-     *           throws an {@code IllegalArgumentException}can the subclass continue parsing the command
+     *           throws an {@code IllegalArgumentException} can the subclass continue parsing the command
      */
-    public static Command parseCommand(String input)
+    public Command parseCommand(String input)
             throws UnknownFlagException, DuplicateFlagException, IllegalArgumentException {
-        Matcher codeMatcher = CODE_PATTERN.matcher(input);
+        Matcher codeMatcher = codePattern.matcher(input);
         if (!codeMatcher.find()) {
             throw new IllegalArgumentException("Unknown command");
         }
-        Code code = CODE_BY_NAME.get(codeMatcher.group("code"));
+        Code code = codeByName.get(codeMatcher.group("code"));
 
         if (codeMatcher.end() == input.length()) {
             return new Command(code, Map.of());
         } else {
-            Matcher flagMatcher = FLAG_PATTERN.matcher(input);
+            Matcher flagMatcher = flagPattern.matcher(input);
             Map<String, String> parameters = new HashMap<>();
             StringBuilder argument = new StringBuilder();
 
@@ -84,8 +122,8 @@ public final class CommandFormatter {
 
                 if (flagMatcher.group("flagDelimiterEscaped") != null) {
                     argument.append(flagMatcher.group().replace(
-                            Code.ESCAPE_SEQUENCE + Code.FLAG_DELIMITER,
-                            Code.FLAG_DELIMITER
+                            this.escapeSequence + this.flagDelimiter,
+                            this.flagDelimiter
                     ));
                     continue;
                 }
@@ -98,5 +136,22 @@ public final class CommandFormatter {
 
             return new Command(code, parameters);
         }
+    }
+
+    /**
+     * Formats the given {@code Command} according to the class-defined format.
+     *
+     * @param command the {@link Command} to format
+     * @return the formatted command string
+     */
+    public String formatCommand(Command command) {
+        return Stream.concat(
+                Stream.of(command.getCode().getName(), command.getArgument()),
+                command.getParameters().entrySet().stream()
+                        .flatMap(flag -> Stream.of(
+                                this.flagDelimiter + flag.getKey(),
+                                flag.getValue()
+                        ))
+        ).collect(Collectors.joining(" "));
     }
 }

@@ -15,11 +15,6 @@ public final class DeadlineTask extends Task {
     /** Tag for a task with deadline */
     public static final TaskTag DEADLINE_TASK_TAG = new TaskTag("D");
 
-    @Override
-    public TaskTag getTaskTag() {
-        return DEADLINE_TASK_TAG;
-    }
-
     private final LocalDateTime deadline;
 
     /**
@@ -43,6 +38,11 @@ public final class DeadlineTask extends Task {
      */
     public DeadlineTask(String description, LocalDateTime deadline) {
         this(description, deadline, false);
+    }
+
+    @Override
+    public TaskTag getTaskTag() {
+        return DEADLINE_TASK_TAG;
     }
 
     /**

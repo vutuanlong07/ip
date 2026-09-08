@@ -9,18 +9,10 @@ import java.time.LocalDateTime;
  * Task type is determined by the class' associated {@link TaskTag}.
  *
  * @implSpec Subclasses must define their own task tag and unique label,
- * then override {@link #getTaskTag()} to use the new tag.
+ *           then override {@link #getTaskTag()} to use the new tag.
  * @see TaskTag
  */
 public abstract class Task {
-    /**
-     * Gets the tag of this task.
-     *
-     * @return the tag of this task
-     * @implSpec Must return the same constant for every class instance.
-     */
-    public abstract TaskTag getTaskTag();
-
     private final String description;
     private final LocalDateTime start;
     private final LocalDateTime end;
@@ -37,7 +29,7 @@ public abstract class Task {
      * @throws NullPointerException if description is {@code null}
      */
     public Task(String description, LocalDateTime start, LocalDateTime end, boolean isMarked)
-        throws NullPointerException {
+            throws NullPointerException {
         if (description == null) {
             throw new NullPointerException("Description cannot be null");
         }
@@ -53,8 +45,16 @@ public abstract class Task {
      * @return the completion status of this task as a tag
      */
     protected String getMarkTag() {
-        return this.isMarked()? "[x]" : "[ ]";
+        return this.isMarked() ? "[x]" : "[ ]";
     }
+
+    /**
+     * Gets the tag of this task.
+     *
+     * @return the tag of this task
+     * @implSpec Must return the same constant for every class instance.
+     */
+    public abstract TaskTag getTaskTag();
 
     /**
      * Gets the description of this task.
@@ -112,6 +112,6 @@ public abstract class Task {
 
     @Override
     public String toString() {
-        return this.getTaskTag().toString() + " " +  this.getMarkTag() + " " + this.getDescription();
+        return this.getTaskTag().toString() + " " + this.getMarkTag() + " " + this.getDescription();
     }
 }

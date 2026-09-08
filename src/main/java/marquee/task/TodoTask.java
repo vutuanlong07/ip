@@ -14,11 +14,6 @@ public final class TodoTask extends Task {
     /** Tag for a to-do task */
     public static final TaskTag TODO_TASK_TAG = new TaskTag("T");
 
-    @Override
-    public TaskTag getTaskTag() {
-        return TODO_TASK_TAG;
-    }
-
     /**
      * Creates a new {@code TodoTask} with the given description,
      * then mark it as either completed or incomplete.
@@ -26,7 +21,7 @@ public final class TodoTask extends Task {
      * @param description the description of the task
      * @param isMarked    whether the task has been completed or not
      */
-    public TodoTask(String description, boolean isMarked){
+    public TodoTask(String description, boolean isMarked) {
         super(description, null, null, isMarked);
     }
 
@@ -37,6 +32,11 @@ public final class TodoTask extends Task {
      */
     public TodoTask(String description) {
         this(description, false);
+    }
+
+    @Override
+    public TaskTag getTaskTag() {
+        return TODO_TASK_TAG;
     }
 
     @Override

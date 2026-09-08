@@ -13,12 +13,11 @@ import java.util.Map;
  */
 public class Command {
     private final Code code;
+    private final String argument;
     private final Map<String, String> parameters;
 
     /**
      * Creates a new {@code Command} instance with the given {@code Code} and parameters.
-     * <p>
-     * The command argument is defined as the parameter value that the empty string {@code ""} maps to.
      *
      * @param code       the command {@link Code}
      * @param parameters mappings of flag names to parameter values
@@ -34,7 +33,7 @@ public class Command {
         this.code = code;
         this.parameters = new HashMap<>();
         for (Map.Entry<String, String> entry : parameters.entrySet()) {
-            if (!code.flagNames().contains(entry.getKey())) {
+            if (!code.getFlagNames().contains(entry.getKey())) {
                 throw new UnknownFlagException(entry.getKey(), code);
             }
             if (this.parameters.containsKey(entry.getKey())) {
@@ -43,6 +42,7 @@ public class Command {
 
             this.parameters.put(entry.getKey(), entry.getValue());
         }
+        this.argument = this.parameters.remove("");
     }
 
     /**
@@ -60,13 +60,11 @@ public class Command {
      * @return the argument of this command
      */
     public String getArgument() {
-        return this.parameters.get("");
+        return this.argument;
     }
 
     /**
      * Gets the value of the flag in this command.
-     * <p>
-     * If an empty string is given, returns the argument instead.
      *
      * @param flagName the name of the flag to get
      * @return the value of the flag
@@ -81,13 +79,11 @@ public class Command {
      * @return whether the argument exist or not
      */
     public boolean hasArgument() {
-        return this.parameters.containsKey("");
+        return this.argument != null;
     }
 
     /**
      * Checks if the flag is set in this command.
-     * <p>
-     * If an empty string is given, checks for the argument instead.
      *
      * @param flagName the name of the flag to check
      * @return whether the flag is set or not
