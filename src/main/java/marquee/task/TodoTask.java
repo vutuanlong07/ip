@@ -1,6 +1,6 @@
 package marquee.task;
 
-import java.time.LocalDateTime;
+import java.util.Map;
 
 import marquee.base.task.Task;
 import marquee.base.task.TaskTag;
@@ -11,13 +11,7 @@ import marquee.base.task.TaskTag;
  * @see Task
  */
 public final class TodoTask extends Task {
-    /** Tag for a to-do task */
-    public static final TaskTag TODO_TASK_TAG = new TaskTag("T");
-
-    @Override
-    public TaskTag getTaskTag() {
-        return TODO_TASK_TAG;
-    }
+    private static final String DESCRIPTION_COLUMN = "description";
 
     /**
      * Creates a new {@code TodoTask} with the given description,
@@ -26,12 +20,13 @@ public final class TodoTask extends Task {
      * @param description the description of the task
      * @param isMarked    whether the task has been completed or not
      */
-    public TodoTask(String description, boolean isMarked){
+    public TodoTask(String description, boolean isMarked) {
         super(description, null, null, isMarked);
     }
 
     /**
-     * Creates a new {@code TodoTask} with the given description.
+     * Creates a new {@code TodoTask} with the given description,
+     * then mark it as incomplete.
      *
      * @param description the description of the task
      */
@@ -39,13 +34,27 @@ public final class TodoTask extends Task {
         this(description, false);
     }
 
-    @Override
-    public LocalDateTime getStart() throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("To-do task does not have a starting time");
+    /**
+     * @see Task#Task()
+     */
+    public TodoTask() {
+        super();
     }
 
     @Override
-    public LocalDateTime getEnd() throws UnsupportedOperationException {
-        throw new UnsupportedOperationException("To-do task does not have an ending time");
+    public TaskTag<TodoTask> getTaskTag() {
+        return BaseTags.TODO_TAG;
+    }
+
+    @Override
+    public Map<String, String> toValueMap() {
+        return Map.of(
+                DESCRIPTION_COLUMN, this.getDescription()
+        );
+    }
+
+    @Override
+    public void fromValueMap(Map<String, String> values) {
+        this.setDescription(values.get(DESCRIPTION_COLUMN));
     }
 }

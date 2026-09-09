@@ -1,6 +1,7 @@
 package marquee.task;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 import marquee.base.task.Task;
 import marquee.base.task.TaskTag;
@@ -12,15 +13,8 @@ import marquee.base.time.DateTimeFormatter;
  * @see Task
  */
 public final class DeadlineTask extends Task {
-    /** Tag for a task with deadline */
-    public static final TaskTag DEADLINE_TASK_TAG = new TaskTag("D");
-
-    @Override
-    public TaskTag getTaskTag() {
-        return DEADLINE_TASK_TAG;
-    }
-
-    private final LocalDateTime deadline;
+    private static final String DESCRIPTION_COLUMN = "description";
+    private static final String DEADLINE_COLUMN = "end";
 
     /**
      * Creates a new {@code DeadlineTask} with the given description
@@ -32,11 +26,11 @@ public final class DeadlineTask extends Task {
      */
     public DeadlineTask(String description, LocalDateTime deadline, boolean isMarked) {
         super(description, null, deadline, isMarked);
-        this.deadline = deadline;
     }
 
     /**
-     * Creates a new {@code DeadlineTask} with the given description and deadline.
+     * Creates a new {@code DeadlineTask} with the given description
+     * and deadline, then mark it as incomplete.
      *
      * @param description the description of the task
      * @param deadline    when the deadline is up
@@ -46,17 +40,49 @@ public final class DeadlineTask extends Task {
     }
 
     /**
+     * @see Task#Task()
+     */
+    public DeadlineTask() {
+        super();
+    }
+
+    /**
      * Get the deadline of this task.
+     * <p>
+     * Alias of {@link #getEnd()}.
      *
      * @return the deadline of this task
      */
-    public LocalDateTime deadline() {
-        return this.deadline;
+    public LocalDateTime getDeadline() {
+        return this.getEnd();
+    }
+
+    private void setDeadline(LocalDateTime newDeadline) {
+        this.setEnd(newDeadline);
+    }
+
+    @Override
+    public TaskTag<DeadlineTask> getTaskTag() {
+        return BaseTags.DEADLINE_TAG;
+    }
+
+    @Override
+    public Map<String, String> toValueMap() {
+        return Map.of(
+                DESCRIPTION_COLUMN, this.getDescription(),
+                DEADLINE_COLUMN, this.getDeadline().toString()
+        );
+    }
+
+    @Override
+    public void fromValueMap(Map<String, String> values) {
+        this.setDescription(values.get(DESCRIPTION_COLUMN));
+        this.setDeadline(LocalDateTime.parse(values.get(DEADLINE_COLUMN)));
     }
 
     @Override
     public String toString() {
         return super.toString()
-                + " (complete by " + DateTimeFormatter.formatDateTime(this.deadline()) + ")";
+                + " (complete by " + DateTimeFormatter.formatDateTime(this.getDeadline()) + ")";
     }
 }

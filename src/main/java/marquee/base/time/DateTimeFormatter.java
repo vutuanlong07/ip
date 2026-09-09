@@ -32,7 +32,8 @@ import java.util.stream.Collectors;
  *     <li>{@code last} day-of-week for last or current day-of-week</li>
  *     <li>{@code next} day-of-week, {@code next} can be repeated for future days-of-week</li>
  *     <li>Day, month, year, separated by forward-slash {@code /} or hyphen {@code -}</li>
- *     <li>Day, written month, year, separated by 1 or more spaces <code>&nbsp;</code>, comma {@code ,} with optional trailing spaces, or hyphen {@code -}</li>
+ *     <li>Day, written month, year, separated by 1 or more spaces <code>&nbsp;</code>,
+ *     comma {@code ,} with optional trailing spaces, or hyphen {@code -}</li>
  *     <li>Written month, day, year, same separator as above except for spaces</li>
  * </ul>
  * Separator choices must be consistent throughout the date component
@@ -77,51 +78,62 @@ import java.util.stream.Collectors;
  */
 public final class DateTimeFormatter {
     /*** Full names for the days-of-week. */
-    public static final List<String> DAYS_OF_WEEK = List.of("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday");
+    public static final List<String> DAYS_OF_WEEK = List.of(
+            "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+    );
 
     /*** Full names for the months. */
-    public static final List<String> MONTHS = List.of("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December");
+    public static final List<String> MONTHS = List.of(
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+    );
 
     private static final String RELATIVE_TIME_FUTURE_SUFFIX = "later";
     private static final String RELATIVE_TIME_PAST_SUFFIX = "ago";
 
-    private static final List<String> DAYS_OF_WEEK_PREFIX = DAYS_OF_WEEK.stream().map(dow -> dow.substring(0, 3).toLowerCase()).toList();
-    private static final List<String> MONTHS_PREFIX = MONTHS.stream().map(month -> month.substring(0, 3).toLowerCase()).toList();
+    private static final List<String> DAYS_OF_WEEK_PREFIX = DAYS_OF_WEEK.stream()
+            .map(dow -> dow.substring(0, 3).toLowerCase()).toList();
+    private static final List<String> MONTHS_PREFIX = MONTHS.stream()
+            .map(month -> month.substring(0, 3).toLowerCase()).toList();
 
     private static final Pattern TIME_FULL_PATTERN = Pattern.compile(
-            "\\G\\s*(?<hour>\\d{2}):(?<minute>\\d{2})(?::(?<second>\\d{2}))?\\s+"
+            "\\G\\s*(?<hour>\\d{2}):(?<minute>\\d{2})(?::(?<second>\\d{2}))?(?:$|\\s+)"
     );
     private static final Pattern TIME_ABBREV_PATTERN = Pattern.compile(
-            "\\G\\s*(?<hour>\\d{2})(?<minute>\\d{2})\\s+"
+            "\\G\\s*(?<hour>\\d{2})(?<minute>\\d{2})(?:$|\\s+)"
     );
     private static final Pattern TODAY_PATTERN = Pattern.compile(
-            "\\G\\s*today\\s+"
+            "\\G\\s*today(?:$|\\s+)"
     );
     private static final Pattern YESTERDAY_PATTERN = Pattern.compile(
-            "\\G\\s*yesterday(?<yesterday>(?: yesterday)*)\\s+"
+            "\\G\\s*yesterday(?<yesterday>(?: yesterday)*)(?:$|\\s+)"
     );
     private static final Pattern TOMORROW_PATTERN = Pattern.compile(
-            "\\G\\s*tomorrow(?<tomorrow>(?: tomorrow)*)\\s+"
+            "\\G\\s*tomorrow(?<tomorrow>(?: tomorrow)*)(?:$|\\s+)"
     );
     private static final Pattern DAYS_OF_WEEK_PATTERN = Pattern.compile(
-            "\\G\\s*(?<nextOrLast>last|(?:next )+)(?<dayOfWeek>"
+            "\\G\\s*(?:(?<last>last )|(?<next>(?:next )+))(?<dayOfWeek>"
                     + DAYS_OF_WEEK.stream()
-                    .map(dow -> dow.substring(0, 3) + "(?:" + dow.substring(3) + ")?")
-                    .collect(Collectors.joining("|"))
-                    + ")\\s+"
-    );
-    private static final Pattern DATE_TEXT_PATTERN = Pattern.compile(
-            "\\G\\s*(?<month>"
-                    + MONTHS.stream()
                     .map(dow ->
                             "[" + dow.charAt(0) + Character.toLowerCase(dow.charAt(0)) + "]"
                                     + dow.substring(1, 3)
                                     + "(?:" + dow.substring(3) + ")?"
                     )
                     .collect(Collectors.joining("|"))
+                    + ")(?:$|\\s+)"
+    );
+    private static final Pattern DATE_TEXT_PATTERN = Pattern.compile(
+            "\\G\\s*(?<month>"
+                    + MONTHS.stream()
+                    .map(month ->
+                            "[" + month.charAt(0) + Character.toLowerCase(month.charAt(0)) + "]"
+                                    + month.substring(1, 3)
+                                    + "(?:" + month.substring(3) + ")?"
+                    )
+                    .collect(Collectors.joining("|"))
                     + ")"
                     + "(,\\s*|-|\\s+)(?<day>\\d{1,2})"
-                    + "(?:\\2(?<year>\\d{1,4}))?\\s+"
+                    + "(?:\\2(?<year>\\d{1,4}))?(?:$|\\s+)"
     );
     private static final Pattern DATE_TEXT_REVERSED_PATTERN = Pattern.compile(
             "\\G\\s*(?<day>\\d{1,2})"
@@ -134,22 +146,22 @@ public final class DateTimeFormatter {
                     )
                     .collect(Collectors.joining("|"))
                     + ")"
-                    + "(?:\\2\\s*(?<year>\\d{1,4}))?\\s+"
+                    + "(?:\\2\\s*(?<year>\\d{1,4}))?(?:$|\\s+)"
     );
     private static final Pattern DATE_NUMBER_PATTERN = Pattern.compile(
-            "\\G\\s*(?<day>\\d{1,2})([/-])(?<month>\\d{1,2})\\2(?<year>\\d{1,4})\\s+"
+            "\\G\\s*(?<day>\\d{1,2})([/-])(?<month>\\d{1,2})\\2(?<year>\\d{1,4})(?:$|\\s+)"
     );
     private static final Pattern SECONDS_PATTERN = Pattern.compile(
-            "\\G\\s*(?<seconds>\\d+)\\s*(?:\\s+seconds|sec|s)\\s+"
+            "\\G\\s*(?<seconds>\\d+)\\s*(?:\\s+seconds|sec|s)(?:$|\\s+)"
     );
     private static final Pattern MINUTES_PATTERN = Pattern.compile(
-            "\\G\\s*(?<minutes>\\d+)\\s*(?:\\s+minutes|min|m)\\s+"
+            "\\G\\s*(?<minutes>\\d+)\\s*(?:\\s+minutes|min|m)(?:$|\\s+)"
     );
     private static final Pattern HOURS_PATTERN = Pattern.compile(
-            "\\G\\s*(?<hours>\\d+)\\s*(?:\\s+hours|hrs|h)\\s+"
+            "\\G\\s*(?<hours>\\d+)\\s*(?:\\s+hours|hrs|h)(?:$|\\s+)"
     );
     private static final Pattern DAYS_PATTERN = Pattern.compile(
-            "\\G\\s*(?<days>\\d+)\\s*(?:\\s+days|d)\\s+"
+            "\\G\\s*(?<days>\\d+)\\s*(?:\\s+days|d)(?:$|\\s+)"
     );
 
     // prevents instantiation
@@ -185,7 +197,7 @@ public final class DateTimeFormatter {
      * @return the formatted date-time string
      */
     public static String formatDateTime(LocalDateTime dateTime) {
-        StringBuilder res =  new StringBuilder();
+        StringBuilder res = new StringBuilder();
         res.append(String.format("%02d:%02d:%02d ", dateTime.getHour(), dateTime.getMinute(), dateTime.getSecond()));
 
         LocalDate today = LocalDate.now();
@@ -202,9 +214,12 @@ public final class DateTimeFormatter {
             res.append(daysDifference > 0 ? "next " : "last ");
             res.append(DAYS_OF_WEEK.get(target.getDayOfWeek().getValue() - 1));
         } else if (today.getYear() == target.getYear()) {
-            res.append(dateTime.getDayOfMonth()).append(' ').append(MONTHS.get(dateTime.getMonthValue() - 1));
+            res.append(dateTime.getDayOfMonth()).append(' ')
+                    .append(MONTHS.get(dateTime.getMonthValue() - 1));
         } else {
-            res.append(dateTime.getDayOfMonth()).append(' ').append(MONTHS.get(dateTime.getMonthValue() - 1)).append(' ').append(target.getYear());
+            res.append(dateTime.getDayOfMonth()).append(' ')
+                    .append(MONTHS.get(dateTime.getMonthValue() - 1)).append(' ')
+                    .append(target.getYear());
         }
         return res.toString();
     }
@@ -222,8 +237,14 @@ public final class DateTimeFormatter {
 
         LocalDateTime now = LocalDateTime.now();
         int index = 0;
-        int second = 0, minute = 0, hour = 0, day = now.getDayOfMonth(), month = now.getMonthValue(), year = now.getYear();
-        boolean setTime = false, setDate = false;
+        int second = 0;
+        int minute = 0;
+        int hour = 0;
+        int day = now.getDayOfMonth();
+        int month = now.getMonthValue();
+        int year = now.getYear();
+        boolean setTime = false;
+        boolean setDate = false;
         while (index < input.length()) {
             if (!setTime) {
                 if (timeFullMatcher.find(index)) {
@@ -275,12 +296,13 @@ public final class DateTimeFormatter {
                     continue;
                 }
                 if (dayOfWeekMatcher.find(index)) {
-                    int dayOfWeek = DAYS_OF_WEEK_PREFIX.indexOf(dayOfWeekMatcher.group("dayOfWeek").substring(0, 3).toLowerCase()) + 1;
+                    int dayOfWeek = DAYS_OF_WEEK_PREFIX.indexOf(dayOfWeekMatcher.group("dayOfWeek")
+                            .substring(0, 3).toLowerCase()) + 1;
                     LocalDate targetDate = LocalDate.now()
                             .with(TemporalAdjusters.previousOrSame(DayOfWeek.of(dayOfWeek)))
-                            .plusWeeks(dayOfWeekMatcher.group("nextOrLast").equals("last")
-                                    ? 0
-                                    : dayOfWeekMatcher.group("nextOrLast").length() / 5
+                            .plusWeeks(dayOfWeekMatcher.group("last") == null
+                                    ? dayOfWeekMatcher.group("next").length() / 5
+                                    : 0
                             );
                     day = targetDate.getDayOfMonth();
                     month = targetDate.getMonthValue();
@@ -322,17 +344,17 @@ public final class DateTimeFormatter {
             }
             throw new DateTimeParseException("Invalid date-time", input, index);
         }
-        return LocalDateTime.of(year, month, day, hour, second, minute);
+        return LocalDateTime.of(year, month, day, hour, minute, second);
     }
 
     private static LocalDateTime parseRelativeTime(String input) throws DateTimeParseException {
         boolean isFuture;
         if (input.endsWith(RELATIVE_TIME_FUTURE_SUFFIX)) {
             isFuture = true;
-            input =  input.substring(0, input.length() - RELATIVE_TIME_FUTURE_SUFFIX.length());
+            input = input.substring(0, input.length() - RELATIVE_TIME_FUTURE_SUFFIX.length());
         } else if (input.endsWith(RELATIVE_TIME_PAST_SUFFIX)) {
             isFuture = false;
-            input =  input.substring(0, input.length() - RELATIVE_TIME_PAST_SUFFIX.length());
+            input = input.substring(0, input.length() - RELATIVE_TIME_PAST_SUFFIX.length());
         } else {
             throw new DateTimeParseException("Not a relative time", input, input.length());
         }
@@ -343,8 +365,13 @@ public final class DateTimeFormatter {
         Matcher daysMatcher = DAYS_PATTERN.matcher(input);
 
         int index = 0;
-        int seconds = 0, minutes = 0, hours = 0, days = 0;
-        boolean isSecondsSet = false, isMinutesSet = false, isHoursSet = false;
+        int seconds = 0;
+        int minutes = 0;
+        int hours = 0;
+        int days = 0;
+        boolean isSecondsSet = false;
+        boolean isMinutesSet = false;
+        boolean isHoursSet = false;
         while (index < input.length()) {
             if (secondsMatcher.find(index)) {
                 seconds += Integer.parseInt(secondsMatcher.group("seconds"));

@@ -19,7 +19,7 @@ public class UnknownFlagException extends IllegalArgumentException {
         if (code == null) {
             throw new NullPointerException();
         }
-        super("Unknown flag name in " + code.name() + ": " + flagName);
+        super("Unknown flag name in " + code.getName() + ": " + flagName);
         this.flagName = flagName;
         this.code = code;
     }
