@@ -24,7 +24,7 @@ public final class Code {
     /**
      * Create a new {@code Code}.
      * <p>
-     * All code instances must have unique command names are different.
+     * All code instances must have unique command names.
      * The argument is considered to be the parameter of the empty flag {@code ""}.
      *
      * @param name      the name of the code, which is what would be
@@ -49,7 +49,7 @@ public final class Code {
     /**
      * Create a new {@code Code}.
      * <p>
-     * All code instances must have unique command names are different.
+     * All code instances must have unique command names.
      * The argument is considered to be the parameter of the empty flag {@code ""}.
      *
      * @param name      the name of the code, which is what would be

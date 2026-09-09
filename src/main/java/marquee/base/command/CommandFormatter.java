@@ -103,7 +103,7 @@ public class CommandFormatter {
     public Command parseCommand(String input)
             throws UnknownFlagException, DuplicateFlagException, IllegalArgumentException {
         Matcher codeMatcher = codePattern.matcher(input);
-        if (!codeMatcher.find()) {
+        if (this.codeByName.isEmpty() || !codeMatcher.find()) {
             throw new IllegalArgumentException("Unknown command");
         }
         Code code = codeByName.get(codeMatcher.group("code"));

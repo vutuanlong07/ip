@@ -12,9 +12,6 @@ import marquee.base.time.DateTimeFormatter;
  * @see Task
  */
 public final class DeadlineTask extends Task {
-    /** Tag for a task with deadline */
-    public static final TaskTag DEADLINE_TASK_TAG = new TaskTag("D");
-
     private final LocalDateTime deadline;
 
     /**
@@ -42,7 +39,7 @@ public final class DeadlineTask extends Task {
 
     @Override
     public TaskTag getTaskTag() {
-        return DEADLINE_TASK_TAG;
+        return BaseTags.DEADLINE_TAG;
     }
 
     /**

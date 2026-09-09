@@ -26,6 +26,7 @@ import marquee.base.io.CsvTable;
 import marquee.base.task.Task;
 import marquee.base.task.TaskTag;
 import marquee.base.time.DateTimeFormatter;
+import marquee.task.BaseTags;
 import marquee.task.DeadlineTask;
 import marquee.task.EventTask;
 import marquee.task.TodoTask;
@@ -34,6 +35,7 @@ import marquee.task.TodoTask;
  * Main class for the standalone chatbot Marquee.
  */
 public class Marquee {
+    // CSV data
     private static final String TASK_TAG_COLUMN = "tag";
     private static final String DESCRIPTION_COLUMN = "desc";
     private static final String MARK_COLUMN = "mark";
@@ -123,22 +125,22 @@ public class Marquee {
      * @throws IllegalArgumentException if an unsupported or unknown task tag is found
      * @implSpec Override this to account for new {@link Task} subclasses
      */
-    protected List<Task> csvToLlist(CsvTable csv) throws IllegalArgumentException {
+    protected List<Task> csvToList(CsvTable csv) throws IllegalArgumentException {
         List<Task> list = new ArrayList<>();
         csv.getValues().forEach(record -> {
             TaskTag tag = TaskTag.fromLabel(record.getField(TASK_TAG_COLUMN));
-            if (TodoTask.TODO_TASK_TAG.equals(tag)) {
+            if (BaseTags.TODO_TAG.equals(tag)) {
                 list.add(new TodoTask(
                         record.getField(DESCRIPTION_COLUMN),
                         Boolean.parseBoolean(record.getField(MARK_COLUMN))
                 ));
-            } else if (DeadlineTask.DEADLINE_TASK_TAG.equals(tag)) {
+            } else if (BaseTags.DEADLINE_TAG.equals(tag)) {
                 list.add(new DeadlineTask(
                         record.getField(DESCRIPTION_COLUMN),
                         LocalDateTime.parse(record.getField(END_TIME_COLUMN)),
                         Boolean.parseBoolean(record.getField(MARK_COLUMN))
                 ));
-            } else if (EventTask.EVENT_TASK_TAG.equals(tag)) {
+            } else if (BaseTags.EVENT_TAG.equals(tag)) {
                 list.add(new EventTask(
                         record.getField(DESCRIPTION_COLUMN),
                         LocalDateTime.parse(record.getField(START_TIME_COLUMN)),
@@ -161,15 +163,16 @@ public class Marquee {
      */
     public final boolean loadChecklist() {
         try {
-            List<Task> newChecklist = csvToLlist(CsvTable.readFile(savePath, ";"));
+            List<Task> newChecklist = csvToList(CsvTable.readFile(savePath, ";"));
             checklist.clear();
             checklist.addAll(newChecklist);
             outputStream.print(this.dialogues.successLoad());
             return true;
         } catch (NoSuchFileException _) {
             outputStream.print(this.dialogues.warningSaveFileNotFound());
-        } catch (IOException | ParseException | IllegalArgumentException _) {
+        } catch (IOException | ParseException | IllegalArgumentException e) {
             outputStream.print(this.dialogues.errorSaveCorrupted());
+            outputStream.print(e.getMessage());
         }
         return false;
     }
@@ -493,7 +496,11 @@ public class Marquee {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ClassNotFoundException {
+        // loads data classes
+        Class.forName("marquee.command.BaseCodes");
+        Class.forName("marquee.task.BaseTags");
+
         Marquee chatbot = new Marquee(System.in, System.out, Path.of("./checklist.csv"));
         chatbot.run();
     }

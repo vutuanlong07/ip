@@ -12,9 +12,6 @@ import marquee.base.time.DateTimeFormatter;
  * @see Task
  */
 public final class EventTask extends Task {
-    /** Tag for an event */
-    public static final TaskTag EVENT_TASK_TAG = new TaskTag("E");
-
     /**
      * Creates a new {@code EventTask} with the given description,
      * starting time and ending time, then mark it as either completed or incomplete.
@@ -46,7 +43,7 @@ public final class EventTask extends Task {
 
     @Override
     public TaskTag getTaskTag() {
-        return EVENT_TASK_TAG;
+        return BaseTags.EVENT_TAG;
     }
 
     @Override

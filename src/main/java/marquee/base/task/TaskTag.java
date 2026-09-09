@@ -16,9 +16,9 @@ public final class TaskTag {
     private final String label;
 
     /**
-     * Create a new {@code TaskTag}. Tag instances are considered unique if their labels are different.
+     * Create a new {@code TaskTag}.
      * <p>
-     * All tag instances must be unique. Reuse old instances if you need to tag multiple tasks with the same tag.
+     * All tag instances must have unique labels.
      *
      * @param label the label of the tag, which is what
      *              would be displayed when {@link #toString()} is invoked

@@ -11,9 +11,6 @@ import marquee.base.task.TaskTag;
  * @see Task
  */
 public final class TodoTask extends Task {
-    /** Tag for a to-do task */
-    public static final TaskTag TODO_TASK_TAG = new TaskTag("T");
-
     /**
      * Creates a new {@code TodoTask} with the given description,
      * then mark it as either completed or incomplete.
@@ -36,7 +33,7 @@ public final class TodoTask extends Task {
 
     @Override
     public TaskTag getTaskTag() {
-        return TODO_TASK_TAG;
+        return BaseTags.TODO_TAG;
     }
 
     @Override
