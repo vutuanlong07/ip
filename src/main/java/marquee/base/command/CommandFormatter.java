@@ -1,6 +1,5 @@
 package marquee.base.command;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -78,7 +77,7 @@ public class CommandFormatter {
     }
 
     protected Map<String, Code> getCodeByName() {
-        return Collections.unmodifiableMap(codeByName);
+        return codeByName;
     }
 
     protected Pattern getCodePattern() {

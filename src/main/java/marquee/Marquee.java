@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -15,8 +16,12 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import marquee.base.command.Command;
 import marquee.base.command.CommandFormatter;
@@ -26,7 +31,7 @@ import marquee.base.io.CsvTable;
 import marquee.base.task.Task;
 import marquee.base.task.TaskTag;
 import marquee.base.time.DateTimeFormatter;
-import marquee.task.BaseTags;
+import marquee.command.BaseCodes;
 import marquee.task.DeadlineTask;
 import marquee.task.EventTask;
 import marquee.task.TodoTask;
@@ -35,22 +40,13 @@ import marquee.task.TodoTask;
  * Main class for the standalone chatbot Marquee.
  */
 public class Marquee {
-    // CSV data
-    private static final String TASK_TAG_COLUMN = "tag";
-    private static final String DESCRIPTION_COLUMN = "desc";
-    private static final String MARK_COLUMN = "mark";
-    private static final String START_TIME_COLUMN = "start";
-    private static final String END_TIME_COLUMN = "end";
-    private static final List<String> CSV_HEADER = List.of(
-            TASK_TAG_COLUMN, DESCRIPTION_COLUMN, START_TIME_COLUMN, END_TIME_COLUMN, MARK_COLUMN
-    );
-
     private final BufferedReader inputReader;
     private final PrintStream outputStream;
     private final Path savePath;
 
     private boolean isRunning = false;
-    private List<Task> checklist = new ArrayList<>();
+    private final List<Task> checklist = new ArrayList<>();
+    private List<Task> tempList = checklist;
     private Dialogues dialogues;
     private CommandFormatter commandFormatter;
 
@@ -106,13 +102,20 @@ public class Marquee {
      * @implSpec Override this to account for new {@link Task} subclasses
      */
     protected CsvTable listToCsv(List<Task> list) {
-        CsvTable csv = new CsvTable(CSV_HEADER, ";");
-        list.forEach(task -> csv.add(
-                task.getTaskTag().getLabel(),
-                task.getDescription(),
-                task.getStart() != null ? task.getStart().toString() : "",
-                task.getEnd() != null ? task.getEnd().toString() : ""
-        ));
+        Set<String> columnNames = list.stream()
+                .flatMap(task -> task.toValueMap().keySet().stream())
+                .collect(Collectors.toSet());
+        List<String> columnNamesWithTag = Stream.concat(Stream.of(Task.TAG_COLUMN), columnNames.stream()).toList();
+        CsvTable csv = new CsvTable(columnNamesWithTag, ";");
+        list.forEach(task -> csv.add(csv.createPartialRecord(
+                Stream.concat(
+                        Stream.of(Map.entry(Task.TAG_COLUMN, task.getTaskTag().getLabel())),
+                        task.toValueMap().entrySet().stream()
+                ).collect(Collectors.toUnmodifiableMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue
+                ))
+        )));
         return csv;
     }
 
@@ -125,30 +128,16 @@ public class Marquee {
      * @throws IllegalArgumentException if an unsupported or unknown task tag is found
      * @implSpec Override this to account for new {@link Task} subclasses
      */
-    protected List<Task> csvToList(CsvTable csv) throws IllegalArgumentException {
+    protected List<Task> csvToList(CsvTable csv)
+            throws IllegalArgumentException {
         List<Task> list = new ArrayList<>();
         csv.getValues().forEach(record -> {
-            TaskTag tag = TaskTag.fromLabel(record.getField(TASK_TAG_COLUMN));
-            if (BaseTags.TODO_TAG.equals(tag)) {
-                list.add(new TodoTask(
-                        record.getField(DESCRIPTION_COLUMN),
-                        Boolean.parseBoolean(record.getField(MARK_COLUMN))
-                ));
-            } else if (BaseTags.DEADLINE_TAG.equals(tag)) {
-                list.add(new DeadlineTask(
-                        record.getField(DESCRIPTION_COLUMN),
-                        LocalDateTime.parse(record.getField(END_TIME_COLUMN)),
-                        Boolean.parseBoolean(record.getField(MARK_COLUMN))
-                ));
-            } else if (BaseTags.EVENT_TAG.equals(tag)) {
-                list.add(new EventTask(
-                        record.getField(DESCRIPTION_COLUMN),
-                        LocalDateTime.parse(record.getField(START_TIME_COLUMN)),
-                        LocalDateTime.parse(record.getField(END_TIME_COLUMN)),
-                        Boolean.parseBoolean(record.getField(MARK_COLUMN))
-                ));
-            } else {
-                throw new IllegalArgumentException("Unknown task tag");
+            TaskTag<?> tag = TaskTag.fromLabel(record.getField(Task.TAG_COLUMN));
+            try {
+                list.add(Task.reconstructTask(tag, record.getAllFields()));
+            } catch (NoSuchMethodException | InvocationTargetException
+                    | InstantiationException | IllegalAccessException e) {
+                throw new RuntimeException(e);
             }
         });
         return list;
@@ -216,6 +205,7 @@ public class Marquee {
         } else {
             outputStream.print(this.dialogues.successList(checklist));
         }
+        tempList = checklist;
     }
 
     /**
@@ -235,6 +225,7 @@ public class Marquee {
         } else {
             outputStream.print(this.dialogues.successFind(matchingItems));
         }
+        tempList = matchingItems;
     }
 
     /**
@@ -246,6 +237,7 @@ public class Marquee {
         List<Task> newTasks = List.of(tasks);
         checklist.addAll(newTasks);
         outputStream.print(this.dialogues.successAdd(newTasks, checklist.size()));
+        tempList = newTasks;
     }
 
     /**
@@ -272,6 +264,7 @@ public class Marquee {
         } else {
             outputStream.print(this.dialogues.successDelete(removedItems, checklist.size()));
         }
+        tempList = removedItems;
     }
 
     /**
@@ -298,6 +291,7 @@ public class Marquee {
         } else {
             outputStream.print(this.dialogues.successMark(markedItems));
         }
+        tempList = markedItems;
     }
 
     /**
@@ -324,6 +318,7 @@ public class Marquee {
         } else {
             outputStream.print(this.dialogues.successUnmark(unmarkedItems));
         }
+        tempList = unmarkedItems;
     }
 
     /**
@@ -366,15 +361,15 @@ public class Marquee {
             }
 
             try {
-                if (command.getCode().getName().equals("exit")) {
+                if (BaseCodes.EXIT.equals(command.getCode())) {
                     exit();
-                } else if (command.getCode().getName().equals("load")) {
+                } else if (BaseCodes.LOAD.equals(command.getCode())) {
                     loadChecklist();
-                } else if (command.getCode().getName().equals("save")) {
+                } else if (BaseCodes.SAVE.equals(command.getCode())) {
                     saveChecklist();
-                } else if (command.getCode().getName().equals("list")) {
+                } else if (BaseCodes.LIST.equals(command.getCode())) {
                     list();
-                } else if (command.getCode().getName().equals("find")) {
+                } else if (BaseCodes.FIND.equals(command.getCode())) {
                     find(
                             command.getArgument(),
                             command.hasFlag("from")
@@ -387,13 +382,13 @@ public class Marquee {
                                     ? command.hasFlag("completed")
                                     : null
                     );
-                } else if (command.getCode().getName().equals("todo")) {
+                } else if (BaseCodes.TODO.equals(command.getCode())) {
                     if (!command.hasArgument()) {
                         outputStream.print(this.dialogues.errorTaskNameMissing());
                     } else {
                         addTasks(new TodoTask(command.getArgument()));
                     }
-                } else if (command.getCode().getName().equals("deadline")) {
+                } else if (BaseCodes.DEADLINE.equals(command.getCode())) {
                     if (!command.hasArgument()) {
                         outputStream.print(this.dialogues.errorTaskNameMissing());
                     } else if (!command.hasFlag("by")) {
@@ -404,7 +399,7 @@ public class Marquee {
                                 DateTimeFormatter.parseDateTime(command.getFlag("by"))
                         ));
                     }
-                } else if (command.getCode().getName().equals("event")) {
+                } else if (BaseCodes.EVENT.equals(command.getCode())) {
                     if (!command.hasArgument()) {
                         outputStream.print(this.dialogues.errorTaskNameMissing());
                     } else if (!command.hasFlag("from")) {
@@ -422,11 +417,11 @@ public class Marquee {
                             outputStream.print(this.dialogues.errorEventEndBeforeStart());
                         }
                     }
-                } else if (command.getCode().getName().equals("delete")) {
+                } else if (BaseCodes.DELETE.equals(command.getCode())) {
                     deleteTasks(parseIntArray(command.getArgument()));
-                } else if (command.getCode().getName().equals("delete all")) {
+                } else if (BaseCodes.DELETE_ALL.equals(command.getCode())) {
                     deleteTasks(IntStream.rangeClosed(1, checklist.size()).toArray());
-                } else if (command.getCode().getName().equals("delete matching")) {
+                } else if (BaseCodes.DELETE_MATCHING.equals(command.getCode())) {
                     deleteTasks(
                             filterTasks(
                                     command.getArgument(),
@@ -443,11 +438,11 @@ public class Marquee {
                                     .mapToInt(item -> checklist.indexOf(item) + 1)
                                     .toArray()
                     );
-                } else if (command.getCode().getName().equals("mark")) {
+                } else if (BaseCodes.MARK.equals(command.getCode())) {
                     markTasks(parseIntArray(command.getArgument()));
-                } else if (command.getCode().getName().equals("mark all")) {
+                } else if (BaseCodes.MARK_ALL.equals(command.getCode())) {
                     markTasks(IntStream.rangeClosed(1, checklist.size()).toArray());
-                } else if (command.getCode().getName().equals("mark matching")) {
+                } else if (BaseCodes.MARK_MATCHING.equals(command.getCode())) {
                     markTasks(
                             filterTasks(
                                     command.getArgument(),
@@ -464,11 +459,11 @@ public class Marquee {
                                     .mapToInt(item -> checklist.indexOf(item) + 1)
                                     .toArray()
                     );
-                } else if (command.getCode().getName().equals("unmark")) {
+                } else if (BaseCodes.UNMARK.equals(command.getCode())) {
                     unmarkTasks(parseIntArray(command.getArgument()));
-                } else if (command.getCode().getName().equals("unmark all")) {
+                } else if (BaseCodes.UNMARK_ALL.equals(command.getCode())) {
                     unmarkTasks(IntStream.rangeClosed(1, checklist.size()).toArray());
-                } else if (command.getCode().getName().equals("unmark matching")) {
+                } else if (BaseCodes.UNMARK_MATCHING.equals(command.getCode())) {
                     unmarkTasks(
                             filterTasks(
                                     command.getArgument(),
@@ -532,11 +527,11 @@ public class Marquee {
                 )
                 .filter(start == null
                         ? _ -> true
-                        : item -> !item.getStart().isBefore(start)
+                        : item -> !(item.getStart() == null || item.getStart().isBefore(start))
                 )
                 .filter(end == null
                         ? _ -> true
-                        : item -> !item.getEnd().isAfter(end)
+                        : item -> !(item.getEnd() == null || item.getEnd().isAfter(end))
                 )
                 .filter(search == null || search.isEmpty()
                         ? _ -> true

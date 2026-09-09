@@ -143,9 +143,7 @@ public final class CsvTable {
         }
 
         columns.add(columnName);
-        values.forEach(record -> {
-            record.fields.put(columnName, initVal);
-        });
+        values.forEach(record -> record.fields.put(columnName, initVal));
     }
 
     /**

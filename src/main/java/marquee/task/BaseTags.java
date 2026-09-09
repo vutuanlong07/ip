@@ -11,11 +11,11 @@ import marquee.base.task.TaskTag;
  */
 public class BaseTags {
     /** Tag for a task with deadline */
-    public static final TaskTag DEADLINE_TAG = new TaskTag("D");
+    public static final TaskTag<DeadlineTask> DEADLINE_TAG = new TaskTag<>("D", DeadlineTask.class);
     /** Tag for an event */
-    public static final TaskTag EVENT_TAG = new TaskTag("E");
+    public static final TaskTag<EventTask> EVENT_TAG = new TaskTag<>("E", EventTask.class);
     /** Tag for a to-do task */
-    public static final TaskTag TODO_TAG = new TaskTag("T");
+    public static final TaskTag<TodoTask> TODO_TAG = new TaskTag<>("T", TodoTask.class);
 
     // prevent instantiation
     private BaseTags() {}
