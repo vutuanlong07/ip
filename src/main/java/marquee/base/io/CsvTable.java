@@ -132,12 +132,20 @@ public final class CsvTable {
     }
 
     /**
-     * Adds a {@code Record} to the table.
+     * Creates a new column in the CSV table with the initial value given.
      *
-     * @param row the {@link Record} to add
+     * @param columnName the name of the new column
+     * @param initVal    the initial value of the column
      */
-    public void add(Record row) {
-        values.add(row);
+    public void newColumn(String columnName, String initVal) throws DuplicateColumnException {
+        if (columns.contains(columnName)) {
+            throw new DuplicateColumnException("Column already exist", columnName);
+        }
+
+        columns.add(columnName);
+        values.forEach(record -> {
+            record.fields.put(columnName, initVal);
+        });
     }
 
     /**
@@ -145,16 +153,16 @@ public final class CsvTable {
      *
      * @param fields list of field values in the same order as the columns
      */
-    public void add(String... fields) {
+    public void addNew(String... fields) {
         values.add(new Record(fields));
     }
 
     /**
-     * Adds multiple {@code Record} to the table.
+     * Adds the given {@code Record} to the table.
      *
-     * @param rows a list of the {@link Record} to add
+     * @param rows the {@link Record} to add
      */
-    public void addAll(Record... rows) {
+    public void add(Record... rows) {
         values.addAll(List.of(rows));
     }
 
@@ -196,7 +204,7 @@ public final class CsvTable {
         CsvTable csv = new CsvTable(header, separator);
         lines.stream().skip(1)
                 .map(line -> Pattern.compile(separator, Pattern.LITERAL).split(line, -1))
-                .forEach(csv::add);
+                .forEach(csv::addNew);
         return csv;
     }
 
