@@ -1,8 +1,10 @@
 package marquee;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import marquee.base.command.Code;
 import marquee.base.task.Task;
 
 /**
@@ -25,6 +27,16 @@ public class Dialogues {
                                               | |
                                                \\|
                 """;
+    }
+
+    /**
+     * Gets the message that tells the save directory.
+     *
+     * @param savePath the save directory
+     * @return save directory info message
+     */
+    public String infoSaveFilePath(Path savePath) {
+        return "Save file location: " + savePath.toString() + "\n";
     }
 
     /**
@@ -80,7 +92,7 @@ public class Dialogues {
      * @return search message
      */
     public String successFind(List<Task> tasks) {
-        return "Item(s) matching your search:\n" + bulletList(tasks, 4) + "\n";
+        return "Item(s) matching your search:\n" + numberedList(tasks, 4) + "\n";
     }
 
     /**
@@ -91,7 +103,7 @@ public class Dialogues {
      * @return task added message
      */
     public String successAdd(List<Task> tasks, int size) {
-        return "Added items(s):\n" + bulletList(tasks, 4)
+        return "Added items(s):\n" + numberedList(tasks, 4)
                 + "\nto the list (^_-☆ >c\nCurrently have "
                 + size + " item(s) in your checklist\n";
     }
@@ -104,7 +116,7 @@ public class Dialogues {
      * @return task removed message
      */
     public String successDelete(List<Task> tasks, int size) {
-        return "Deleted items(s):\n" + bulletList(tasks, 4)
+        return "Deleted items(s):\n" + numberedList(tasks, 4)
                 + "\nfrom the list (σ_σ.╒══⚟\nThere are "
                 + size + " item(s) left in your checklist\n";
     }
@@ -116,7 +128,7 @@ public class Dialogues {
      * @return task marked message
      */
     public String successMark(List<Task> tasks) {
-        return "These item(s) were marked:\n" + bulletList(tasks, 4) + "\n";
+        return "These item(s) were marked:\n" + numberedList(tasks, 4) + "\n";
     }
 
     /**
@@ -126,7 +138,7 @@ public class Dialogues {
      * @return task unmarked message
      */
     public String successUnmark(List<Task> tasks) {
-        return "These item(s) were unmarked:\n" + bulletList(tasks, 4) + "\n";
+        return "These item(s) were unmarked:\n" + numberedList(tasks, 4) + "\n";
     }
 
     /**
@@ -294,10 +306,11 @@ public class Dialogues {
      * Get error message when the input command is recognized but not supported
      * by this {@code Marquee} implementation.
      *
+     * @param code the command code
      * @return unsupported command message
      */
-    public String errorUnsupportedCommand() {
-        return "Sorry, Marquee doesn't know how to execute this command \uD83D\uDE4F(╯⌒╰.)\n";
+    public String errorUnsupportedCommand(Code code) {
+        return "Sorry, Marquee doesn't know how to execute " + code.getName() + " \uD83D\uDE4F(╯⌒╰.)\n";
     }
 
     /**
