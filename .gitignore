@@ -5,9 +5,12 @@
 
 # Gradle build files
 /.gradle/
+/buildSrc/.gradle
 /build/
 /marquee-core/build/
+/marquee-cli/build/
 /marquee-gui/build/
+/buildSrc/build/
 
 # MacOS custom attributes files created by Finder
 .DS_Store

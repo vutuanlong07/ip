@@ -2,6 +2,7 @@ plugins {
     application
     id("java-common-conventions")
     id("native-compile")
+    id("org.openjfx.javafxplugin") version "0.1.0"
 }
 
 group = findProperty("group")!!
@@ -11,10 +12,12 @@ dependencies {
     implementation(project(":marquee-core"))
 }
 
-application {
-    mainClass = "org.cs2103t.marquee.cli.Application"
+javafx {
+    version = "26.0.2"
+    modules.add("javafx.controls")
+    modules.add("javafx.fxml")
 }
 
-tasks.run {
-    standardInput = System.`in`
+application {
+    mainClass = "org.cs2103t.marquee.gui.MainApplication"
 }

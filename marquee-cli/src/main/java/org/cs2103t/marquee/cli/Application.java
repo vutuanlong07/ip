@@ -24,7 +24,7 @@ import org.cs2103t.marquee.core.task.Task;
 import org.cs2103t.marquee.core.time.DateTimeFormatter;
 
 /**
- * Entry point class for the CLI application.
+ * Entry point for the CLI application.
  */
 public class Application {
     private int[] parseIntArray(String input) throws NumberFormatException {
