@@ -20,7 +20,7 @@ import org.cs2103t.marquee.core.DuplicateKeyException;
  */
 public final class Code {
     private static final Map<String, Code> DICTIONARY = new HashMap<>();
-    private static final Set<Character> SPECIAL_CHARACTERS = Set.of('-');
+    private static final Set<Character> SPECIAL_CHARACTERS = Set.of('-', '_', '.', ' ');
 
     private final String name;
     private final List<String> flagNames;
@@ -28,7 +28,8 @@ public final class Code {
     /**
      * Create a new {@code Code}.
      * <p>
-     * Code names can only contain alphanumeric characters {@code a-z} {@code A-Z} {@code 0-9} and hyphens {@code -}.
+     * Code names can only contain alphanumeric characters {@code a-z} {@code A-Z} {@code 0-9},
+     * hyphens {@code -}, underscores {@code _}, periods {@code .} and spaces <code>&nbsp;</code>.
      * <p>
      * All code instances must have unique command names.
      * The argument is considered to be the parameter of the empty flag {@code ""}.
@@ -52,7 +53,7 @@ public final class Code {
                 .dropWhile(c -> Character.isLetterOrDigit(c) || SPECIAL_CHARACTERS.contains((char) c))
                 .findAny().orElse(-1);
         if (invalidCharCodePoint != -1) {
-            throw new IllegalArgumentException("Illegal character in tag name: '" + (char) invalidCharCodePoint + "'");
+            throw new IllegalArgumentException("Illegal character in code name: '" + (char) invalidCharCodePoint + "'");
         }
 
         this.name = name;

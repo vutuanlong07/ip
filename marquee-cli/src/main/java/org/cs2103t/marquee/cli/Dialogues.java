@@ -78,8 +78,8 @@ public class Dialogues {
      */
     public void successList(List<Task> tasks) {
         System.out.print(tasks.isEmpty()
-                ? "Current item(s) in your list:\n" + numberedList(tasks, 4) + "\n"
-                : "Your checklist is empty (‾ 3‾)\n"
+                ? "Your checklist is empty (‾ 3‾)\n"
+                : "Current item(s) in your list:\n" + numberedList(tasks, 4) + "\n"
         );
     }
 
@@ -90,8 +90,8 @@ public class Dialogues {
      */
     public void successFind(List<Task> tasks) {
         System.out.print(tasks.isEmpty()
-                ? "Item(s) matching your search:\n" + numberedList(tasks, 4) + "\n"
-                : "No items matched your search (‾ 3‾)\n"
+                ? "No items matched your search (‾ 3‾)\n"
+                : "Item(s) matching your search:\n" + numberedList(tasks, 4) + "\n"
         );
     }
 
@@ -102,8 +102,8 @@ public class Dialogues {
      */
     public void successAdd(List<Task> tasks) {
         System.out.print(tasks.isEmpty()
-                ? "Added items(s):\n" + numberedList(tasks, 4) + "\nto the list (^_-☆ >c\n"
-                : "No items were added (‾ 3‾)\n"
+                ? "No items were added (‾ 3‾)\n"
+                : "Added items(s):\n" + numberedList(tasks, 4) + "\nto the list (^_-☆ >c\n"
         );
     }
 
@@ -114,8 +114,8 @@ public class Dialogues {
      */
     public void successDelete(List<Task> tasks) {
         System.out.print(tasks.isEmpty()
-                ? "Deleted items(s):\n" + numberedList(tasks, 4) + "\nfrom the list (σ_σ.╒══⚟\n"
-                : "No items were deleted (‾ 3‾)\n"
+                ? "No items were deleted (‾ 3‾)\n"
+                : "Deleted items(s):\n" + numberedList(tasks, 4) + "\nfrom the list (σ_σ.╒══⚟\n"
         );
     }
 
@@ -126,8 +126,8 @@ public class Dialogues {
      */
     public void successMark(List<Task> tasks) {
         System.out.print(tasks.isEmpty()
-                ? "These item(s) were marked:\n" + numberedList(tasks, 4) + "\n"
-                : "No items were marked (‾ 3‾)\n"
+                ? "No items were marked (‾ 3‾)\n"
+                : "These item(s) were marked:\n" + numberedList(tasks, 4) + "\n"
         );
     }
 
@@ -138,8 +138,8 @@ public class Dialogues {
      */
     public void successUnmark(List<Task> tasks) {
         System.out.print(tasks.isEmpty()
-                ? "These item(s) were unmarked:\n" + numberedList(tasks, 4) + "\n"
-                : "No items were unmarked (‾ 3‾)\n"
+                ? "No items were unmarked (‾ 3‾)\n"
+                : "These item(s) were unmarked:\n" + numberedList(tasks, 4) + "\n"
         );
     }
 
