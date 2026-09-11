@@ -149,7 +149,7 @@ public final class DateTimeFormatter {
                     + "(?:\\2\\s*(?<year>\\d{1,4}))?(?:$|\\s+)"
     );
     private static final Pattern DATE_NUMBER_PATTERN = Pattern.compile(
-            "\\G\\s*(?<day>\\d{1,2})([/-])(?<month>\\d{1,2})\\2(?<year>\\d{1,4})(?:$|\\s+)"
+            "\\G\\s*(?<day>\\d{1,2})([/-])(?<month>\\d{1,2})(:?\\2(?<year>\\d{1,4}))?(?:$|\\s+)"
     );
     private static final Pattern SECONDS_PATTERN = Pattern.compile(
             "\\G\\s*(?<seconds>\\d+)\\s*(?:\\s+seconds|sec|s)(?:$|\\s+)"

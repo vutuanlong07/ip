@@ -1,6 +1,7 @@
 package org.cs2103t.marquee.core.task;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 
 /**
@@ -38,6 +39,10 @@ public class Task {
         if (description == null) {
             throw new NullPointerException("Description cannot be null");
         }
+        if (tag == null) {
+            throw new NullPointerException("Task tag cannot be null");
+        }
+        this.tag = tag;
         this.description = description;
         this.isMarked = isMarked;
         this.start = start;
@@ -213,9 +218,9 @@ public class Task {
         return Map.of(
                 TAG_COLUMN, this.getTag().getLabel(),
                 DESCRIPTION_COLUMN, this.getDescription(),
-                MARK_COLUMN, Boolean.toString(this.isMarked()),
-                START_COLUMN, this.getStart().toString(),
-                END_COLUMN, this.getEnd().toString()
+                START_COLUMN, this.getStart() == null ? "" : this.getStart().toString(),
+                END_COLUMN, this.getEnd() == null ? "" : this.getEnd().toString(),
+                MARK_COLUMN, Boolean.toString(this.isMarked())
         );
     }
 
@@ -228,11 +233,23 @@ public class Task {
      * @return a {@code Task} with the given properties
      */
     public static Task fromValueMap(Map<String, String> values) {
+        LocalDateTime start;
+        LocalDateTime end;
+        try {
+            start = LocalDateTime.parse(values.get(START_COLUMN));
+        } catch (DateTimeParseException _) {
+            start = null;
+        }
+        try {
+            end = LocalDateTime.parse(values.get(END_COLUMN));
+        } catch (DateTimeParseException _) {
+            end = null;
+        }
         return new Task(
                 TaskTag.fromLabel(values.get(TAG_COLUMN)),
                 values.get(DESCRIPTION_COLUMN),
-                LocalDateTime.parse(values.get(START_COLUMN)),
-                LocalDateTime.parse(values.get(END_COLUMN)),
+                start,
+                end,
                 Boolean.parseBoolean(values.get(MARK_COLUMN))
         );
     }

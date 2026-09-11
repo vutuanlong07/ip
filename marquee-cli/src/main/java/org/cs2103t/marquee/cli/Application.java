@@ -31,7 +31,7 @@ public class Application {
         return Arrays.stream(input.split("\\s+", -1))
                 .mapToInt(str -> {
                     try {
-                        return Integer.parseInt(str);
+                        return Integer.parseInt(str) - 1;
                     } catch (NumberFormatException _) {
                         throw new NumberFormatException(str);
                     }

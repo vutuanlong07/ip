@@ -33,25 +33,25 @@ public final class Codes {
     /** Delete the tasks at the given indices */
     public static final Code DELETE = new Code("delete", "");
     /** Delete all tasks in the checklist */
-    public static final Code DELETE_ALL = new Code("delete all");
+    public static final Code DELETE_ALL = new Code("delete-all");
     /** Delete all tasks that matches the filters */
-    public static final Code DELETE_MATCHING = new Code("delete matching",
+    public static final Code DELETE_MATCHING = new Code("delete-matching",
             "", "from", "to", "completed", "incomplete"
     );
     /** Mark the tasks at the given indices as completed */
     public static final Code MARK = new Code("mark", "");
     /** Mark all tasks in the checklist as completed */
-    public static final Code MARK_ALL = new Code("mark all");
+    public static final Code MARK_ALL = new Code("mark-all");
     /** Mark all tasks that matches the filters as completed*/
-    public static final Code MARK_MATCHING = new Code("mark matching",
+    public static final Code MARK_MATCHING = new Code("mark-matching",
             "", "from", "to", "completed", "incomplete"
     );
     /** Remove the mark from the tasks at the given indices */
     public static final Code UNMARK = new Code("unmark", "");
     /** Remove the mark from all tasks in the checklist */
-    public static final Code UNMARK_ALL = new Code("unmark all");
+    public static final Code UNMARK_ALL = new Code("unmark-all");
     /** Remove the mark from all tasks that matches the filters */
-    public static final Code UNMARK_MATCHING = new Code("unmark matching",
+    public static final Code UNMARK_MATCHING = new Code("unmark-matching",
             "", "from", "to", "completed", "incomplete"
     );
 

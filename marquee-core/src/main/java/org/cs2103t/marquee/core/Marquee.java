@@ -8,11 +8,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.cs2103t.marquee.core.io.CsvTable;
 import org.cs2103t.marquee.core.task.Task;
@@ -49,15 +47,7 @@ public class Marquee {
                 .flatMap(task -> task.toValueMap().keySet().stream())
                 .collect(Collectors.toSet());
         CsvTable csv = new CsvTable(columnNames);
-        list.forEach(task -> csv.add(csv.createRecord(
-                Stream.concat(
-                        Stream.of(Map.entry(Task.TAG_COLUMN, task.getTag().getLabel())),
-                        task.toValueMap().entrySet().stream()
-                ).collect(Collectors.toUnmodifiableMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue
-                ))
-        )));
+        list.forEach(task -> csv.add(csv.createRecord(task.toValueMap())));
         return csv;
     }
 

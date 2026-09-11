@@ -240,6 +240,7 @@ public final class CsvTable {
      * @throws IOException if the file cannot be written to
      */
     public static void writeFile(Path filepath, CsvTable csv) throws IOException {
+        Files.createDirectories(filepath.getParent());
         Path temp = null;
         try {
             temp = Files.createTempFile(filepath.getParent(), null, null);

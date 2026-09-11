@@ -20,7 +20,7 @@ import org.cs2103t.marquee.core.DuplicateKeyException;
  */
 public final class Code {
     private static final Map<String, Code> DICTIONARY = new HashMap<>();
-    private static final Set<Character> SPECIAL_CHARACTERS = Set.of('-', '_', '.', ' ');
+    private static final Set<Character> SPECIAL_CHARACTERS = Set.of('-');
 
     private final String name;
     private final List<String> flagNames;
@@ -28,8 +28,7 @@ public final class Code {
     /**
      * Create a new {@code Code}.
      * <p>
-     * Code names can only contain alphanumeric characters {@code a-z} {@code A-Z} {@code 0-9},
-     * hyphens {@code -}, underscores {@code _}, periods {@code .} and spaces <code>&nbsp;</code>.
+     * Code names can only contain alphanumeric characters {@code a-z} {@code A-Z} {@code 0-9} or hyphens {@code -}.
      * <p>
      * All code instances must have unique command names.
      * The argument is considered to be the parameter of the empty flag {@code ""}.

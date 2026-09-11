@@ -6,7 +6,9 @@ import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;import org.cs2103t.marquee.core.DuplicateKeyException;
+import java.util.stream.Stream;
+
+import org.cs2103t.marquee.core.DuplicateKeyException;
 
 /**
  * Formatter and parser for {@code Command}
@@ -65,7 +67,7 @@ public class CommandFormatter {
         this.flagPattern = Pattern.compile(
                 "\\s*(?:" + Pattern.quote(this.escapeSequence)
                         + "(?<flagDelimiterEscaped>" + Pattern.quote(this.flagDelimiter) + ")|"
-                        + Pattern.quote(this.flagDelimiter) + "(?<flagName>\\S*))(?:$|\\s+)"
+                        + Pattern.quote(this.flagDelimiter) + "(?<flagName>\\S*)(?:$|\\s+))"
         );
     }
 
