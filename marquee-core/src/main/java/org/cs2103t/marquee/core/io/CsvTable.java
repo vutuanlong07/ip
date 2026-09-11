@@ -1,29 +1,36 @@
-package marquee.base.io;
+package org.cs2103t.marquee.core.io;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
+
+import org.cs2103t.marquee.core.DuplicateKeyException;
 
 /**
  * Representation of a CSV table.
  */
 public final class CsvTable {
+    private static final Pattern NEWLINE_PATTERN = Pattern.compile("(?:\\r\\n)+");
+    private static final Pattern UNPAIRED_NEWLINE_PATTERN = Pattern.compile("\\r(?!\\n)|(?<!\\r)\\n");
+    private static final Pattern QUOTE_PATTERN = Pattern.compile("(?<!\")\"(?!\")");
+
     private final List<String> columns;
     private final List<Record> values;
-    private final String separator;
 
     /**
      * Representation of a CSV row.
@@ -31,34 +38,38 @@ public final class CsvTable {
     public class Record {
         private final Map<String, String> fields;
 
+        private Record() {
+            this.fields = new HashMap<>();
+        }
+
         private Record(String... fields) throws IllegalArgumentException {
             if (fields.length != columns.size()) {
                 throw new IllegalArgumentException("Inconsistent column count");
             }
             this.fields = new HashMap<>();
-            IntStream.range(0, columns.size()).forEach(i -> this.fields.put(columns.get(i), fields[i]));
+            IntStream.range(0, columns.size()).forEach(i -> this.setField(columns.get(i), fields[i]));
         }
 
-        private Record(Map<String, String> fieldsByName) throws UnknownColumnException {
+        private Record(Map<String, String> fieldsByName) throws NoSuchElementException {
             this.fields = new HashMap<>();
             columns.forEach(columnName -> this.fields.put(columnName, ""));
             fieldsByName.forEach(this::setField);
         }
 
-        public String getField(String columnName) throws UnknownColumnException {
+        public String getField(String columnName) throws NoSuchElementException {
             String field = this.fields.get(columnName);
             if (field == null) {
-                throw new UnknownColumnException("Unknown column name: " + columnName, columnName);
+                throw new NoSuchElementException(columnName);
             }
             return field;
         }
 
-        public void setField(String columnName, String value) throws NullPointerException, UnknownColumnException {
+        public void setField(String columnName, String value) throws NullPointerException, NoSuchElementException {
             if (value == null) {
                 throw new NullPointerException("CSV Field cannot be null");
             }
             if (!fields.containsKey(columnName)) {
-                throw new UnknownColumnException("Unknown column name: " + columnName, columnName);
+                throw new NoSuchElementException(columnName);
             }
             fields.put(columnName, value);
         }
@@ -74,25 +85,19 @@ public final class CsvTable {
 
         @Override
         public String toString() {
-            return String.join(CsvTable.this.getSeparator(), columns.stream().map(fields::get).toList());
+            return String.join(",", columns.stream().map(fields::get).toList());
         }
     }
 
     /**
-     * Creates a new CSV table with the given header and separator.
+     * Creates a new CSV table with the given columns.
      *
-     * @param columns    the header containing the column names
-     * @param separator the field separator
-     * @throws DuplicateColumnException if duplicate column names are found in the header
+     * @param columns a collection of the column names
+     * @throws DuplicateKeyException if duplicate column names was given
      */
-    public CsvTable(List<String> columns, String separator) throws DuplicateColumnException {
+    public CsvTable(Collection<String> columns) throws DuplicateKeyException {
         this.columns = new ArrayList<>(columns);
-        this.separator = separator;
         this.values = new ArrayList<>();
-    }
-
-    public String getSeparator() {
-        return separator;
     }
 
     public List<String> getColumns() {
@@ -109,25 +114,14 @@ public final class CsvTable {
     }
 
     /**
-     * Creates a new {@code Record} with the same columns as the CSV table and the given field values.
-     *
-     * @param fields the field values in the same order as the columns
-     * @return the new record
-     * @throws IllegalArgumentException if the number of fields is not the same as the columns
-     */
-    public Record createRecord(String... fields) throws IllegalArgumentException {
-        return new Record(fields);
-    }
-
-    /**
      * Creates a new {@code Record} with the same columns as the CSV table
-     * but only fill the given field values.
+     * with the given field values, and the other fields left empty {@code ""}.
      *
      * @param fields a mapping from field names to field values
      * @return the new record, with uninitialized field set to an empty string {@code ""}
-     * @throws UnknownColumnException if an unrecognized column name is found
+     * @throws NoSuchElementException if an unrecognized column name is given
      */
-    public Record createPartialRecord(Map<String, String> fields) throws UnknownColumnException {
+    public Record createRecord(Map<String, String> fields) throws NoSuchElementException {
         return new Record(fields);
     }
 
@@ -135,11 +129,12 @@ public final class CsvTable {
      * Creates a new column in the CSV table with the initial value given.
      *
      * @param columnName the name of the new column
-     * @param initVal    the initial value of the column
+     * @param initVal the initial value of the column
+     * @throws DuplicateKeyException if a duplicate column name was given
      */
-    public void newColumn(String columnName, String initVal) throws DuplicateColumnException {
+    public void newColumn(String columnName, String initVal) throws DuplicateKeyException {
         if (columns.contains(columnName)) {
-            throw new DuplicateColumnException("Column already exist", columnName);
+            throw new DuplicateKeyException("Column already exist", columnName);
         }
 
         columns.add(columnName);
@@ -164,45 +159,73 @@ public final class CsvTable {
         values.addAll(List.of(rows));
     }
 
+    private static List<String> parseRow(String input, int count) throws ParseException {
+        List<String> result = new ArrayList<>();
+        int fieldStart = 0;
+        int fieldEnd = input.indexOf(',', fieldStart);
+        fieldEnd = fieldEnd == -1 ? input.length() : fieldEnd;
+        for (int i = 0; count < 0 || i < count; i++) {
+            if (fieldStart == input.length()) {
+                if (count < 0) {
+                    break;
+                } else {
+                    throw new ParseException("Missing fields", fieldStart);
+                }
+            }
+
+            String rawField = input.substring(fieldStart, fieldEnd);
+
+            result.add(rawField);
+
+            fieldStart = fieldEnd;
+            fieldEnd = input.indexOf(',', fieldStart);
+            fieldEnd = fieldEnd == -1 ? input.length() : fieldEnd;
+        }
+        if (fieldStart != input.length()) {
+            throw new ParseException("Too many fields", fieldStart);
+        }
+        return result;
+    }
+
     /**
      * Reads the file at the given filepath and, with the given separator, extract CSV data from the file
      * into a new {@code CsvTable}, then return the new {@code CsvTable}.
      *
-     * @param filepath  the filepath to read from
+     * @param filepath the filepath to read from
      * @param separator the expected field separator
      * @return the new {@link CsvTable} with columns and rows from the file
      * @throws NoSuchFileException if no file is found at the location
-     * @throws IOException if the file can't be accessed
-     * @throws ParseException if the file isn't in the CSV format
-     * @throws DuplicateColumnException if a duplicate column name is found
-     * @throws IllegalArgumentException if the rows have inconsistent column count
+     * @throws AccessDeniedException if the file can't be accessed
+     * @throws ParseException if the file isn't in the proper CSV format
+     * @throws IOException if an unexpected I/O error occurs while reading the file
+     * @throws DuplicateKeyException if a duplicate column name is found
      */
     public static CsvTable readFile(Path filepath, String separator)
-            throws NoSuchFileException, IOException, ParseException,
-            DuplicateColumnException, IllegalArgumentException {
+            throws NoSuchFileException, AccessDeniedException, ParseException,
+            IOException, DuplicateKeyException {
         if (!Files.isRegularFile(filepath)) {
             throw new NoSuchFileException(filepath.toString());
         }
         if (!Files.isReadable(filepath)) {
-            throw new IOException("File is not accessible");
+            throw new AccessDeniedException(filepath.toString());
         }
 
         String content = Files.readString(filepath);
-        Matcher unpairedNewlineMatcher = Pattern.compile("\\r(?!\\n)|(?<!\\r)\\n").matcher(content);
+        Matcher unpairedNewlineMatcher = UNPAIRED_NEWLINE_PATTERN.matcher(content);
         if (unpairedNewlineMatcher.find()) {
             throw new ParseException("Unpaired newline or carriage return", unpairedNewlineMatcher.start());
         }
 
-        List<String> lines = List.of(content.split("(?:\\r\\n)+"));
-        if (lines.isEmpty() || lines.getFirst().isEmpty()) {
-            return new CsvTable(List.of(), separator);
+        Matcher newlineMatcher = NEWLINE_PATTERN.matcher(content);
+        if (!newlineMatcher.find()) {
+            return new CsvTable(Collections.emptyList());
         }
-        List<String> header = List.of(lines.getFirst().split(separator, -1));
+        List<String> columns = parseRow(content.substring(0, newlineMatcher.start()), -1);
 
-        CsvTable csv = new CsvTable(header, separator);
-        lines.stream().skip(1)
-                .map(line -> Pattern.compile(separator, Pattern.LITERAL).split(line, -1))
-                .forEach(csv::addNew);
+        CsvTable csv = new CsvTable(columns);
+        for (int i = newlineMatcher.end(); newlineMatcher.find(); i = newlineMatcher.end()) {
+            csv.addNew(parseRow(content.substring(i, newlineMatcher.start()), columns.size()).toArray(String[]::new));
+        }
         return csv;
     }
 
@@ -220,10 +243,14 @@ public final class CsvTable {
         Path temp = null;
         try {
             temp = Files.createTempFile(filepath.getParent(), null, null);
-            Files.writeString(temp, Stream.concat(
-                    Stream.of(String.join(csv.getSeparator(), csv.getColumns())),
-                    csv.getValues().stream().map(Record::toString)
-            ).collect(Collectors.joining("\r\n")));
+            Files.writeString(temp,
+                    csv.getColumns().stream()
+                            .map(column -> "\"" + column.replace("\"", "\"\"") + "\"")
+                            .collect(Collectors.joining(","))
+                            + "\r\n"
+                            + csv.getValues().stream()
+                            .map(Record::toString)
+                            .collect(Collectors.joining("\r\n")));
             Files.move(temp, filepath, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
         } finally {
             if (temp != null) {

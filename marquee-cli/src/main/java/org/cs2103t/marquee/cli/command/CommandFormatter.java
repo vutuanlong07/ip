@@ -1,11 +1,12 @@
-package marquee.base.command;
+package org.cs2103t.marquee.cli.command;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.Stream;import org.cs2103t.marquee.core.DuplicateKeyException;
 
 /**
  * Formatter and parser for {@code Command}
@@ -43,7 +44,7 @@ public class CommandFormatter {
      * Creates a new {@code CommandFormatter} with a dictionary of all the
      * currently defined {@code Code} in the application.
      *
-     * @param flagDelimiter  the sequence of characters that marks the start of a flag
+     * @param flagDelimiter the sequence of characters that marks the start of a flag
      * @param escapeSequence the sequence of characters that, when put in front of {@code flagDelimiter},
      *                       turn it into a literal character sequence
      * @see Code
@@ -59,12 +60,12 @@ public class CommandFormatter {
         this.codePattern = Pattern.compile(
                 "\\G\\s*(?<code>"
                         + String.join("|", codeByName.keySet())
-                        + ")\\b\\s*"
+                        + ")(?:$|\\s+)"
         );
         this.flagPattern = Pattern.compile(
                 "\\s*(?:" + Pattern.quote(this.escapeSequence)
                         + "(?<flagDelimiterEscaped>" + Pattern.quote(this.flagDelimiter) + ")|"
-                        + Pattern.quote(this.flagDelimiter) + "(?<flagName>\\S*\\b))\\s*"
+                        + Pattern.quote(this.flagDelimiter) + "(?<flagName>\\S*))(?:$|\\s+)"
         );
     }
 
@@ -94,13 +95,13 @@ public class CommandFormatter {
      * @param input the string to parse
      * @return the parsed {@code Command}
      * @throws IllegalArgumentException if there are no supported command names found
-     * @throws UnknownFlagException   if an unrecognized flag is found
-     * @throws DuplicateFlagException if a duplicate flag is found
+     * @throws NoSuchElementException if an unrecognized flag is found
+     * @throws DuplicateKeyException if a duplicate flag is found
      * @implSpec Subclasses must call this method first, only after this method
      *           throws an {@code IllegalArgumentException} can the subclass continue parsing the command
      */
     public Command parseCommand(String input)
-            throws UnknownFlagException, DuplicateFlagException, IllegalArgumentException {
+            throws NoSuchElementException, DuplicateKeyException, IllegalArgumentException {
         Matcher codeMatcher = codePattern.matcher(input);
         if (this.codeByName.isEmpty() || !codeMatcher.find()) {
             throw new IllegalArgumentException("Unknown command");
@@ -136,6 +137,7 @@ public class CommandFormatter {
             return new Command(code, parameters);
         }
     }
+
 
     /**
      * Formats the given {@code Command} according to the class-defined format.

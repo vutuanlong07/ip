@@ -1,8 +1,11 @@
-package marquee.base.command;
+package org.cs2103t.marquee.cli.command;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
+
+import org.cs2103t.marquee.core.DuplicateKeyException;
 
 /**
  * Immutable data class containing details of a command.
@@ -19,14 +22,14 @@ public class Command {
     /**
      * Creates a new {@code Command} instance with the given {@code Code} and parameters.
      *
-     * @param code       the command {@link Code}
+     * @param code the command {@link Code}
      * @param parameters mappings of flag names to parameter values
-     * @throws NullPointerException   if {@code code} or {@code parameters} is {@code null}
-     * @throws UnknownFlagException   if an unrecognized flag is found
-     * @throws DuplicateFlagException if a duplicate flag is found
+     * @throws NullPointerException if {@code code} or {@code parameters} is {@code null}
+     * @throws NoSuchElementException if an unrecognized flag was given
+     * @throws DuplicateKeyException if a duplicate flag was given
      */
     public Command(Code code, Map<String, String> parameters)
-            throws NullPointerException, UnknownFlagException, DuplicateFlagException {
+            throws NullPointerException, NoSuchElementException, DuplicateKeyException {
         if (code == null || parameters == null) {
             throw new NullPointerException();
         }
@@ -34,10 +37,10 @@ public class Command {
         this.parameters = new HashMap<>();
         for (Map.Entry<String, String> entry : parameters.entrySet()) {
             if (!code.getFlagNames().contains(entry.getKey())) {
-                throw new UnknownFlagException(entry.getKey(), code);
+                throw new NoSuchElementException(entry.getKey());
             }
             if (this.parameters.containsKey(entry.getKey())) {
-                throw new DuplicateFlagException(entry.getKey());
+                throw new DuplicateKeyException("Duplicate flag: " + entry.getKey(), entry.getKey());
             }
 
             this.parameters.put(entry.getKey(), entry.getValue());

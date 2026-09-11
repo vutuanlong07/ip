@@ -1,4 +1,4 @@
-package marquee.base.time;
+package org.cs2103t.marquee.core.time;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;

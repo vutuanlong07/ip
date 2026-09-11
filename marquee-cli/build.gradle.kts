@@ -4,9 +4,6 @@ plugins {
     application
 }
 
-group = "org.cs2103t.marquee"
-version = "unspecified"
-
 repositories {
     mavenCentral()
 }
@@ -17,6 +14,10 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
     api(project(":marquee-core"))
+}
+
+application {
+    mainClass = "org.cs2103t.marquee.cli.Main";
 }
 
 tasks.test {

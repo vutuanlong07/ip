@@ -18,7 +18,7 @@ public class DuplicateKeyException extends RuntimeException {
         this.columnName = columnName;
     }
 
-    public String getColumnName() {
+    public String getKey() {
         return columnName;
     }
 }

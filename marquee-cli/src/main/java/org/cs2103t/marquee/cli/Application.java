@@ -1,0 +1,284 @@
+package org.cs2103t.marquee.cli;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.text.ParseException;
+import java.time.format.DateTimeParseException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import org.cs2103t.marquee.cli.command.Codes;
+import org.cs2103t.marquee.cli.command.Command;
+import org.cs2103t.marquee.cli.command.CommandFormatter;
+import org.cs2103t.marquee.cli.task.DeadlineTask;
+import org.cs2103t.marquee.cli.task.EventTask;
+import org.cs2103t.marquee.cli.task.TodoTask;
+import org.cs2103t.marquee.core.DuplicateKeyException;
+import org.cs2103t.marquee.core.Marquee;
+import org.cs2103t.marquee.core.task.Task;
+import org.cs2103t.marquee.core.time.DateTimeFormatter;
+
+/**
+ * Entry point class for the CLI application.
+ */
+public class Application {
+    private int[] parseIntArray(String input) throws NumberFormatException {
+        return Arrays.stream(input.split("\\s+", -1))
+                .mapToInt(str -> {
+                    try {
+                        return Integer.parseInt(str);
+                    } catch (NumberFormatException _) {
+                        throw new NumberFormatException(str);
+                    }
+                })
+                .toArray();
+    }
+
+    private Path getLocalStoragePath() {
+        String os = System.getProperty("os.name").toLowerCase();
+        if (os.contains("windows")) {
+            return Paths.get(System.getenv("LOCALAPPDATA"));
+        } else if (os.contains("mac")) {
+            return Paths.get(System.getProperty("user.home")).resolve("Library");
+        } else {
+            String dataHome = System.getenv("XDG_DATA_HOME");
+            String userHome = System.getProperty("user.home");
+            return Paths.get(dataHome != null && !dataHome.isEmpty() ? dataHome : userHome);
+        }
+    }
+
+    void main() throws ClassNotFoundException {
+        // loads data classes
+        Class.forName("org.cs2103t.marquee.cli.command.Codes");
+        Class.forName("org.cs2103t.marquee.cli.task.TaskTags");
+
+        Path saveDirectory = getLocalStoragePath().resolve("Marquee");
+        Dialogues dialogues = new Dialogues();
+        BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
+        CommandFormatter commandFormatter = new CommandFormatter("/", "/");
+        Marquee marquee = new Marquee(saveDirectory.resolve("checklist.csv"));
+
+        dialogues.banner();
+        dialogues.infoSaveFilePath(saveDirectory);
+        dialogues.greetings();
+        boolean isRunning = true;
+        while (isRunning) {
+            String input;
+            Command command;
+
+            try {
+                dialogues.prompt();
+                input = inputReader.readLine();
+            } catch (IOException e) {
+                dialogues.errorIoUnavailable();
+                try {
+                    marquee.save();
+                    dialogues.successSave();
+                } catch (IOException f) {
+                    dialogues.errorSaveUnavailable(f.getMessage());
+                }
+                isRunning = false;
+                dialogues.successExit();
+                continue;
+            }
+
+            try {
+                command = commandFormatter.parseCommand(input);
+            } catch (NoSuchElementException e) {
+                dialogues.errorUnknownFlag(e.getMessage());
+                continue;
+            } catch (DuplicateKeyException e) {
+                dialogues.errorDuplicateFlag(e.getKey());
+                continue;
+            } catch (IllegalArgumentException e) {
+                dialogues.errorUnknownCommand(input);
+                continue;
+            }
+
+            if (Codes.EXIT.equals(command.getCode())) {
+                try {
+                    marquee.save();
+                    dialogues.successSave();
+                } catch (IOException e) {
+                    dialogues.errorSaveUnavailable(e.getMessage());
+                }
+                isRunning = false;
+                dialogues.successExit();
+            } else if (Codes.LOAD.equals(command.getCode())) {
+                try {
+                    marquee.load();
+                    dialogues.successLoad();
+                } catch (NoSuchFileException _) {
+                    dialogues.warningSaveNotFound();
+                } catch (IOException | ParseException | IllegalArgumentException e) {
+                    dialogues.errorSaveCorrupted();
+                    System.out.print(e.getMessage());
+                }
+            } else if (Codes.SAVE.equals(command.getCode())) {
+                try {
+                    marquee.save();
+                    dialogues.successSave();
+                } catch (IOException e) {
+                    dialogues.errorSaveUnavailable(e.getMessage());
+                }
+            } else if (Codes.LIST.equals(command.getCode())) {
+                dialogues.successList(marquee.list());
+            } else if (Codes.TODO.equals(command.getCode())) {
+                if (!command.hasArgument()) {
+                    dialogues.errorTaskNameMissing();
+                } else {
+                    Task newTask = new TodoTask(command.getArgument());
+                    marquee.addTasks(newTask);
+                    dialogues.successAdd(List.of(newTask));
+                }
+            } else if (Codes.DEADLINE.equals(command.getCode())) {
+                if (!command.hasArgument()) {
+                    dialogues.errorTaskNameMissing();
+                } else if (!command.hasFlag("by")) {
+                    dialogues.errorDeadlineMissing();
+                } else {
+                    try {
+                        Task newTask = new DeadlineTask(
+                                command.getArgument(),
+                                DateTimeFormatter.parseDateTime(command.getFlag("by"))
+                        );
+                        marquee.addTasks(newTask);
+                        dialogues.successAdd(List.of(newTask));
+                    } catch (DateTimeParseException e) {
+                        dialogues.errorDatetime(e.getParsedString());
+                    }
+                }
+            } else if (Codes.EVENT.equals(command.getCode())) {
+                if (!command.hasArgument()) {
+                    dialogues.errorTaskNameMissing();
+                } else if (!command.hasFlag("from")) {
+                    dialogues.errorStartTimeMissing();
+                } else if (!command.hasFlag("to")) {
+                    dialogues.errorEndTimeMissing();
+                } else {
+                    try {
+                        Task newTask = new EventTask(
+                                command.getArgument(),
+                                DateTimeFormatter.parseDateTime(command.getFlag("from")),
+                                DateTimeFormatter.parseDateTime(command.getFlag("to"))
+                        );
+                        marquee.addTasks(newTask);
+                        dialogues.successAdd(List.of(newTask));
+                    } catch (DateTimeParseException e) {
+                        dialogues.errorDatetime(e.getParsedString());
+                    } catch (IllegalArgumentException _) {
+                        dialogues.errorEventEndBeforeStart();
+                    }
+                }
+            } else if (Codes.DELETE_ALL.equals(command.getCode())) {
+                dialogues.successDelete(marquee.deleteAllTasks());
+            } else if (Codes.MARK_ALL.equals(command.getCode())) {
+                dialogues.successMark(marquee.markAllTasks());
+            } else if (Codes.UNMARK_ALL.equals(command.getCode())) {
+                dialogues.successUnmark(marquee.unmarkAllTasks());
+            } else if (Codes.DELETE.equals(command.getCode())) {
+                try {
+                    dialogues.successDelete(marquee.deleteTasks(parseIntArray(command.getArgument())));
+                } catch (NumberFormatException e) {
+                    dialogues.errorNan(e.getMessage());
+                } catch (IndexOutOfBoundsException e) {
+                    dialogues.errorIndex(e.getMessage());
+                }
+            } else if (Codes.MARK.equals(command.getCode())) {
+                try {
+                    dialogues.successMark(marquee.markTasks(parseIntArray(command.getArgument())));
+                } catch (NumberFormatException e) {
+                    dialogues.errorNan(e.getMessage());
+                } catch (IndexOutOfBoundsException e) {
+                    dialogues.errorIndex(e.getMessage());
+                }
+            } else if (Codes.UNMARK.equals(command.getCode())) {
+                try {
+                    dialogues.successUnmark(marquee.unmarkTasks(parseIntArray(command.getArgument())));
+                } catch (NumberFormatException e) {
+                    dialogues.errorNan(e.getMessage());
+                } catch (IndexOutOfBoundsException e) {
+                    dialogues.errorIndex(e.getMessage());
+                }
+            } else if (Codes.FIND.equals(command.getCode())) {
+                try {
+                    dialogues.successFind(marquee.find(
+                            command.getArgument(),
+                            command.hasFlag("from")
+                                    ? DateTimeFormatter.parseDateTime(command.getFlag("from"))
+                                    : null,
+                            command.hasFlag("to")
+                                    ? DateTimeFormatter.parseDateTime(command.getFlag("to"))
+                                    : null,
+                            command.hasFlag("completed") != command.hasFlag("incomplete")
+                                    ? command.hasFlag("completed")
+                                    : null
+                    ));
+                } catch (DateTimeParseException e) {
+                    dialogues.errorDatetime(e.getParsedString());
+                }
+            } else if (Codes.DELETE_MATCHING.equals(command.getCode())) {
+                try {
+                    marquee.find(
+                            command.getArgument(),
+                            command.hasFlag("from")
+                                    ? DateTimeFormatter.parseDateTime(command.getFlag("from"))
+                                    : null,
+                            command.hasFlag("to")
+                                    ? DateTimeFormatter.parseDateTime(command.getFlag("to"))
+                                    : null,
+                            command.hasFlag("completed") != command.hasFlag("incomplete")
+                                    ? command.hasFlag("completed")
+                                    : null
+                    );
+                    dialogues.successDelete(marquee.deleteAllTasks());
+                } catch (DateTimeParseException e) {
+                    dialogues.errorDatetime(e.getParsedString());
+                }
+            } else if (Codes.MARK_MATCHING.equals(command.getCode())) {
+                try {
+                    marquee.find(
+                            command.getArgument(),
+                            command.hasFlag("from")
+                                    ? DateTimeFormatter.parseDateTime(command.getFlag("from"))
+                                    : null,
+                            command.hasFlag("to")
+                                    ? DateTimeFormatter.parseDateTime(command.getFlag("to"))
+                                    : null,
+                            command.hasFlag("completed") != command.hasFlag("incomplete")
+                                    ? command.hasFlag("completed")
+                                    : null
+                    );
+                    dialogues.successMark(marquee.markAllTasks());
+                } catch (DateTimeParseException e) {
+                    dialogues.errorDatetime(e.getParsedString());
+                }
+            } else if (Codes.UNMARK_MATCHING.equals(command.getCode())) {
+                try {
+                    marquee.find(
+                            command.getArgument(),
+                            command.hasFlag("from")
+                                    ? DateTimeFormatter.parseDateTime(command.getFlag("from"))
+                                    : null,
+                            command.hasFlag("to")
+                                    ? DateTimeFormatter.parseDateTime(command.getFlag("to"))
+                                    : null,
+                            command.hasFlag("completed") != command.hasFlag("incomplete")
+                                    ? command.hasFlag("completed")
+                                    : null
+                    );
+                    dialogues.successUnmark(marquee.unmarkAllTasks());
+                } catch (DateTimeParseException e) {
+                    dialogues.errorDatetime(e.getParsedString());
+                }
+            } else {
+                dialogues.errorUnsupportedCommand(command.getCode());
+            }
+        }
+    }
+}

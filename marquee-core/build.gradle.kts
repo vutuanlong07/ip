@@ -1,10 +1,6 @@
 plugins {
-    id("java")
-    id("checkstyle")
+    java
 }
-
-group = "org.cs2103t.marquee"
-version = "1.0.0"
 
 repositories {
     mavenCentral()

@@ -1,4 +1,4 @@
-package marquee.base.command;
+package org.cs2103t.marquee.cli.command;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -6,6 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+
+import org.cs2103t.marquee.core.DuplicateKeyException;
 
 /**
  * A {@code Code} defines the name of a command and the flags it accepts.
@@ -17,6 +20,7 @@ import java.util.Objects;
  */
 public final class Code {
     private static final Map<String, Code> DICTIONARY = new HashMap<>();
+    private static final Set<Character> SPECIAL_CHARACTERS = Set.of('-');
 
     private final String name;
     private final List<String> flagNames;
@@ -24,21 +28,31 @@ public final class Code {
     /**
      * Create a new {@code Code}.
      * <p>
+     * Code names can only contain alphanumeric characters {@code a-z} {@code A-Z} {@code 0-9} and hyphens {@code -}.
+     * <p>
      * All code instances must have unique command names.
      * The argument is considered to be the parameter of the empty flag {@code ""}.
      *
-     * @param name      the name of the code, which is what would be
+     * @param name the name of the code, which is what would be
      *                  used to invoke the command through the command line
      * @param flagNames list of flags that the command accepts
-     * @throws NullPointerException     if the name is {@code null}
-     * @throws IllegalArgumentException if a code with this name already exist
+     * @throws NullPointerException if the name is {@code null}
+     * @throws DuplicateKeyException if a code with this name already exist
+     * @throws IllegalArgumentException if an invalid character is found
      */
-    public Code(String name, List<String> flagNames) {
+    public Code(String name, List<String> flagNames)
+            throws NullPointerException, DuplicateKeyException, IllegalArgumentException {
         if (name == null) {
             throw new NullPointerException("Code name cannot be null");
         }
         if (DICTIONARY.containsKey(name)) {
-            throw new IllegalArgumentException("Code already exists");
+            throw new DuplicateKeyException("Code already exists", name);
+        }
+        int invalidCharCodePoint = name.chars()
+                .dropWhile(c -> Character.isLetterOrDigit(c) || SPECIAL_CHARACTERS.contains((char) c))
+                .findAny().orElse(-1);
+        if (invalidCharCodePoint != -1) {
+            throw new IllegalArgumentException("Illegal character in tag name: '" + (char) invalidCharCodePoint + "'");
         }
 
         this.name = name;
@@ -52,10 +66,10 @@ public final class Code {
      * All code instances must have unique command names.
      * The argument is considered to be the parameter of the empty flag {@code ""}.
      *
-     * @param name      the name of the code, which is what would be
+     * @param name the name of the code, which is what would be
      *                  used to invoke the command through the command line
      * @param flagNames list of flags that the command accepts
-     * @throws NullPointerException     if the name is {@code null}
+     * @throws NullPointerException if the name is {@code null}
      * @throws IllegalArgumentException if a code with this name already exist
      */
     public Code(String name, String... flagNames) {

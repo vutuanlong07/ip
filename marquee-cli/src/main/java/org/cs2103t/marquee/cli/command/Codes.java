@@ -1,13 +1,13 @@
-package marquee.command;
+package org.cs2103t.marquee.cli.command;
 
-import marquee.base.command.Code;
+import org.cs2103t.marquee.core.Marquee;
 
 /**
  * Data class for codes that base {@code Marquee} support.
  *
- * @see marquee.Marquee
+ * @see Marquee
  */
-public final class BaseCodes {
+public final class Codes {
     /** Ends the chat session */
     public static final Code EXIT = new Code("bye");
     /** Loads the checklist from the save file */
@@ -56,5 +56,5 @@ public final class BaseCodes {
     );
 
     // prevent instantiation
-    private BaseCodes() {}
+    private Codes() {}
 }
