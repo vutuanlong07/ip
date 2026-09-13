@@ -13,4 +13,5 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v3
         with:
+          tag_name: dummy
           files: dummy.txt
