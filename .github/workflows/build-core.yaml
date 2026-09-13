@@ -4,9 +4,9 @@ on:
     tags:
       - "core-v*"
       - "!core-v*-SNAPSHOT"
+  workflow_dispatch:
 permissions:
   contents: write
-  pull-requests: write
 jobs:
   build-core:
     name: Build JAR for marquee-core
@@ -14,17 +14,8 @@ jobs:
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7
-      - name: Setup Java
-        uses: actions/setup-java@v6
-        with:
-          distribution: temurin
-          java-version: 25
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6
-      - name: Build with Gradle
-        run: ./gradlew :marquee-core:jar
       - name: Create release
         uses: softprops/action-gh-release@v3
         with:
-          files: marquee-core/build/libs/*.jar
+          files: ""
           draft: true
