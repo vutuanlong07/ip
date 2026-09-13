@@ -26,5 +26,5 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v3
         with:
-          files: ""
+          files: marquee-core/build/libs/*
           draft: true
