@@ -21,6 +21,7 @@ public class Command {
 
     /**
      * Creates a new {@code Command} instance with the given {@code Code} and parameters.
+     * The argument is taken from the parameter map at key {@code ""}.
      *
      * @param code the command {@link Code}
      * @param parameters mappings of flag names to parameter values
@@ -46,6 +47,37 @@ public class Command {
             this.parameters.put(entry.getKey(), entry.getValue());
         }
         this.argument = this.parameters.remove("");
+    }
+
+    /**
+     * Creates a new {@code Command} instance with the given {@code Code}, argument and parameters.
+     * The empty string {@code ""} key in the parameter map is ignored.
+     *
+     * @param code the command {@link Code}
+     * @param parameters mappings of flag names to parameter values
+     * @throws NullPointerException if {@code code} or {@code parameters} is {@code null}
+     * @throws NoSuchElementException if an unrecognized flag was given
+     * @throws DuplicateKeyException if a duplicate flag was given
+     */
+    public Command(Code code, String argument, Map<String, String> parameters)
+            throws NullPointerException, NoSuchElementException, DuplicateKeyException {
+        if (code == null || parameters == null) {
+            throw new NullPointerException();
+        }
+        this.code = code;
+        this.argument = argument;
+        this.parameters = new HashMap<>();
+        for (Map.Entry<String, String> entry : parameters.entrySet()) {
+            if (!code.getFlagNames().contains(entry.getKey())) {
+                throw new NoSuchElementException(entry.getKey());
+            }
+            if (this.parameters.containsKey(entry.getKey())) {
+                throw new DuplicateKeyException("Duplicate flag: " + entry.getKey(), entry.getKey());
+            }
+
+            this.parameters.put(entry.getKey(), entry.getValue());
+        }
+        this.parameters.remove("");
     }
 
     /**
@@ -104,5 +136,15 @@ public class Command {
      */
     public Map<String, String> getParameters() {
         return Collections.unmodifiableMap(parameters);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Command
+                && this.getCode().equals(((Command) obj).getCode())
+                && (this.hasArgument()
+                ? this.getArgument().equals(((Command) obj).getArgument())
+                : !((Command) obj).hasArgument())
+                && this.getParameters().equals(((Command) obj).getParameters());
     }
 }
