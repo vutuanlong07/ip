@@ -29,8 +29,8 @@ import java.util.stream.Collectors;
  * <ul>
  *     <li>{@code today}</li>
  *     <li>{@code yesterday} and {@code tomorrow}, can be repeated for further future and past days</li>
- *     <li>{@code last} day-of-week for last or current day-of-week</li>
- *     <li>{@code next} day-of-week, {@code next} can be repeated for future days-of-week</li>
+ *     <li>{@code last} day-of-week, {@code last} can be repeated for further past days-of-week</li>
+ *     <li>{@code next} day-of-week, {@code next} can be repeated for further future days-of-week</li>
  *     <li>Day, month, year, separated by forward-slash {@code /} or hyphen {@code -}</li>
  *     <li>Day, written month, year, separated by 1 or more spaces <code>&nbsp;</code>,
  *     comma {@code ,} with optional trailing spaces, or hyphen {@code -}</li>
@@ -60,16 +60,19 @@ import java.util.stream.Collectors;
  * Duration components can have duplicate units, in which case they are added up.
  * <p>
  * Negative durations are not allowed. Use {@code ago} instead to indicate time in the past.
- * <p>
- * All duration components follow the format of number and duration abbreviation,
- * or number, 1 or more spaces <code>&nbsp;</code> and duration full name.
+ * <h3>
+ * Available duration component formats
+ * <ul>
+ *     <li>number, optional spaces <code>&nbsp;</code>, duration abbreviation</li>
+ *     <li>number, 1 or more spaces <code>&nbsp;</code> and duration full name</li>
+ * </ul>
  * <h3>
  * Available duration components and abbreviations
  * <ul>
- *     <li>{@code seconds} component: {@code s}, {@code sec}</li>
- *     <li>{@code minutes} component: {@code m}, {@code min}</li>
- *     <li>{@code hours} component: {@code h}, {@code hrs}</li>
- *     <li>{@code days} component: {@code d}</li>
+ *     <li>{@code second}/{@code seconds} component: {@code s}, {@code sec}</li>
+ *     <li>{@code minute}/{@code minutes} component: {@code m}, {@code min}</li>
+ *     <li>{@code hour}/{@code hours} component: {@code h}, {@code hr}, {@code hrs}</li>
+ *     <li>{@code day}/{@code days} component: {@code d}</li>
  * </ul>
  * The final date-time is the current time truncated to the shortest unit used in the string,
  * then shifted by the duration specified in the string
@@ -112,7 +115,7 @@ public final class DateTimeFormatter {
             "\\G\\s*tomorrow(?<tomorrow>(?: tomorrow)*)(?:$|\\s+)"
     );
     private static final Pattern DAYS_OF_WEEK_PATTERN = Pattern.compile(
-            "\\G\\s*(?:(?<last>last )|(?<next>(?:next )+))(?<dayOfWeek>"
+            "\\G\\s*(?:(?<last>last(?: last)*)|(?<next>next(?: next)*)) (?<dayOfWeek>"
                     + DAYS_OF_WEEK.stream()
                     .map(dow ->
                             "[" + dow.charAt(0) + Character.toLowerCase(dow.charAt(0)) + "]"
@@ -123,21 +126,8 @@ public final class DateTimeFormatter {
                     + ")(?:$|\\s+)"
     );
     private static final Pattern DATE_TEXT_PATTERN = Pattern.compile(
-            "\\G\\s*(?<month>"
-                    + MONTHS.stream()
-                    .map(month ->
-                            "[" + month.charAt(0) + Character.toLowerCase(month.charAt(0)) + "]"
-                                    + month.substring(1, 3)
-                                    + "(?:" + month.substring(3) + ")?"
-                    )
-                    .collect(Collectors.joining("|"))
-                    + ")"
-                    + "(,\\s*|-|\\s+)(?<day>\\d{1,2})"
-                    + "(?:\\2(?<year>\\d{1,4}))?(?:$|\\s+)"
-    );
-    private static final Pattern DATE_TEXT_REVERSED_PATTERN = Pattern.compile(
             "\\G\\s*(?<day>\\d{1,2})"
-                    + "(,\\s*|-)(?<month>"
+                    + "(,\\s*|-|\\s+)(?<month>"
                     + MONTHS.stream()
                     .map(dow ->
                             "[" + dow.charAt(0) + Character.toLowerCase(dow.charAt(0)) + "]"
@@ -148,20 +138,33 @@ public final class DateTimeFormatter {
                     + ")"
                     + "(?:\\2\\s*(?<year>\\d{1,4}))?(?:$|\\s+)"
     );
+    private static final Pattern DATE_TEXT_REVERSED_PATTERN = Pattern.compile(
+            "\\G\\s*(?<month>"
+                    + MONTHS.stream()
+                    .map(month ->
+                            "[" + month.charAt(0) + Character.toLowerCase(month.charAt(0)) + "]"
+                                    + month.substring(1, 3)
+                                    + "(?:" + month.substring(3) + ")?"
+                    )
+                    .collect(Collectors.joining("|"))
+                    + ")"
+                    + "(,\\s*|-)(?<day>\\d{1,2})"
+                    + "(?:\\2(?<year>\\d{1,4}))?(?:$|\\s+)"
+    );
     private static final Pattern DATE_NUMBER_PATTERN = Pattern.compile(
             "\\G\\s*(?<day>\\d{1,2})([/-])(?<month>\\d{1,2})(:?\\2(?<year>\\d{1,4}))?(?:$|\\s+)"
     );
     private static final Pattern SECONDS_PATTERN = Pattern.compile(
-            "\\G\\s*(?<seconds>\\d+)\\s*(?:\\s+seconds|sec|s)(?:$|\\s+)"
+            "\\G\\s*(?<seconds>\\d+)\\s*(?:\\sseconds?|sec|s)(?:$|\\s+)"
     );
     private static final Pattern MINUTES_PATTERN = Pattern.compile(
-            "\\G\\s*(?<minutes>\\d+)\\s*(?:\\s+minutes|min|m)(?:$|\\s+)"
+            "\\G\\s*(?<minutes>\\d+)\\s*(?:\\sminutes?|min|m)(?:$|\\s+)"
     );
     private static final Pattern HOURS_PATTERN = Pattern.compile(
-            "\\G\\s*(?<hours>\\d+)\\s*(?:\\s+hours|hrs|h)(?:$|\\s+)"
+            "\\G\\s*(?<hours>\\d+)\\s*(?:\\shours?|hrs?|h)(?:$|\\s+)"
     );
     private static final Pattern DAYS_PATTERN = Pattern.compile(
-            "\\G\\s*(?<days>\\d+)\\s*(?:\\s+days|d)(?:$|\\s+)"
+            "\\G\\s*(?<days>\\d+)\\s*(?:\\sdays?|d)(?:$|\\s+)"
     );
 
     // prevents instantiation
@@ -198,7 +201,6 @@ public final class DateTimeFormatter {
      */
     public static String formatDateTime(LocalDateTime dateTime) {
         StringBuilder res = new StringBuilder();
-        res.append(String.format("%02d:%02d:%02d ", dateTime.getHour(), dateTime.getMinute(), dateTime.getSecond()));
 
         LocalDate today = LocalDate.now();
         LocalDate target = dateTime.toLocalDate();
@@ -221,6 +223,14 @@ public final class DateTimeFormatter {
                     .append(MONTHS.get(dateTime.getMonthValue() - 1)).append(' ')
                     .append(target.getYear());
         }
+
+        if (dateTime.getHour() != 0 || dateTime.getMinute() != 0 || dateTime.getSecond() != 0) {
+            res.append(String.format(" %02d:%02d", dateTime.getHour(), dateTime.getMinute()));
+            if (dateTime.getSecond() != 0) {
+                res.append(String.format(":%02d", dateTime.getSecond()));
+            }
+        }
+
         return res.toString();
     }
 
@@ -298,12 +308,13 @@ public final class DateTimeFormatter {
                 if (dayOfWeekMatcher.find(index)) {
                     int dayOfWeek = DAYS_OF_WEEK_PREFIX.indexOf(dayOfWeekMatcher.group("dayOfWeek")
                             .substring(0, 3).toLowerCase()) + 1;
-                    LocalDate targetDate = LocalDate.now()
-                            .with(TemporalAdjusters.previousOrSame(DayOfWeek.of(dayOfWeek)))
-                            .plusWeeks(dayOfWeekMatcher.group("last") == null
-                                    ? dayOfWeekMatcher.group("next").length() / 5
-                                    : 0
-                            );
+                    LocalDate targetDate = dayOfWeekMatcher.group("next") != null
+                            ? LocalDate.now()
+                            .with(TemporalAdjusters.next(DayOfWeek.of(dayOfWeek)))
+                            .plusWeeks(dayOfWeekMatcher.group("next").length() / 5)
+                            : LocalDate.now()
+                            .with(TemporalAdjusters.previous(DayOfWeek.of(dayOfWeek)))
+                            .minusWeeks(dayOfWeekMatcher.group("last").length() / 5);
                     day = targetDate.getDayOfMonth();
                     month = targetDate.getMonthValue();
                     year = targetDate.getYear();
@@ -313,7 +324,8 @@ public final class DateTimeFormatter {
                 }
                 if (dateTextMatcher.find(index)) {
                     day = Integer.parseInt(dateTextMatcher.group("day"));
-                    month = MONTHS_PREFIX.indexOf(dateTextMatcher.group("month")) + 1;
+                    month = MONTHS_PREFIX.indexOf(dateTextMatcher.group("month")
+                            .substring(0, 3).toLowerCase()) + 1;
                     year = dateTextMatcher.group("year") != null
                             ? Integer.parseInt(dateTextMatcher.group("year"))
                             : year;
@@ -323,7 +335,8 @@ public final class DateTimeFormatter {
                 }
                 if (dateTextReversedMatcher.find(index)) {
                     day = Integer.parseInt(dateTextReversedMatcher.group("day"));
-                    month = MONTHS_PREFIX.indexOf(dateTextReversedMatcher.group("month")) + 1;
+                    month = MONTHS_PREFIX.indexOf(dateTextReversedMatcher.group("month")
+                            .substring(0, 3).toLowerCase()) + 1;
                     year = dateTextReversedMatcher.group("year") != null
                             ? Integer.parseInt(dateTextReversedMatcher.group("year"))
                             : year;
