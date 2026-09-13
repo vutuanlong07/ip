@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import org.cs2103t.marquee.core.DuplicateKeyException;
-
 /**
  * Immutable data class containing details of a command.
  * <p>
@@ -27,10 +25,9 @@ public class Command {
      * @param parameters mappings of flag names to parameter values
      * @throws NullPointerException if {@code code} or {@code parameters} is {@code null}
      * @throws NoSuchElementException if an unrecognized flag was given
-     * @throws DuplicateKeyException if a duplicate flag was given
      */
     public Command(Code code, Map<String, String> parameters)
-            throws NullPointerException, NoSuchElementException, DuplicateKeyException {
+            throws NullPointerException, NoSuchElementException {
         if (code == null || parameters == null) {
             throw new NullPointerException();
         }
@@ -39,9 +36,6 @@ public class Command {
         for (Map.Entry<String, String> entry : parameters.entrySet()) {
             if (!code.getFlagNames().contains(entry.getKey())) {
                 throw new NoSuchElementException(entry.getKey());
-            }
-            if (this.parameters.containsKey(entry.getKey())) {
-                throw new DuplicateKeyException("Duplicate flag: " + entry.getKey(), entry.getKey());
             }
 
             this.parameters.put(entry.getKey(), entry.getValue());
@@ -57,10 +51,9 @@ public class Command {
      * @param parameters mappings of flag names to parameter values
      * @throws NullPointerException if {@code code} or {@code parameters} is {@code null}
      * @throws NoSuchElementException if an unrecognized flag was given
-     * @throws DuplicateKeyException if a duplicate flag was given
      */
     public Command(Code code, String argument, Map<String, String> parameters)
-            throws NullPointerException, NoSuchElementException, DuplicateKeyException {
+            throws NullPointerException, NoSuchElementException {
         if (code == null || parameters == null) {
             throw new NullPointerException();
         }
@@ -71,10 +64,6 @@ public class Command {
             if (!code.getFlagNames().contains(entry.getKey())) {
                 throw new NoSuchElementException(entry.getKey());
             }
-            if (this.parameters.containsKey(entry.getKey())) {
-                throw new DuplicateKeyException("Duplicate flag: " + entry.getKey(), entry.getKey());
-            }
-
             this.parameters.put(entry.getKey(), entry.getValue());
         }
         this.parameters.remove("");

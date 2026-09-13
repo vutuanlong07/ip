@@ -6,6 +6,7 @@ import java.util.NoSuchElementException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Gatherers;
 import java.util.stream.Stream;
 
 import org.cs2103t.marquee.core.DuplicateKeyException;
@@ -20,17 +21,18 @@ import org.cs2103t.marquee.core.DuplicateKeyException;
  *     <li>
  *     Command name/code name
  *     <li>
- *     Parameter
+ *     Argument
  *     <li>
  *     Flag components (repeat for every flag)
  *     <ul>
- *         <li>forward slash {@code /} and flag name</li>
- *         <li>flag value (optional depending on the flag)</li>
+ *         <li>Flag delimiter (passed to the constructor), flag name</li>
+ *         <li>Flag value, defaults to empty string {@code ""}</li>
  *     </ul>
  * </ul>
  * The command components should be separated by 1 or more spaces <code>&nbsp;</code>.
  * <p>
- * To include a forward slash in the parameter or flag value, prepend a backslash to it ({@code \/}).
+ * To include a flag delimiter in the arguments or flag value, prepend the escape sequence
+ * (defined in the constructor) before the flag delimiter.
  *
  * @see Command
  * @see Code
@@ -38,13 +40,13 @@ import org.cs2103t.marquee.core.DuplicateKeyException;
 public class CommandFormatter {
     private final String flagDelimiter;
     private final String escapeSequence;
+    private final String escapedFlagDelimiter;
     private final Map<String, Code> codeByName;
     private final Pattern codePattern;
     private final Pattern flagPattern;
 
     /**
-     * Creates a new {@code CommandFormatter} with a dictionary of all the
-     * currently defined {@code Code} in the application.
+     * Creates a new {@code CommandFormatter} using the given flag delimiter and flag escape sequence.
      *
      * @param flagDelimiter the sequence of characters that marks the start of a flag
      * @param escapeSequence the sequence of characters that, when put in front of {@code flagDelimiter},
@@ -54,6 +56,7 @@ public class CommandFormatter {
     public CommandFormatter(String flagDelimiter, String escapeSequence) {
         this.flagDelimiter = flagDelimiter;
         this.escapeSequence = escapeSequence;
+        this.escapedFlagDelimiter = escapeSequence + flagDelimiter;
         this.codeByName = Code.getAvailableCodes().stream()
                 .collect(Collectors.toUnmodifiableMap(
                         Code::getName,
@@ -65,8 +68,7 @@ public class CommandFormatter {
                         + ")(?:$|\\s+)"
         );
         this.flagPattern = Pattern.compile(
-                "\\s*(?:" + Pattern.quote(this.escapeSequence)
-                        + "(?<flagDelimiterEscaped>" + Pattern.quote(this.flagDelimiter) + ")|"
+                "\\s*(?:(?<flagDelimiterEscaped>" + Pattern.quote(this.escapedFlagDelimiter) + ")|"
                         + Pattern.quote(this.flagDelimiter) + "(?<flagName>\\S*)(?:$|\\s+))"
         );
     }
@@ -105,7 +107,7 @@ public class CommandFormatter {
     public Command parseCommand(String input)
             throws NoSuchElementException, DuplicateKeyException, IllegalArgumentException {
         Matcher codeMatcher = codePattern.matcher(input);
-        if (this.codeByName.isEmpty() || !codeMatcher.find()) {
+        if (codeByName.isEmpty() || !codeMatcher.find()) {
             throw new IllegalArgumentException("Unknown command");
         }
         Code code = codeByName.get(codeMatcher.group("code"));
@@ -123,19 +125,23 @@ public class CommandFormatter {
                 argument.append(input, i, flagMatcher.start());
 
                 if (flagMatcher.group("flagDelimiterEscaped") != null) {
-                    argument.append(flagMatcher.group().replace(
-                            this.escapeSequence + this.flagDelimiter,
-                            this.flagDelimiter
-                    ));
+                    argument.append(input, flagMatcher.start(), flagMatcher.start("flagDelimiterEscaped"))
+                            .append(escapedFlagDelimiter);
                     continue;
                 }
 
                 parameters.put(lastFlagName, argument.toString());
                 argument.setLength(0);
                 lastFlagName = flagMatcher.group("flagName");
+
+                if (parameters.containsKey(lastFlagName)) {
+                    throw new DuplicateKeyException("Duplicate flag: " + lastFlagName, lastFlagName);
+                }
             }
             parameters.put(lastFlagName, argument.append(input, i, input.length()).toString());
-
+            if (!code.getFlagNames().contains("") && parameters.get("").isEmpty()) {
+                parameters.remove("");
+            }
             return new Command(code, parameters);
         }
     }
@@ -149,12 +155,15 @@ public class CommandFormatter {
      */
     public String formatCommand(Command command) {
         return Stream.concat(
-                Stream.of(command.getCode().getName(), command.getArgument()),
+                Stream.of(command.getCode().getName(), command.hasArgument() ? command.getArgument() : ""),
                 command.getParameters().entrySet().stream()
-                        .flatMap(flag -> Stream.of(
-                                this.flagDelimiter + flag.getKey(),
-                                flag.getValue()
-                        ))
-        ).collect(Collectors.joining(" "));
+                        .flatMap(flag -> Stream.of(flag.getKey(), flag.getValue()))
+        )
+                .map(str -> str.replace(flagDelimiter, escapedFlagDelimiter))
+                .gather(Gatherers.windowFixed(2))
+                .map(pair -> pair.getLast().isEmpty()
+                        ? pair.getFirst()
+                        : pair.getFirst() + " " + pair.getLast())
+                .collect(Collectors.joining(" -"));
     }
 }
