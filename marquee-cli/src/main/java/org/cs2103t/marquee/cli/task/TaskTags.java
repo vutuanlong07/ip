@@ -11,11 +11,11 @@ import org.cs2103t.marquee.core.task.TaskTag;
  */
 public class TaskTags {
     /** Tag for a to-do task */
-    public static final TaskTag TODO_TAG = new TaskTag("T");
+    public static final TaskTag TODO_TAG = TaskTag.createOrGet("T");
     /** Tag for a task with deadline */
-    public static final TaskTag DEADLINE_TAG = new TaskTag("D");
+    public static final TaskTag DEADLINE_TAG = TaskTag.createOrGet("D");
     /** Tag for an event */
-    public static final TaskTag EVENT_TAG = new TaskTag("E");
+    public static final TaskTag EVENT_TAG = TaskTag.createOrGet("E");
 
     // prevent instantiation
     private TaskTags() {}

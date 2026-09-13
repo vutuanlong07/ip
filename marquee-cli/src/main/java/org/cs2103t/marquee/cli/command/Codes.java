@@ -9,49 +9,49 @@ import org.cs2103t.marquee.core.Marquee;
  */
 public final class Codes {
     /** Ends the chat session */
-    public static final Code EXIT = new Code("bye");
+    public static final Code EXIT = Code.createOrGet("bye");
     /** Loads the checklist from the save file */
-    public static final Code LOAD = new Code("load");
+    public static final Code LOAD = Code.createOrGet("load");
     /** Saves the checklist to the save file */
-    public static final Code SAVE = new Code("save");
+    public static final Code SAVE = Code.createOrGet("save");
     /** Lists all tasks in the checklist */
-    public static final Code LIST = new Code("list");
+    public static final Code LIST = Code.createOrGet("list");
     /** Searches for tasks that matches the filters */
-    public static final Code FIND = new Code("find",
+    public static final Code FIND = Code.createOrGet("find",
             "", "from", "to", "completed", "incomplete"
     );
     /** Create a new to-do task and add it to the checklist */
-    public static final Code TODO = new Code("todo", "", "completed");
+    public static final Code TODO = Code.createOrGet("todo", "", "completed");
     /** Create a new task with deadline and add it to the checklist */
-    public static final Code DEADLINE = new Code("deadline",
+    public static final Code DEADLINE = Code.createOrGet("deadline",
             "", "by", "completed", "incomplete"
     );
     /** Create a new event and add it to the checklist */
-    public static final Code EVENT = new Code("event",
+    public static final Code EVENT = Code.createOrGet("event",
             "", "from", "to", "completed", "incomplete"
     );
     /** Delete the tasks at the given indices */
-    public static final Code DELETE = new Code("delete", "");
+    public static final Code DELETE = Code.createOrGet("delete", "");
     /** Delete all tasks in the checklist */
-    public static final Code DELETE_ALL = new Code("delete-all");
+    public static final Code DELETE_ALL = Code.createOrGet("delete-all");
     /** Delete all tasks that matches the filters */
-    public static final Code DELETE_MATCHING = new Code("delete-matching",
+    public static final Code DELETE_MATCHING = Code.createOrGet("delete-matching",
             "", "from", "to", "completed", "incomplete"
     );
     /** Mark the tasks at the given indices as completed */
-    public static final Code MARK = new Code("mark", "");
+    public static final Code MARK = Code.createOrGet("mark", "");
     /** Mark all tasks in the checklist as completed */
-    public static final Code MARK_ALL = new Code("mark-all");
+    public static final Code MARK_ALL = Code.createOrGet("mark-all");
     /** Mark all tasks that matches the filters as completed*/
-    public static final Code MARK_MATCHING = new Code("mark-matching",
+    public static final Code MARK_MATCHING = Code.createOrGet("mark-matching",
             "", "from", "to", "completed", "incomplete"
     );
     /** Remove the mark from the tasks at the given indices */
-    public static final Code UNMARK = new Code("unmark", "");
+    public static final Code UNMARK = Code.createOrGet("unmark", "");
     /** Remove the mark from all tasks in the checklist */
-    public static final Code UNMARK_ALL = new Code("unmark-all");
+    public static final Code UNMARK_ALL = Code.createOrGet("unmark-all");
     /** Remove the mark from all tasks that matches the filters */
-    public static final Code UNMARK_MATCHING = new Code("unmark-matching",
+    public static final Code UNMARK_MATCHING = Code.createOrGet("unmark-matching",
             "", "from", "to", "completed", "incomplete"
     );
 

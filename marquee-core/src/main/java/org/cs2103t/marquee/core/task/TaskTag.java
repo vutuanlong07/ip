@@ -53,6 +53,20 @@ public final class TaskTag {
     }
 
     /**
+     * Creates a new {@code TaskTag} with the given label if it doesn't exist yet,
+     * then return the {@code TaskTag} associated with this label.
+     *
+     * @param label the label of the tag to get
+     * @return the tag associated with {@code label}
+     */
+    public static TaskTag createOrGet(String label) {
+        TaskTag current = fromLabel(label);
+        return current != null
+                ? current
+                : new TaskTag(label);
+    }
+
+    /**
      * Gets the {@code TaskTag} with the given label.
      *
      * @param label the label displayed by the {@code TaskTag} when invoking {@link #getLabel()}
