@@ -1,0 +1,51 @@
+name: Build binaries for marquee-cli
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - 'cli-v*'
+      - '!cli-v*-SNAPSHOT'
+permissions:
+  contents: write
+jobs:
+  build-cli:
+    name: Build binaries for marquee-cli on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: '25.0'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Build with Gradle
+        run: ./gradlew :marquee-cli:nativeCompile
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: marquee-cli-${{ github.ref_name }}-${{ matrix.os }}
+          path: marquee-cli/build/native/nativeCompile/*
+  publish:
+    name: Publish the built binaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download binaries
+        uses: actions/upload-artifact@v4
+        with:
+          path: marquee-cli/releases
+          pattern: marquee-cli-${{ github.ref_name }}-*
+          merge-multiple: true
+      - name: Create release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: marquee-cli/releases/*
+          draft: true
