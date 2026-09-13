@@ -22,7 +22,6 @@ jobs:
           version: '25.0'
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          native-image-job-reports: 'true'
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Build with Gradle
@@ -35,10 +34,10 @@ jobs:
   publish:
     name: Publish the built binaries
     needs: build-cli
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     steps:
       - name: Download binaries
-        uses: actions/upload-artifact@v8
+        uses: actions/download-artifact@v8
         with:
           path: marquee-cli/releases
           pattern: marquee-cli-${{ github.ref_name }}-*

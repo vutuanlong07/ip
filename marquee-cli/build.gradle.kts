@@ -1,3 +1,5 @@
+import org.gradle.internal.os.OperatingSystem
+
 plugins {
     application
     id("java-common-conventions")
@@ -6,6 +8,13 @@ plugins {
 
 group = findProperty("group")!!
 version = findProperty(project.name + "-version")!!
+
+val platform: OperatingSystem = OperatingSystem.current()
+var platformTag = (
+        if (platform.isMacOsX) "mac_os"
+        else if (platform.isWindows) "windows"
+        else if (platform.isLinux) "linux" else "others"
+) + platform.version + System.getProperty("os.arch")
 
 dependencies {
     implementation(project(":marquee-core"))
@@ -17,7 +26,7 @@ application {
 
 graalvmNative {
     binaries.named("main") {
-        imageName = "${project.name}-v${project.version}-${System.getProperty("os.name")}"
+        imageName = "${project.name}-v${project.version}-${platformTag}"
         buildArgs.add("--static-nolibc")
         buildArgs.add("-march=native")
         buildArgs.add("-O3")
