@@ -4,10 +4,10 @@ on:
     tags:
       - "core-v*"
       - "!core-v*-SNAPSHOT"
+permissions:
+  contents: write
 jobs:
   build-core:
-    permissions:
-      contents: write
     name: Build JAR for marquee-core
     runs-on: ubuntu-latest
     steps:
