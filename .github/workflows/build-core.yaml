@@ -2,7 +2,8 @@ name: Build JAR for marquee-core
 on:
   push:
     tags:
-      - core-v*.*.*!-
+      - "core-v*"
+      - "!core-v*-SNAPSHOT"
 jobs:
   build-core:
     name: Build JAR for marquee-core
