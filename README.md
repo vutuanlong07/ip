@@ -23,7 +23,7 @@ This repo comes with a basic CLI build out of the box for Marquee.
 ## Installation
 
 The core JAR is available in Releases
-CLI application is available in Releasse (TBA)
+CLI application is available in Releasse
 
 ## Usage
 
