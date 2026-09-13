@@ -1,7 +1,7 @@
 plugins {
     application
     id("java-common-conventions")
-    id("native-compile")
+    id("org.graalvm.buildtools.native")
 }
 
 group = findProperty("group")!!
@@ -13,6 +13,17 @@ dependencies {
 
 application {
     mainClass = "org.cs2103t.marquee.cli.Application"
+}
+
+graalvmNative {
+    binaries.named("main") {
+        logger.lifecycle(project.name)
+        logger.lifecycle(project.version.toString())
+        imageName = "${project.name}-v${project.version}-windows-x64"
+        buildArgs.add("--static-nolibc")
+        buildArgs.add("-march=native")
+        buildArgs.add("-O3")
+    }
 }
 
 tasks.run {

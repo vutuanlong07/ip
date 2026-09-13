@@ -5,6 +5,12 @@
 Marquee is an API for a task-keeping assistant that tries to mimic natural language as close as possible to give you a smooth conversation.
 This repo comes with a basic CLI build out of the box for Marquee.
 
+## Table of Contents
+
+* [Features](#features)
+* [Installation](#installation)
+* [Usage](#usage)
+
 ## Features
 
 - [x] Manage tasks, deadlines and events

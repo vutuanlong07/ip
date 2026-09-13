@@ -1,8 +1,8 @@
 plugins {
     application
     id("java-common-conventions")
-    id("native-compile")
     id("org.openjfx.javafxplugin") version "0.1.0"
+    id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.29"
 }
 
 group = findProperty("group")!!
@@ -19,5 +19,5 @@ javafx {
 }
 
 application {
-    mainClass = "org.cs2103t.marquee.gui.MainApplication"
+    mainClass = "org.javafx.MainApplication"
 }
