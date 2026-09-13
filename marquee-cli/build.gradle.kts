@@ -17,8 +17,6 @@ application {
 
 graalvmNative {
     binaries.named("main") {
-        logger.lifecycle(project.name)
-        logger.lifecycle(project.version.toString())
         imageName = "${project.name}-v${project.version}-windows-x64"
         buildArgs.add("--static-nolibc")
         buildArgs.add("-march=native")
