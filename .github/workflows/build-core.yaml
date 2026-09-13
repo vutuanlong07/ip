@@ -6,6 +6,7 @@ on:
       - "!core-v*-SNAPSHOT"
 permissions:
   contents: write
+  pull-requests: write
 jobs:
   build-core:
     name: Build JAR for marquee-core
@@ -26,3 +27,4 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: marquee-core/build/libs/*.jar
+          draft: true
