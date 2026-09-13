@@ -1,11 +1,11 @@
-name: Build
+name: Build JAR for marquee-core
 on:
   push:
     tags:
       - core-v*.*.*!-
   workflow_dispatch:
 jobs:
-  build:
+  build-core:
     name: Build JAR for marquee-core
     runs-on: ubuntu-latest
     steps:
@@ -24,4 +24,4 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           path: marquee-core/build/libs/*.jar
-          archive: true
+          archive: false
