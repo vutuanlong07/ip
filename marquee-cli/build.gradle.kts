@@ -14,7 +14,7 @@ var platformTag = (
         if (platform.isMacOsX) "mac_os"
         else if (platform.isWindows) "windows"
         else if (platform.isLinux) "linux" else "others"
-) + platform.version + System.getProperty("os.arch")
+) + "_" + platform.version + "_" + System.getProperty("os.arch")
 
 dependencies {
     implementation(project(":marquee-core"))

@@ -1,4 +1,4 @@
-package org.cs2103t.marquee.gui;
+package org.cs2103t.marquee.gui.ui;
 
 import java.io.IOException;
 
