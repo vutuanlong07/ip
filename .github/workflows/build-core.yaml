@@ -3,7 +3,6 @@ on:
   push:
     tags:
       - core-v*.*.*!-
-  workflow_dispatch:
 jobs:
   build-core:
     name: Build JAR for marquee-core
@@ -20,8 +19,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
       - name: Build with Gradle
         run: ./gradlew :marquee-core:jar
-      - name: Upload JAR
-        uses: actions/upload-artifact@v7
+      - name: Create release
+        uses: softprops/action-gh-release@v3
         with:
-          path: marquee-core/build/libs/*.jar
-          archive: false
+          files: marquee-core/build/libs/*.jar
