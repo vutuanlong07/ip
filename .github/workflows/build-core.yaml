@@ -1,8 +1,6 @@
 name: Build JAR for marquee-core
 on:
   push:
-    branches:
-      - master
     tags:
       - "core-v*"
       - "!core-v*-SNAPSHOT"

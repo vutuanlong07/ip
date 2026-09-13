@@ -17,7 +17,7 @@ application {
 
 graalvmNative {
     binaries.named("main") {
-        imageName = "${project.name}-v${project.version}-windows-x64"
+        imageName = "${project.name}-v${project.version}-${System.getProperty("os.name")}"
         buildArgs.add("--static-nolibc")
         buildArgs.add("-march=native")
         buildArgs.add("-O3")
