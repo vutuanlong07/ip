@@ -1,8 +1,13 @@
 package org.cs2103t.marquee.core.task;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableSet;
 
 /**
  * Base class for all tasks.
@@ -18,11 +23,14 @@ public class Task {
     public static final String START_COLUMN = "start";
     public static final String END_COLUMN = "end";
 
-    private TaskTag tag;
+    private static final String TAG_DELIMITER = ",";
+    private static final Pattern TAG_DELIMITER_PATTERN = Pattern.compile(TAG_DELIMITER);
+
     private String description;
+    private boolean isMarked;
     private LocalDateTime start;
     private LocalDateTime end;
-    private boolean isMarked;
+    private final ObservableSet<TaskTag> tags;
 
     /**
      * Creates a new {@code Task} with the given description, starting time
@@ -32,21 +40,20 @@ public class Task {
      * @param start when the task starts
      * @param end when the task ends
      * @param isMarked whether the task has been completed or not
-     * @throws NullPointerException if description is {@code null}
+     * @throws NullPointerException if tag or description is {@code null}
+     * @throws IllegalArgumentException if description is empty
      */
-    public Task(TaskTag tag, String description, LocalDateTime start, LocalDateTime end, boolean isMarked)
-            throws NullPointerException {
-        if (description == null) {
-            throw new NullPointerException("Description cannot be null");
-        }
-        if (tag == null) {
-            throw new NullPointerException("Task tag cannot be null");
-        }
-        this.tag = tag;
-        this.description = description;
-        this.isMarked = isMarked;
-        this.start = start;
-        this.end = end;
+    public Task(String description, boolean isMarked, LocalDateTime start, LocalDateTime end, TaskTag... tags)
+            throws NullPointerException, IllegalArgumentException {
+        this.tags = FXCollections.observableSet(tags);
+        this.setDescription(description);
+        this.setMark(isMarked);
+        this.setStart(start);
+        this.setEnd(end);
+    }
+
+    public Task() {
+        this("New Task", false, null, null);
     }
 
     /**
@@ -54,20 +61,44 @@ public class Task {
      *
      * @return the tag of this task
      */
-    public final TaskTag getTag() {
-        return this.tag;
+    public Set<TaskTag> getTags() {
+        tags.removeIf(TaskTag::isStale);
+        return this.tags;
     }
 
     /**
-     * Sets the tag of this task.
+     * Adds a tag to this task.
      *
      * @param newTag the new tag for this task
+     * @return whether the task already has the given tag
+     * @throws NullPointerException if the given tag is {@code null}
+     * @throws IllegalArgumentException if the given tag is stale
      */
-    public final void setTag(TaskTag newTag) {
+    public boolean addTag(TaskTag newTag) {
         if (newTag == null) {
             throw new NullPointerException("Description cannot be null");
+        } else if (newTag.isStale()) {
+            throw new IllegalArgumentException("Tag is stale");
         } else {
-            this.tag = newTag;
+            return this.tags.add(newTag);
+        }
+    }
+
+    /**
+     * Removes a tag from this task.
+     *
+     * @param oldTag the old tag to remove from this task
+     * @return whether the task didn't have the given tag
+     * @throws NullPointerException if the given tag is {@code null}
+     */
+    public boolean removeTag(TaskTag oldTag) {
+        if (oldTag == null) {
+            throw new NullPointerException("Description cannot be null");
+        } else if (oldTag.isStale()) {
+            this.tags.remove(oldTag);
+            return false;
+        } else {
+            return this.tags.remove(oldTag);
         }
     }
 
@@ -76,7 +107,7 @@ public class Task {
      *
      * @return the description of this task
      */
-    public final String getDescription() {
+    public String getDescription() {
         return this.description;
     }
 
@@ -85,9 +116,12 @@ public class Task {
      *
      * @param newDescription the new description for this task
      */
-    protected final void setDescription(String newDescription) throws NullPointerException {
-        if (newDescription == null) {
+    public void setDescription(String newDescription) throws NullPointerException {
+        if (description == null) {
             throw new NullPointerException("Description cannot be null");
+        }
+        if (description.isEmpty()) {
+            throw new IllegalArgumentException("Description cannot be empty");
         }
         this.description = newDescription;
     }
@@ -97,7 +131,7 @@ public class Task {
      *
      * @return the starting time of this event, or {@code null} if not applicable
      */
-    public final LocalDateTime getStart() {
+    public LocalDateTime getStart() {
         return this.start;
     }
 
@@ -106,7 +140,7 @@ public class Task {
      *
      * @param newStart the new starting time for this event, or {@code null} if not applicable
      */
-    protected final void setStart(LocalDateTime newStart) {
+    public final void setStart(LocalDateTime newStart) {
         this.start = newStart;
     }
 
@@ -144,7 +178,7 @@ public class Task {
      *
      * @param newEnd the new ending time for this event, or {@code null} if not applicable
      */
-    protected final void setEnd(LocalDateTime newEnd) {
+    public final void setEnd(LocalDateTime newEnd) {
         this.end = newEnd;
     }
 
@@ -216,7 +250,9 @@ public class Task {
      */
     public Map<String, String> toValueMap() {
         return Map.of(
-                TAG_COLUMN, this.getTag().getLabel(),
+                TAG_COLUMN, this.getTags().stream()
+                        .map(TaskTag::toString)
+                        .collect(Collectors.joining(TAG_DELIMITER)),
                 DESCRIPTION_COLUMN, this.getDescription(),
                 START_COLUMN, this.getStart() == null ? "" : this.getStart().toString(),
                 END_COLUMN, this.getEnd() == null ? "" : this.getEnd().toString(),
@@ -225,7 +261,7 @@ public class Task {
     }
 
     /**
-     * Assigns values to this task's attributes by attribute names.
+     * Creates a task with the given properties.
      * <p>
      * Used for reconstructing tasks from files.
      *
@@ -233,29 +269,42 @@ public class Task {
      * @return a {@code Task} with the given properties
      */
     public static Task fromValueMap(Map<String, String> values) {
-        LocalDateTime start;
-        LocalDateTime end;
-        try {
-            start = LocalDateTime.parse(values.get(START_COLUMN));
-        } catch (DateTimeParseException _) {
-            start = null;
+        Task newTask = new Task();
+        newTask.setValue(values);
+        return newTask;
+    }
+
+    /**
+     * Assigns values to this task's properties.
+     * <p>
+     * Used for reconstructing tasks from files.
+     *
+     * @param values a map from property name to string representation of their values
+     */
+    public void setValue(Map<String, String> values) {
+        if (!(values.get(TAG_COLUMN) == null || values.get(TAG_COLUMN).isEmpty())) {
+            this.tags.clear();
+            this.tags.addAll(TAG_DELIMITER_PATTERN.splitAsStream(values.get(TAG_COLUMN))
+                    .map(TaskTag::getTaskTag)
+                    .collect(Collectors.toSet()));
         }
-        try {
-            end = LocalDateTime.parse(values.get(END_COLUMN));
-        } catch (DateTimeParseException _) {
-            end = null;
+        if (!(values.get(DESCRIPTION_COLUMN) == null || values.get(DESCRIPTION_COLUMN).isEmpty())) {
+            this.setDescription(values.get(DESCRIPTION_COLUMN));
         }
-        return new Task(
-                TaskTag.fromLabel(values.get(TAG_COLUMN)),
-                values.get(DESCRIPTION_COLUMN),
-                start,
-                end,
-                Boolean.parseBoolean(values.get(MARK_COLUMN))
-        );
+        if (!(values.get(MARK_COLUMN) == null || values.get(MARK_COLUMN).isEmpty())) {
+            this.setMark(Boolean.parseBoolean(values.get(MARK_COLUMN)));
+        }
+        if (!(values.get(START_COLUMN) == null || values.get(START_COLUMN).isEmpty())) {
+            this.setStart(LocalDateTime.parse(values.get(START_COLUMN)));
+        }
+        if (!(values.get(END_COLUMN) == null || values.get(END_COLUMN).isEmpty())) {
+            this.setEnd(LocalDateTime.parse(values.get(END_COLUMN)));
+        }
     }
 
     @Override
     public String toString() {
-        return this.getTag().toString() + (this.isMarked() ? " [x] " : " [ ] ") + this.getDescription();
+        return this.getTags().stream().map(tag -> "[" + tag + "]").collect(Collectors.joining(" "))
+                + (this.isMarked() ? " [x] " : " [ ] ") + this.getDescription();
     }
 }
