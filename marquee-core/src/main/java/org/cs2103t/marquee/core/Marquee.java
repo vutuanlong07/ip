@@ -9,30 +9,26 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.cs2103t.marquee.core.io.CsvTable;
 import org.cs2103t.marquee.core.task.Task;
+import org.cs2103t.marquee.core.task.TaskTag;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
 /**
  * Main class for the standalone chatbot Marquee.
  */
 public class Marquee {
-    private final Path savePath;
-    private final List<Task> checklist = new ArrayList<>();
-    private List<Task> lastResult = checklist;
+    private final ObservableList<Task> checklist = FXCollections.observableArrayList();
+    private ObservableList<Task> lastResult = FXCollections.observableArrayList();
 
     /**
-     * Instantiates an instance of Marquee and attempts to load its checklist from {@code savePath}.
-     * <p>
-     * If loading fails, starts with an empty checklist.
-     *
-     * @param savePath the path to the CSV file Marquee will save its checklist to
+     * Instantiates an instance of Marquee.
      */
-    public Marquee(Path savePath) {
-        this.savePath = savePath;
-    }
+    public Marquee() {}
 
     /**
      * Formats the list of {@code Task} into a {@code CsvTable} for storage.
@@ -43,9 +39,9 @@ public class Marquee {
      * @implSpec Override this to account for new {@link Task} subclasses
      */
     protected CsvTable listToCsv(List<Task> list) {
-        Set<String> columnNames = list.stream()
+        List<String> columnNames = list.stream()
                 .flatMap(task -> task.toValueMap().keySet().stream())
-                .collect(Collectors.toSet());
+                .toList();
         CsvTable csv = new CsvTable(columnNames);
         list.forEach(task -> csv.add(csv.createRecord(task.toValueMap())));
         return csv;
@@ -71,9 +67,11 @@ public class Marquee {
      * Attempts to load the checklist from the save file.
      * <p>
      * If the operation fails, no change is made to the checklist.
+     *
+     * @param savePath the path to the CSV file Marquee will save its checklist to
      */
-    public final void load() throws NoSuchFileException, IOException, ParseException, IllegalArgumentException {
-        List<Task> newChecklist = csvToList(CsvTable.readFile(savePath, ";"));
+    public void load(Path savePath) throws NoSuchFileException, IOException, ParseException, IllegalArgumentException {
+        List<Task> newChecklist = csvToList(CsvTable.readFile(savePath));
         checklist.clear();
         checklist.addAll(newChecklist);
     }
@@ -82,8 +80,10 @@ public class Marquee {
      * Saves the checklist into the save file.
      * <p>
      * If the operation fails, the original save file will not be changed.
+     *
+     * @param savePath the path to the CSV file Marquee will read the checklist from
      */
-    public final void save() throws IOException {
+    public void save(Path savePath) throws IOException {
         CsvTable.writeFile(savePath, listToCsv(checklist));
     }
 
@@ -94,30 +94,36 @@ public class Marquee {
      *
      * @return an unmodifiable view of the current checklist
      */
-    public final List<Task> list() {
+    public List<Task> list() {
         List<Task> tempList = Collections.unmodifiableList(checklist);
-        return lastResult = tempList;
+        lastResult.setAll(tempList);
+        return tempList;
     }
 
     /**
      * Searches for tasks in the checklist satisfying the search conditions.
      * <p>
+     * If a parameter is null (or empty for {@code description}), no constraint is imposed on that property.
      * If description is empty or {@code null}, and all other parameters are {@code null}, no result is returned.
      *
      * @param description match tasks containing this substring in its description
      * @param start match tasks starting after this time
      * @param end match tasks ending before this time
      * @param isMarked match tasks with this mark status
+     * @param tags match tasks that has all these tags
+     * @param inheritLastResult whether to search only from the last result set
      * @return the tasks matching the filters
      */
-    public final List<Task> find(String description, LocalDateTime start, LocalDateTime end, Boolean isMarked) {
-        List<Task> matchingItems = (description == null || description.isEmpty())
-                && start == null && end == null && isMarked == null
-                ? List.of()
-                : checklist.stream()
+    public List<Task> find(String description, LocalDateTime start, LocalDateTime end,
+                           Boolean isMarked, Set<TaskTag> tags, boolean inheritLastResult) {
+        List<Task> matchingItems = (inheritLastResult ? lastResult.stream() : checklist.stream())
                 .filter(isMarked == null
                         ? _ -> true
                         : task -> task.isMarked() == isMarked
+                )
+                .filter(tags == null
+                        ? _ -> true
+                        : task -> task.getTags().containsAll(tags)
                 )
                 .filter(start == null
                         ? _ -> true
@@ -132,7 +138,8 @@ public class Marquee {
                         : task -> task.getDescription().contains(description)
                 )
                 .toList();
-        return lastResult = matchingItems;
+        lastResult.setAll(matchingItems);
+        return matchingItems;
     }
 
     /**
@@ -144,7 +151,8 @@ public class Marquee {
     public final List<Task> addTasks(Task... tasks) {
         List<Task> newTasks = List.of(tasks);
         checklist.addAll(newTasks);
-        return lastResult = newTasks;
+        lastResult.setAll(newTasks);
+        return newTasks;
     }
 
     /**
@@ -157,7 +165,7 @@ public class Marquee {
      * @throws IndexOutOfBoundsException if an index is out of the last task list's bounds
      */
     public final List<Task> deleteTasks(int... indices) throws IndexOutOfBoundsException {
-        return lastResult = IntStream.of(indices)
+        List<Task> deletedTasks = IntStream.of(indices)
                 .peek(i -> {
                     if (i < 0 || i >= lastResult.size()) {
                         throw new IndexOutOfBoundsException(i);
@@ -166,6 +174,8 @@ public class Marquee {
                 .mapToObj(lastResult::get)
                 .peek(checklist::remove)
                 .toList();
+        lastResult.setAll(deletedTasks);
+        return deletedTasks;
     }
 
     /**
@@ -174,9 +184,11 @@ public class Marquee {
      * @return the deleted tasks
      */
     public final List<Task> deleteAllTasks() {
-        return lastResult = lastResult.stream()
+        List<Task> deletedTasks = lastResult.stream()
                 .peek(checklist::remove)
                 .toList();
+        lastResult.setAll(deletedTasks);
+        return deletedTasks;
     }
 
     /**
@@ -189,7 +201,7 @@ public class Marquee {
      * @throws IndexOutOfBoundsException if an index is out of the last task list's bounds
      */
     public final List<Task> markTasks(int... indices) throws IndexOutOfBoundsException {
-        return lastResult = IntStream.of(indices)
+        List<Task> markedTasks = IntStream.of(indices)
                 .peek(i -> {
                     if (i < 0 || i >= lastResult.size()) {
                         throw new IndexOutOfBoundsException(i);
@@ -198,6 +210,8 @@ public class Marquee {
                 .mapToObj(lastResult::get)
                 .peek(Task::mark)
                 .toList();
+        lastResult.setAll(markedTasks);
+        return markedTasks;
     }
 
     /**
@@ -206,9 +220,11 @@ public class Marquee {
      * @return the marked tasks
      */
     public final List<Task> markAllTasks() {
-        return lastResult = lastResult.stream()
+        List<Task> markedTasks = lastResult.stream()
                 .peek(Task::mark)
                 .toList();
+        lastResult.setAll(markedTasks);
+        return markedTasks;
     }
 
     /**
@@ -221,7 +237,7 @@ public class Marquee {
      * @throws IndexOutOfBoundsException if an index is out of the last task list's bounds
      */
     public final List<Task> unmarkTasks(int... indices) throws IndexOutOfBoundsException {
-        return lastResult = IntStream.of(indices)
+        List<Task> unmarkedTasks = IntStream.of(indices)
                 .peek(i -> {
                     if (i < 0 || i >= lastResult.size()) {
                         throw new IndexOutOfBoundsException(i);
@@ -230,6 +246,8 @@ public class Marquee {
                 .mapToObj(lastResult::get)
                 .peek(Task::unmark)
                 .toList();
+        lastResult.setAll(unmarkedTasks);
+        return unmarkedTasks;
     }
 
     /**
@@ -238,8 +256,10 @@ public class Marquee {
      * @return the unmarked tasks
      */
     public final List<Task> unmarkAllTasks() {
-        return lastResult = lastResult.stream()
+        List<Task> unmarkedTasks = lastResult.stream()
                 .peek(Task::unmark)
                 .toList();
+        lastResult.setAll(unmarkedTasks);
+        return unmarkedTasks;
     }
 }

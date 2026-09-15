@@ -1,6 +1,5 @@
 package org.cs2103t.marquee.core.task;
 
-import java.text.ParseException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,6 +18,7 @@ public final class TaskTag {
     private static final Set<Character> SPECIAL_CHARACTERS = Set.of('-', '_', '.', ' ');
 
     private final String label;
+    private boolean stale;
 
     /**
      * Create a new {@code TaskTag}.
@@ -49,7 +49,20 @@ public final class TaskTag {
         }
 
         this.label = label;
+        this.stale = false;
         TAG_BY_LABEL.put(label, this);
+    }
+
+    /**
+     * Remove the tag from the available list and mark it as stale.
+     * <p>
+     * Stale tags will throw and exception on every method call.
+     *
+     * @param tag
+     */
+    public static void removeTag(TaskTag tag) {
+        tag.stale = true;
+        TAG_BY_LABEL.remove(tag.label);
     }
 
     /**
@@ -60,7 +73,7 @@ public final class TaskTag {
      * @return the tag associated with {@code label}
      */
     public static TaskTag createOrGet(String label) {
-        TaskTag current = fromLabel(label);
+        TaskTag current = getTaskTag(label);
         return current != null
                 ? current
                 : new TaskTag(label);
@@ -69,36 +82,11 @@ public final class TaskTag {
     /**
      * Gets the {@code TaskTag} with the given label.
      *
-     * @param label the label displayed by the {@code TaskTag} when invoking {@link #getLabel()}
+     * @param label the label displayed by the {@code TaskTag} when invoking {@link #toString()}
      * @return the {@code TaskTag} with the given label, or {@code null} if there are none
      */
-    public static TaskTag fromLabel(String label) {
+    public static TaskTag getTaskTag(String label) {
         return TAG_BY_LABEL.get(label);
-    }
-
-    /**
-     * Parses the string as a {@code TaskTag}.
-     *
-     * @param input the input string, following the format of {@link #toString()}
-     * @return the parsed {@code TaskTag}, or null if the tag with this label hasn't been defined
-     * @throws ParseException if the input doesn't follow the tag format
-     */
-    public static TaskTag parseTag(String input) throws ParseException {
-        if (!input.startsWith("[")) {
-            throw new ParseException("Not a valid tag string", 0);
-        } else if (!input.endsWith("]")) {
-            throw new ParseException("Not a valid tag string", input.length() - 1);
-        } else {
-            String label = input.substring(1, input.length() - 1);
-            int invalidCharCodePoint = label.chars()
-                    .dropWhile(c -> Character.isLetterOrDigit(c) || SPECIAL_CHARACTERS.contains((char) c))
-                    .findAny().orElse(-1);
-            if (invalidCharCodePoint != -1) {
-                throw new ParseException("Illegal character in tag name", label.indexOf(invalidCharCodePoint));
-            }
-
-            return TAG_BY_LABEL.get(label);
-        }
     }
 
     /**
@@ -110,29 +98,42 @@ public final class TaskTag {
         return TAG_BY_LABEL.values();
     }
 
-    public String getLabel() {
-        return label;
+    public boolean isStale() {
+        return stale;
     }
 
     /**
-     * Returns the decorated version of the tag for printing
-     * <p>
-     * The result is in the form of {@code [<label>]}.
+     * Returns the tag's label.
      *
-     * @return a decorated version of the tag
+     * @return the label of the tag
+     * @throws UnsupportedOperationException if the tag is stale
      */
     @Override
     public String toString() {
-        return "[" + this.getLabel() + "]";
+        if (stale) {
+            throw new UnsupportedOperationException("Stale tag");
+        }
+        return this.label;
     }
 
+    /**
+     * {@inheritDoc Object}
+     * @throws UnsupportedOperationException if the tag is stale
+     */
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof TaskTag && this.getLabel().equals(((TaskTag) obj).getLabel());
+        return obj instanceof TaskTag && this.toString().equals(((TaskTag) obj).toString());
     }
 
+    /**
+     * {@inheritDoc Object}
+     * @throws UnsupportedOperationException if the tag is stale
+     */
     @Override
     public int hashCode() {
+        if (stale) {
+            throw new UnsupportedOperationException("Stale tag");
+        }
         return Objects.hash(label);
     }
 }

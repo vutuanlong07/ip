@@ -8,14 +8,10 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -25,39 +21,47 @@ import org.cs2103t.marquee.core.DuplicateKeyException;
  * Representation of a CSV table.
  */
 public final class CsvTable {
-    private static final Pattern NEWLINE_PATTERN = Pattern.compile("(?:\\r\\n)+");
-    private static final Pattern UNPAIRED_NEWLINE_PATTERN = Pattern.compile("\\r(?!\\n)|(?<!\\r)\\n");
-    private static final Pattern QUOTE_PATTERN = Pattern.compile("(?<!\")\"(?!\")");
-
     private final List<String> columns;
     private final List<Record> values;
 
     /**
      * Representation of a CSV row.
      */
-    public class Record {
+    public final class Record {
         private final Map<String, String> fields;
 
         private Record() {
-            this.fields = new HashMap<>();
+            fields = columns.stream().collect(Collectors.toMap(columnName -> columnName, _ -> ""));
         }
 
         private Record(String... fields) throws IllegalArgumentException {
             if (fields.length != columns.size()) {
                 throw new IllegalArgumentException("Inconsistent column count");
             }
-            this.fields = new HashMap<>();
-            IntStream.range(0, columns.size()).forEach(i -> this.setField(columns.get(i), fields[i]));
+            this();
+            IntStream.range(0, columns.size()).forEach(i -> setField(columns.get(i), fields[i]));
+        }
+
+        private Record(List<String> fields) throws IllegalArgumentException {
+            if (fields.size() != columns.size()) {
+                throw new IllegalArgumentException("Inconsistent column count");
+            }
+            this();
+            IntStream.range(0, columns.size()).forEach(i -> setField(columns.get(i), fields.get(i)));
         }
 
         private Record(Map<String, String> fieldsByName) throws NoSuchElementException {
-            this.fields = new HashMap<>();
-            columns.forEach(columnName -> this.fields.put(columnName, ""));
+            this();
+            columns.forEach(columnName -> fields.put(columnName, ""));
             fieldsByName.forEach(this::setField);
         }
 
+        public CsvTable getParent() {
+            return CsvTable.this;
+        }
+
         public String getField(String columnName) throws NoSuchElementException {
-            String field = this.fields.get(columnName);
+            String field = fields.get(columnName);
             if (field == null) {
                 throw new NoSuchElementException(columnName);
             }
@@ -85,7 +89,14 @@ public final class CsvTable {
 
         @Override
         public String toString() {
-            return String.join(",", columns.stream().map(fields::get).toList());
+            return String.join(",", columns.stream().map(fields::get).map(CsvTable::quote).toList());
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof Record
+                    && getParent() == ((Record) other).getParent()
+                    && fields.equals(((Record) other).fields);
         }
     }
 
@@ -95,9 +106,42 @@ public final class CsvTable {
      * @param columns a collection of the column names
      * @throws DuplicateKeyException if duplicate column names was given
      */
-    public CsvTable(Collection<String> columns) throws DuplicateKeyException {
+    public CsvTable(List<String> columns) throws DuplicateKeyException {
         this.columns = new ArrayList<>(columns);
         this.values = new ArrayList<>();
+    }
+
+    /**
+     * Creates a new CSV table with the given columns.
+     *
+     * @param columns a collection of the column names
+     * @throws DuplicateKeyException if duplicate column names was given
+     */
+    public CsvTable(String... columns) throws DuplicateKeyException {
+        this.columns = new ArrayList<>(List.of(columns));
+        this.values = new ArrayList<>();
+    }
+
+    /**
+     * Returns an escaped version of the input.
+     *
+     * @param input the string to escape
+     * @return CSV-escaped input string
+     */
+    public static String quote(String input) {
+        return input.chars()
+                .filter(c -> c == '"' || c == ',' || c == '\r' || c == '\n')
+                .findAny().isPresent()
+                ? '"' + input.replace("\"", "\"\"") + '"'
+                : input;
+    }
+
+    public String getColumn(int index) {
+        return columns.get(index);
+    }
+
+    public int getColumnCount() {
+        return columns.size();
     }
 
     public List<String> getColumns() {
@@ -111,6 +155,40 @@ public final class CsvTable {
      */
     public List<Record> getValues() {
         return Collections.unmodifiableList(values);
+    }
+
+    /**
+     * Creates a new {@code Record} with the same columns as the CSV table
+     * and all fields left empty {@code ""}.
+     *
+     * @return the new record, with uninitialized field set to an empty string {@code ""}
+     */
+    public Record createRecord() {
+        return new Record();
+    }
+
+    /**
+     * Creates a new {@code Record} with the same columns as the CSV table
+     * with the given field values in the order of the column names.
+     *
+     * @param fields list of field values in the same order as the column names
+     * @return the new record, with uninitialized field set to an empty string {@code ""}
+     * @throws IllegalArgumentException if the number of field values doesn't match the number of columns
+     */
+    public Record createRecord(String... fields) throws IllegalArgumentException {
+        return new Record(fields);
+    }
+
+    /**
+     * Creates a new {@code Record} with the same columns as the CSV table
+     * with the given field values in the order of the column names.
+     *
+     * @param fields list of field values in the same order as the column names
+     * @return the new record, with uninitialized field set to an empty string {@code ""}
+     * @throws IllegalArgumentException if the number of field values doesn't match the number of columns
+     */
+    public Record createRecord(List<String> fields) throws IllegalArgumentException {
+        return new Record(fields);
     }
 
     /**
@@ -159,32 +237,63 @@ public final class CsvTable {
         values.addAll(List.of(rows));
     }
 
-    private static List<String> parseRow(String input, int count) throws ParseException {
-        List<String> result = new ArrayList<>();
-        int fieldStart = 0;
-        int fieldEnd = input.indexOf(',', fieldStart);
-        fieldEnd = fieldEnd == -1 ? input.length() : fieldEnd;
-        for (int i = 0; count < 0 || i < count; i++) {
-            if (fieldStart == input.length()) {
-                if (count < 0) {
-                    break;
+    private static int findNextSpecial(String string, int start) {
+        int i = start;
+        for (; i < string.length(); i++) {
+            if (string.charAt(i) == '"' || string.charAt(i) == ','
+                    || (string.charAt(i) == '\r' && i + 1 < string.length() && string.charAt(i + 1) == '\n')) {
+                break;
+            }
+        }
+        return i;
+    }
+
+    private static int parseRow(String content, int start, List<String> fields) throws ParseException {
+        StringBuilder fieldBuilder = new StringBuilder();
+        boolean isEscaped = false;
+        int fieldStart = start;
+        int fieldEnd = findNextSpecial(content, fieldStart);
+        while (fieldEnd < content.length()) {
+            fieldBuilder.append(content, fieldStart, fieldEnd);
+            char current = content.charAt(fieldEnd);
+            if (current == '"') {
+                if (isEscaped) {
+                    if (fieldEnd + 1 < content.length()
+                            && content.charAt(fieldEnd + 1) == '"') {
+                        fieldStart = fieldEnd + 2;
+                        fieldBuilder.append('"');
+                    } else {
+                        fieldStart = fieldEnd + 1;
+                        isEscaped = false;
+                    }
                 } else {
-                    throw new ParseException("Missing fields", fieldStart);
+                    fieldStart = fieldEnd + 1;
+                    isEscaped = true;
+                }
+            } else if (current == ',') {
+                fieldStart = fieldEnd + 1;
+                if (isEscaped) {
+                    fieldBuilder.append(',');
+                } else {
+                    fields.add(fieldBuilder.toString());
+                    fieldBuilder.setLength(0);
+                }
+            } else {
+                fieldStart = fieldEnd + 2;
+                if (isEscaped) {
+                    fieldBuilder.append("\r\n");
+                } else {
+                    break;
                 }
             }
-
-            String rawField = input.substring(fieldStart, fieldEnd);
-
-            result.add(rawField);
-
-            fieldStart = fieldEnd;
-            fieldEnd = input.indexOf(',', fieldStart);
-            fieldEnd = fieldEnd == -1 ? input.length() : fieldEnd;
+            fieldEnd = findNextSpecial(content, fieldStart);
         }
-        if (fieldStart != input.length()) {
-            throw new ParseException("Too many fields", fieldStart);
+        if (isEscaped) {
+            throw new ParseException("Escaped field not closed", fieldStart);
+        } else {
+            fields.add(fieldBuilder.toString());
+            return fieldStart;
         }
-        return result;
     }
 
     /**
@@ -192,7 +301,6 @@ public final class CsvTable {
      * into a new {@code CsvTable}, then return the new {@code CsvTable}.
      *
      * @param filepath the filepath to read from
-     * @param separator the expected field separator
      * @return the new {@link CsvTable} with columns and rows from the file
      * @throws NoSuchFileException if no file is found at the location
      * @throws AccessDeniedException if the file can't be accessed
@@ -200,7 +308,7 @@ public final class CsvTable {
      * @throws IOException if an unexpected I/O error occurs while reading the file
      * @throws DuplicateKeyException if a duplicate column name is found
      */
-    public static CsvTable readFile(Path filepath, String separator)
+    public static CsvTable readFile(Path filepath)
             throws NoSuchFileException, AccessDeniedException, ParseException,
             IOException, DuplicateKeyException {
         if (!Files.isRegularFile(filepath)) {
@@ -211,20 +319,13 @@ public final class CsvTable {
         }
 
         String content = Files.readString(filepath);
-        Matcher unpairedNewlineMatcher = UNPAIRED_NEWLINE_PATTERN.matcher(content);
-        if (unpairedNewlineMatcher.find()) {
-            throw new ParseException("Unpaired newline or carriage return", unpairedNewlineMatcher.start());
-        }
-
-        Matcher newlineMatcher = NEWLINE_PATTERN.matcher(content);
-        if (!newlineMatcher.find()) {
-            return new CsvTable(Collections.emptyList());
-        }
-        List<String> columns = parseRow(content.substring(0, newlineMatcher.start()), -1);
-
-        CsvTable csv = new CsvTable(columns);
-        for (int i = newlineMatcher.end(); newlineMatcher.find(); i = newlineMatcher.end()) {
-            csv.addNew(parseRow(content.substring(i, newlineMatcher.start()), columns.size()).toArray(String[]::new));
+        List<String> fields = new ArrayList<>();
+        int i = parseRow(content, 0, fields);
+        CsvTable csv = new CsvTable(fields);
+        while (i < content.length()) {
+            fields.clear();
+            i = parseRow(content, i, fields);
+            csv.add(csv.createRecord(fields));
         }
         return csv;
     }
@@ -246,7 +347,7 @@ public final class CsvTable {
             temp = Files.createTempFile(filepath.getParent(), null, null);
             Files.writeString(temp,
                     csv.getColumns().stream()
-                            .map(column -> "\"" + column.replace("\"", "\"\"") + "\"")
+                            .map(CsvTable::quote)
                             .collect(Collectors.joining(","))
                             + "\r\n"
                             + csv.getValues().stream()
