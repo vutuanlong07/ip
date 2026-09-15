@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.cs2103t.marquee.core.io.CsvTable;
@@ -40,9 +39,9 @@ public class Marquee {
      * @implSpec Override this to account for new {@link Task} subclasses
      */
     protected CsvTable listToCsv(List<Task> list) {
-        Set<String> columnNames = list.stream()
+        List<String> columnNames = list.stream()
                 .flatMap(task -> task.toValueMap().keySet().stream())
-                .collect(Collectors.toSet());
+                .toList();
         CsvTable csv = new CsvTable(columnNames);
         list.forEach(task -> csv.add(csv.createRecord(task.toValueMap())));
         return csv;
