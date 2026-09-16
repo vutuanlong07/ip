@@ -22,7 +22,7 @@ public final class EventTask extends Task {
      */
     public EventTask(String description, LocalDateTime start, LocalDateTime end, boolean isMarked)
             throws IllegalArgumentException {
-        super(TaskTags.EVENT_TAG, description, start, end, isMarked);
+        super(description, isMarked, start, end, TaskTags.EVENT_TAG);
         if (end.isBefore(start)) {
             throw new IllegalArgumentException("End time must be after start time");
         }
