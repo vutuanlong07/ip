@@ -1,4 +1,4 @@
-package org.cs2103t.marquee.gui.ui;
+package org.cs2103t.marquee.gui;
 
 import java.io.IOException;
 
@@ -19,7 +19,7 @@ public class MainApplication extends Application {
         Scene scene = new Scene(root);
         scene.getStylesheets().add(getClass().getResource("/style/style.css").toExternalForm());
 
-        stage.setTitle("JavaFX and Gradle");
+        stage.setTitle("Marquee");
         stage.setScene(scene);
         stage.show();
     }

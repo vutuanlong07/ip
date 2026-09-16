@@ -19,5 +19,5 @@ javafx {
 }
 
 application {
-    mainClass = "org.javafx.MainApplication"
+    mainClass = "org.cs2103t.marquee.gui.MainApplication"
 }
