@@ -2,6 +2,7 @@ package org.cs2103t.marquee.core.task;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -19,6 +20,7 @@ public final class TaskTag {
 
     private final String label;
     private boolean stale;
+    private final Set<Task> taggedTasks;
 
     /**
      * Create a new {@code TaskTag}.
@@ -50,6 +52,7 @@ public final class TaskTag {
 
         this.label = label;
         this.stale = false;
+        this.taggedTasks = new HashSet<>();
         TAG_BY_LABEL.put(label, this);
     }
 
@@ -62,6 +65,9 @@ public final class TaskTag {
      */
     public static void removeTag(TaskTag tag) {
         tag.stale = true;
+        for (Task task : tag.taggedTasks) {
+            tag.onTagRemoved(task);
+        }
         TAG_BY_LABEL.remove(tag.label);
     }
 
@@ -96,6 +102,17 @@ public final class TaskTag {
      */
     public static Collection<TaskTag> getAvailableTags() {
         return TAG_BY_LABEL.values();
+    }
+
+    void onTagAdded(Task task) {
+        if (stale) {
+            throw new UnsupportedOperationException("Stale tag");
+        }
+        this.taggedTasks.add(task);
+    }
+
+    void onTagRemoved(Task task) {
+        this.taggedTasks.remove(task);
     }
 
     public boolean isStale() {

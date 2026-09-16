@@ -2,10 +2,17 @@ package org.cs2103t.marquee.core.task;
 
 import java.time.LocalDateTime;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SetProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleSetProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
 
@@ -26,11 +33,12 @@ public class Task {
     private static final String TAG_DELIMITER = ",";
     private static final Pattern TAG_DELIMITER_PATTERN = Pattern.compile(TAG_DELIMITER);
 
-    private String description;
-    private boolean isMarked;
-    private LocalDateTime start;
-    private LocalDateTime end;
-    private final ObservableSet<TaskTag> tags;
+    private final StringProperty description = new SimpleStringProperty(this, "description");
+    private final BooleanProperty isMarked = new SimpleBooleanProperty(this, "isMarked");
+    private final ObjectProperty<LocalDateTime> start = new SimpleObjectProperty<>(this, "start");
+    private final ObjectProperty<LocalDateTime> end = new SimpleObjectProperty<>(this, "end");
+    private final SetProperty<TaskTag> tags =
+            new SimpleSetProperty<>(this, "tags", FXCollections.observableSet());
 
     /**
      * Creates a new {@code Task} with the given description, starting time
@@ -45,11 +53,13 @@ public class Task {
      */
     public Task(String description, boolean isMarked, LocalDateTime start, LocalDateTime end, TaskTag... tags)
             throws NullPointerException, IllegalArgumentException {
-        this.tags = FXCollections.observableSet(tags);
         this.setDescription(description);
         this.setMark(isMarked);
         this.setStart(start);
         this.setEnd(end);
+        for (TaskTag tag : tags) {
+            this.addTag(tag);
+        }
     }
 
     public Task() {
@@ -61,9 +71,22 @@ public class Task {
      *
      * @return the tag of this task
      */
-    public Set<TaskTag> getTags() {
-        tags.removeIf(TaskTag::isStale);
-        return this.tags;
+    public ObservableSet<TaskTag> getTags() {
+        return tags.get();
+    }
+
+    /**
+     * Sets the tag of this task. This operation overrides old tags.
+     *
+     * @param newTags the new tags for this task
+     */
+    public void setTags(ObservableSet<TaskTag> newTags) {
+        if (newTags == null) {
+            throw new NullPointerException("Tag list cannot be null");
+        } else {
+            tags.forEach(this::removeTag);
+            newTags.forEach(this::addTag);
+        }
     }
 
     /**
@@ -76,11 +99,10 @@ public class Task {
      */
     public boolean addTag(TaskTag newTag) {
         if (newTag == null) {
-            throw new NullPointerException("Description cannot be null");
-        } else if (newTag.isStale()) {
-            throw new IllegalArgumentException("Tag is stale");
+            throw new NullPointerException("Tag cannot be null");
         } else {
-            return this.tags.add(newTag);
+            newTag.onTagAdded(this);
+            return tags.add(newTag);
         }
     }
 
@@ -93,55 +115,71 @@ public class Task {
      */
     public boolean removeTag(TaskTag oldTag) {
         if (oldTag == null) {
-            throw new NullPointerException("Description cannot be null");
-        } else if (oldTag.isStale()) {
-            this.tags.remove(oldTag);
-            return false;
+            throw new NullPointerException("Tag cannot be null");
         } else {
-            return this.tags.remove(oldTag);
+            oldTag.onTagRemoved(this);
+            return tags.remove(oldTag);
         }
     }
 
     /**
      * Gets the description of this task.
      *
-     * @return the description of this task
+     * @return the task description
      */
     public String getDescription() {
-        return this.description;
+        return this.description.get();
     }
 
     /**
      * Sets the description of this task.
      *
-     * @param newDescription the new description for this task
+     * @param newDescription the new task description
      */
     public void setDescription(String newDescription) throws NullPointerException {
-        if (description == null) {
+        if (newDescription == null) {
             throw new NullPointerException("Description cannot be null");
         }
-        if (description.isEmpty()) {
+        if (newDescription.isEmpty()) {
             throw new IllegalArgumentException("Description cannot be empty");
         }
-        this.description = newDescription;
+        this.description.set(newDescription);
+    }
+
+    /**
+     * Gets the description property of this task.
+     *
+     * @return the description property
+     */
+    public StringProperty descriptionProperty() {
+        return this.description;
     }
 
     /**
      * Gets the starting time of this event, or {@code null} if not applicable.
      *
-     * @return the starting time of this event, or {@code null} if not applicable
+     * @return the starting time, or {@code null} if not applicable
      */
     public LocalDateTime getStart() {
-        return this.start;
+        return start.get();
     }
 
     /**
      * Sets the starting time of this event.
      *
-     * @param newStart the new starting time for this event, or {@code null} if not applicable
+     * @param newStart the new starting time, or {@code null} if not applicable
      */
-    public final void setStart(LocalDateTime newStart) {
-        this.start = newStart;
+    public void setStart(LocalDateTime newStart) {
+        start.set(newStart);
+    }
+
+    /**
+     * Gets the starting time property of this event.
+     *
+     * @return the starting time property
+     */
+    public ObjectProperty<LocalDateTime> startProperty() {
+        return start;
     }
 
     /**
@@ -150,8 +188,8 @@ public class Task {
      * @param startTime the reference time
      * @return whether the task starts after the given time
      */
-    public final boolean startsAfter(LocalDateTime startTime) {
-        return this.start != null && this.start.isAfter(startTime);
+    public boolean startsAfter(LocalDateTime startTime) {
+        return this.start.get() != null && this.start.get().isAfter(startTime);
     }
 
     /**
@@ -160,26 +198,35 @@ public class Task {
      * @param startTime the reference time
      * @return whether the task starts after or at the given time
      */
-    public final boolean startsAfterInclusive(LocalDateTime startTime) {
-        return this.start != null && !this.start.isBefore(startTime);
+    public boolean startsAfterInclusive(LocalDateTime startTime) {
+        return this.start.get() != null && !this.start.get().isBefore(startTime);
     }
 
     /**
      * Gets the ending time of this event, or {@code null} if not applicable.
      *
-     * @return the ending time of this event, or {@code null} if not applicable
+     * @return the ending time, or {@code null} if not applicable
      */
-    public final LocalDateTime getEnd() {
-        return this.end;
+    public LocalDateTime getEnd() {
+        return end.get();
     }
 
     /**
      * Sets the ending time of this event.
      *
-     * @param newEnd the new ending time for this event, or {@code null} if not applicable
+     * @param newEnd the new ending time, or {@code null} if not applicable
      */
-    public final void setEnd(LocalDateTime newEnd) {
-        this.end = newEnd;
+    public void setEnd(LocalDateTime newEnd) {
+        end.set(newEnd);
+    }
+
+    /**
+     * Gets the ending time of this event, or {@code null} if not applicable.
+     *
+     * @return the ending time, or {@code null} if not applicable
+     */
+    public ObjectProperty<LocalDateTime> endProperty() {
+        return end;
     }
 
     /**
@@ -188,8 +235,8 @@ public class Task {
      * @param endTime the reference time
      * @return whether the task ends before the given time
      */
-    public final boolean endsBefore(LocalDateTime endTime) {
-        return this.end != null && this.end.isBefore(endTime);
+    public boolean endsBefore(LocalDateTime endTime) {
+        return this.end.get() != null && this.end.get().isBefore(endTime);
     }
 
     /**
@@ -198,17 +245,17 @@ public class Task {
      * @param endTime the reference time
      * @return whether the task ends before or at the given time
      */
-    public final boolean endsBeforeInclusive(LocalDateTime endTime) {
-        return this.end != null && !this.end.isAfter(endTime);
+    public boolean endsBeforeInclusive(LocalDateTime endTime) {
+        return this.end.get() != null && !this.end.get().isAfter(endTime);
     }
 
     /**
-     * Gets the completion status of this task.
+     * Gets the mark status of this task.
      *
-     * @return whether this task has been completed or not
+     * @return whether this task is marked
      */
-    public final boolean isMarked() {
-        return this.isMarked;
+    public boolean isMarked() {
+        return isMarked.get();
     }
 
     /**
@@ -217,8 +264,22 @@ public class Task {
      * @param newMark the new mark status for the task
      * @return whether the mark status was changed
      */
-    public final boolean setMark(boolean newMark) {
-        return this.isMarked != (this.isMarked = newMark);
+    public boolean setMark(boolean newMark) {
+        if (isMarked.get() != newMark) {
+            isMarked.set(newMark);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Gets the marked property of this task.
+     *
+     * @return the marked property
+     */
+    public BooleanProperty markProperty() {
+        return isMarked;
     }
 
     /**
@@ -226,7 +287,7 @@ public class Task {
      *
      * @return whether the task was incomplete before
      */
-    public final boolean mark() {
+    public boolean mark() {
         return setMark(true);
     }
 
@@ -235,7 +296,7 @@ public class Task {
      *
      * @return whether the task was completed before
      */
-    public final boolean unmark() {
+    public boolean unmark() {
         return setMark(false);
     }
 

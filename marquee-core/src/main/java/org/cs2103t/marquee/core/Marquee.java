@@ -23,7 +23,7 @@ import javafx.collections.ObservableList;
  */
 public class Marquee {
     private final ObservableList<Task> checklist = FXCollections.observableArrayList();
-    private ObservableList<Task> lastResult = FXCollections.observableArrayList();
+    private final ObservableList<Task> lastResult = FXCollections.observableArrayList();
 
     /**
      * Instantiates an instance of Marquee.
