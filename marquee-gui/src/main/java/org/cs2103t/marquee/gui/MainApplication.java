@@ -14,11 +14,8 @@ import javafx.stage.Stage;
 public class MainApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
-        Parent root = FXMLLoader.load(getClass().getResource("/view/main.fxml"));
-
+        Parent root = FXMLLoader.load(getClass().getResource("/view/MainMenu.fxml"));
         Scene scene = new Scene(root);
-        scene.getStylesheets().add(getClass().getResource("/style/style.css").toExternalForm());
-
         stage.setTitle("Marquee");
         stage.setScene(scene);
         stage.show();

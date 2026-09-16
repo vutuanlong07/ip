@@ -12,6 +12,9 @@ import javafx.scene.layout.FlowPane;
  * Read-only skin for task items.
  */
 public class TaskViewReadonlySkin extends SkinBase<TaskView> {
+    public TaskViewReadonlySkin(TaskView control) {
+        super(control);
+    }
 
     @FXML
     private Label description;
@@ -27,5 +30,4 @@ public class TaskViewReadonlySkin extends SkinBase<TaskView> {
 
     @FXML
     private FlowPane tags;
-
 }

@@ -8,4 +8,9 @@ import javafx.scene.control.Control;
  * Control for {@link Task}
  */
 public class TaskView extends Control {
+    private final Task task;
+
+    public TaskView(Task task) {
+        this.task = task;
+    }
 }
