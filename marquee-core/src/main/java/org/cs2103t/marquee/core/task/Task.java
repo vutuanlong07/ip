@@ -1,8 +1,6 @@
 package org.cs2103t.marquee.core.task;
 
 import java.time.LocalDateTime;
-import java.util.Map;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javafx.beans.property.BooleanProperty;
@@ -24,15 +22,6 @@ import javafx.collections.ObservableSet;
  * @see TaskTag
  */
 public class Task {
-    public static final String TAG_COLUMN = "tag";
-    public static final String DESCRIPTION_COLUMN = "description";
-    public static final String MARK_COLUMN = "mark";
-    public static final String START_COLUMN = "start";
-    public static final String END_COLUMN = "end";
-
-    private static final String TAG_DELIMITER = ",";
-    private static final Pattern TAG_DELIMITER_PATTERN = Pattern.compile(TAG_DELIMITER);
-
     private final StringProperty description = new SimpleStringProperty(this, "description");
     private final BooleanProperty isMarked = new SimpleBooleanProperty(this, "isMarked");
     private final ObjectProperty<LocalDateTime> start = new SimpleObjectProperty<>(this, "start");
@@ -87,6 +76,15 @@ public class Task {
             tags.forEach(this::removeTag);
             newTags.forEach(this::addTag);
         }
+    }
+
+    /**
+     * Gets the tag set property of this task.
+     *
+     * @return the tag set property
+     */
+    public SetProperty<TaskTag> tagsProperty() {
+        return tags;
     }
 
     /**
@@ -298,69 +296,6 @@ public class Task {
      */
     public boolean unmark() {
         return setMark(false);
-    }
-
-    /**
-     * Returns a mapping of property names to their values.
-     * <p>
-     * Used for storing tasks in a file.
-     *
-     * @return a map from property name to string representation of their values
-     * @implSpec The property name produced by this method must reproduce the same task
-     *           when passed to {@link #fromValueMap} with respect to {@code Task} attributes.
-     */
-    public Map<String, String> toValueMap() {
-        return Map.of(
-                TAG_COLUMN, this.getTags().stream()
-                        .map(TaskTag::toString)
-                        .collect(Collectors.joining(TAG_DELIMITER)),
-                DESCRIPTION_COLUMN, this.getDescription(),
-                START_COLUMN, this.getStart() == null ? "" : this.getStart().toString(),
-                END_COLUMN, this.getEnd() == null ? "" : this.getEnd().toString(),
-                MARK_COLUMN, Boolean.toString(this.isMarked())
-        );
-    }
-
-    /**
-     * Creates a task with the given properties.
-     * <p>
-     * Used for reconstructing tasks from files.
-     *
-     * @param values a map from property name to string representation of their values
-     * @return a {@code Task} with the given properties
-     */
-    public static Task fromValueMap(Map<String, String> values) {
-        Task newTask = new Task();
-        newTask.setValue(values);
-        return newTask;
-    }
-
-    /**
-     * Assigns values to this task's properties.
-     * <p>
-     * Used for reconstructing tasks from files.
-     *
-     * @param values a map from property name to string representation of their values
-     */
-    public void setValue(Map<String, String> values) {
-        if (!(values.get(TAG_COLUMN) == null || values.get(TAG_COLUMN).isEmpty())) {
-            this.tags.clear();
-            this.tags.addAll(TAG_DELIMITER_PATTERN.splitAsStream(values.get(TAG_COLUMN))
-                    .map(TaskTag::getTaskTag)
-                    .collect(Collectors.toSet()));
-        }
-        if (!(values.get(DESCRIPTION_COLUMN) == null || values.get(DESCRIPTION_COLUMN).isEmpty())) {
-            this.setDescription(values.get(DESCRIPTION_COLUMN));
-        }
-        if (!(values.get(MARK_COLUMN) == null || values.get(MARK_COLUMN).isEmpty())) {
-            this.setMark(Boolean.parseBoolean(values.get(MARK_COLUMN)));
-        }
-        if (!(values.get(START_COLUMN) == null || values.get(START_COLUMN).isEmpty())) {
-            this.setStart(LocalDateTime.parse(values.get(START_COLUMN)));
-        }
-        if (!(values.get(END_COLUMN) == null || values.get(END_COLUMN).isEmpty())) {
-            this.setEnd(LocalDateTime.parse(values.get(END_COLUMN)));
-        }
     }
 
     @Override
