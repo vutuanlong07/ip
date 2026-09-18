@@ -31,6 +31,27 @@ jobs:
         with:
           name: marquee-cli-${{ github.ref_name }}-${{ matrix.os }}
           path: marquee-cli/build/native/nativeCompile/*
+  build-cli-jar:
+    name: Build JAR for marquee-cli
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Build with Gradle
+        run: ./gradlew :marquee-cli:jar
+      - name: Upload JAR
+        uses: actions/upload-artifact@v7
+        with:
+          name: marquee-cli-${{ github.ref_name }}-jar
+          path: marquee-cli/build/libs/*
+          archive: false
   publish:
     name: Publish the built binaries
     needs: build-cli
