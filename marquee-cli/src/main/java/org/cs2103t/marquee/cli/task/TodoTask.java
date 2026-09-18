@@ -16,7 +16,7 @@ public final class TodoTask extends Task {
      * @param isMarked whether the task has been completed or not
      */
     public TodoTask(String description, boolean isMarked) {
-        super(TaskTags.TODO_TAG, description, null, null, isMarked);
+        super(description, isMarked, null, null, TaskTags.TODO_TAG);
     }
 
     /**
@@ -27,5 +27,9 @@ public final class TodoTask extends Task {
      */
     public TodoTask(String description) {
         this(description, false);
+    }
+
+    private TodoTask() {
+        super();
     }
 }

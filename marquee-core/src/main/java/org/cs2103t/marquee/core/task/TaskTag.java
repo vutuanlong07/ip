@@ -1,45 +1,42 @@
 package org.cs2103t.marquee.core.task;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.HashSet;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.cs2103t.marquee.core.DuplicateKeyException;
 
+import javafx.beans.property.MapProperty;
+import javafx.beans.property.SimpleMapProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
+
 /**
  * Base class for tags used by {@code Task}.
- * <p>
- * Do not create new instances repeatedly. All instances are tracked and may cause collisions.
  */
 public final class TaskTag {
-    private static final Map<String, TaskTag> TAG_BY_LABEL = new HashMap<>();
     private static final Set<Character> SPECIAL_CHARACTERS = Set.of('-', '_', '.', ' ');
+    private static final MapProperty<String, TaskTag> DICTIONARY =
+            new SimpleMapProperty<>(null, "tags", FXCollections.observableHashMap());
 
     private final String label;
     private boolean stale;
+    private final Set<Task> taggedTasks;
 
     /**
      * Create a new {@code TaskTag}.
      * <p>
      * Tag names can only contain alphanumeric characters {@code a-z} {@code A-Z} {@code 0-9},
      * hyphens {@code -}, underscores {@code _}, periods {@code .} and spaces <code>&nbsp;</code>.
-     * <p>
-     * All tag instances must have unique labels.
      *
      * @param label the label of the tag, which is what
      *              would be displayed when {@link #toString()} is invoked
      * @throws NullPointerException if the label is {@code null}
-     * @throws DuplicateKeyException if a tag with this label already exist
      * @throws IllegalArgumentException if an invalid character is found
      */
     public TaskTag(String label) throws NullPointerException, DuplicateKeyException, IllegalArgumentException {
         if (label == null) {
             throw new NullPointerException("Tag label cannot be null");
-        }
-        if (TAG_BY_LABEL.containsKey(label)) {
-            throw new DuplicateKeyException("Tag already exists", label);
         }
         int invalidCharCodePoint = label.chars()
                 .dropWhile(c -> Character.isLetterOrDigit(c) || SPECIAL_CHARACTERS.contains((char) c))
@@ -50,52 +47,90 @@ public final class TaskTag {
 
         this.label = label;
         this.stale = false;
-        TAG_BY_LABEL.put(label, this);
+        this.taggedTasks = new HashSet<>();
+    }
+
+    public static ObservableMap<String, TaskTag> getDictionary() {
+        return DICTIONARY.get();
+    }
+
+    public static MapProperty<String, TaskTag> dictionaryProperty() {
+        return DICTIONARY;
     }
 
     /**
-     * Remove the tag from the available list and mark it as stale.
-     * <p>
-     * Stale tags will throw and exception on every method call.
+     * Adds the tag to the dictionary.
      *
-     * @param tag
+     * @param tag the tag to add
+     * @throws DuplicateKeyException if the tag name already exist in dictionary
+     * @throws IllegalArgumentException if the tag is stale
      */
-    public static void removeTag(TaskTag tag) {
-        tag.stale = true;
-        TAG_BY_LABEL.remove(tag.label);
+    public static void addTag(TaskTag tag) throws DuplicateKeyException, IllegalArgumentException {
+        if (DICTIONARY.containsKey(tag.label)) {
+            throw new DuplicateKeyException("Tag name already exist", tag.label);
+        } else if (tag.stale) {
+            throw new IllegalArgumentException("Tag is stale");
+        } else {
+            DICTIONARY.put(tag.label, tag);
+        }
     }
 
     /**
-     * Creates a new {@code TaskTag} with the given label if it doesn't exist yet,
-     * then return the {@code TaskTag} associated with this label.
+     * Returns the tag with the given label in the dictionary, or {@code null} if there's none.
      *
-     * @param label the label of the tag to get
-     * @return the tag associated with {@code label}
+     * @param label the label of the tag
+     * @return the tag with the given label, or {@code null} if there's none
+     */
+    public static TaskTag getTag(String label) {
+        return DICTIONARY.get(label);
+    }
+
+    /**
+     * Remove the tag from dictionary and tasks and mark it as stale.
+     * <p>
+     * Stale tags will throw an exception when trying to add it to tasks.
+     *
+     * @param tag the tag to remove
+     * @throws NoSuchElementException if the tag doesn't exist in the dictionary
+     */
+    public static void removeTag(TaskTag tag) throws NoSuchElementException {
+        if (DICTIONARY.containsKey(tag.label)) {
+            for (Task task : tag.taggedTasks) {
+                tag.onTagRemoved(task);
+            }
+            tag.stale = true;
+        } else {
+            throw new NoSuchElementException("Tag does not exist");
+        }
+    }
+
+    /**
+     * If a tag with this label exist in the dictionary, returns it.
+     * Otherwise, creates a new tag with the given label and add it to the dictionary.
+     *
+     * @param label the label of the tag, which is what
+     *              would be displayed when {@link #toString()} is invoked
+     * @return the tag with the given label
      */
     public static TaskTag createOrGet(String label) {
-        TaskTag current = getTaskTag(label);
-        return current != null
-                ? current
-                : new TaskTag(label);
+        if (DICTIONARY.containsKey(label)) {
+            return DICTIONARY.get(label);
+        } else {
+            TaskTag newTag = new TaskTag(label);
+            addTag(newTag);
+            return newTag;
+        }
     }
 
-    /**
-     * Gets the {@code TaskTag} with the given label.
-     *
-     * @param label the label displayed by the {@code TaskTag} when invoking {@link #toString()}
-     * @return the {@code TaskTag} with the given label, or {@code null} if there are none
-     */
-    public static TaskTag getTaskTag(String label) {
-        return TAG_BY_LABEL.get(label);
+    void onTagAdded(Task task) {
+        if (stale) {
+            throw new UnsupportedOperationException("Stale tag");
+        }
+        this.taggedTasks.add(task);
     }
 
-    /**
-     * Returns an unmodifiable view of available task tags<p>
-     *
-     * @return an unmodifiable {@link Collection} of available task tags
-     */
-    public static Collection<TaskTag> getAvailableTags() {
-        return TAG_BY_LABEL.values();
+    void onTagRemoved(Task task) {
+        this.taggedTasks.remove(task);
     }
 
     public boolean isStale() {
@@ -114,26 +149,5 @@ public final class TaskTag {
             throw new UnsupportedOperationException("Stale tag");
         }
         return this.label;
-    }
-
-    /**
-     * {@inheritDoc Object}
-     * @throws UnsupportedOperationException if the tag is stale
-     */
-    @Override
-    public boolean equals(Object obj) {
-        return obj instanceof TaskTag && this.toString().equals(((TaskTag) obj).toString());
-    }
-
-    /**
-     * {@inheritDoc Object}
-     * @throws UnsupportedOperationException if the tag is stale
-     */
-    @Override
-    public int hashCode() {
-        if (stale) {
-            throw new UnsupportedOperationException("Stale tag");
-        }
-        return Objects.hash(label);
     }
 }

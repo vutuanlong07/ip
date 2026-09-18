@@ -57,14 +57,26 @@ public class Application {
         Class.forName("org.cs2103t.marquee.cli.command.Codes");
         Class.forName("org.cs2103t.marquee.cli.task.TaskTags");
 
-        Path saveDirectory = getLocalStoragePath().resolve("Marquee");
+        Path saveFile = getLocalStoragePath().resolve("Marquee", "checklist.csv");
         Dialogues dialogues = new Dialogues();
         BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
         CommandFormatter commandFormatter = new CommandFormatter("/", "/");
-        Marquee marquee = new Marquee(saveDirectory.resolve("checklist.csv"));
+        Marquee marquee = new Marquee();
 
         dialogues.banner();
-        dialogues.infoSaveFilePath(saveDirectory);
+        dialogues.infoSaveFilePath(saveFile);
+        try {
+            marquee.load(saveFile);
+            dialogues.successLoad();
+        } catch (NoSuchFileException _) {
+            dialogues.warningSaveNotFound();
+        } catch (IOException e) {
+            dialogues.errorSaveUnavailable(e.getMessage());
+        } catch (ParseException e) {
+            dialogues.errorSaveWrongFormat();
+        } catch (IllegalArgumentException e) {
+            dialogues.errorSaveCorrupted();
+        }
         dialogues.greetings();
         boolean isRunning = true;
         while (isRunning) {
@@ -77,7 +89,7 @@ public class Application {
             } catch (IOException e) {
                 dialogues.errorIoUnavailable();
                 try {
-                    marquee.save();
+                    marquee.save(saveFile);
                     dialogues.successSave();
                 } catch (IOException f) {
                     dialogues.errorSaveUnavailable(f.getMessage());
@@ -102,7 +114,7 @@ public class Application {
 
             if (Codes.EXIT.equals(command.getCode())) {
                 try {
-                    marquee.save();
+                    marquee.save(saveFile);
                     dialogues.successSave();
                 } catch (IOException e) {
                     dialogues.errorSaveUnavailable(e.getMessage());
@@ -111,17 +123,20 @@ public class Application {
                 dialogues.successExit();
             } else if (Codes.LOAD.equals(command.getCode())) {
                 try {
-                    marquee.load();
+                    marquee.load(saveFile);
                     dialogues.successLoad();
                 } catch (NoSuchFileException _) {
                     dialogues.warningSaveNotFound();
-                } catch (IOException | ParseException | IllegalArgumentException e) {
+                } catch (IOException e) {
+                    dialogues.errorSaveUnavailable(e.getMessage());
+                } catch (ParseException e) {
+                    dialogues.errorSaveWrongFormat();
+                } catch (IllegalArgumentException e) {
                     dialogues.errorSaveCorrupted();
-                    System.out.print(e.getMessage());
                 }
             } else if (Codes.SAVE.equals(command.getCode())) {
                 try {
-                    marquee.save();
+                    marquee.save(saveFile);
                     dialogues.successSave();
                 } catch (IOException e) {
                     dialogues.errorSaveUnavailable(e.getMessage());
@@ -217,7 +232,9 @@ public class Application {
                                     : null,
                             command.hasFlag("completed") != command.hasFlag("incomplete")
                                     ? command.hasFlag("completed")
-                                    : null
+                                    : null,
+                            null,
+                            false
                     ));
                 } catch (DateTimeParseException e) {
                     dialogues.errorDatetime(e.getParsedString());
@@ -234,7 +251,9 @@ public class Application {
                                     : null,
                             command.hasFlag("completed") != command.hasFlag("incomplete")
                                     ? command.hasFlag("completed")
-                                    : null
+                                    : null,
+                            null,
+                            false
                     );
                     dialogues.successDelete(marquee.deleteAllTasks());
                 } catch (DateTimeParseException e) {
@@ -252,7 +271,9 @@ public class Application {
                                     : null,
                             command.hasFlag("completed") != command.hasFlag("incomplete")
                                     ? command.hasFlag("completed")
-                                    : null
+                                    : null,
+                            null,
+                            false
                     );
                     dialogues.successMark(marquee.markAllTasks());
                 } catch (DateTimeParseException e) {
@@ -270,7 +291,9 @@ public class Application {
                                     : null,
                             command.hasFlag("completed") != command.hasFlag("incomplete")
                                     ? command.hasFlag("completed")
-                                    : null
+                                    : null,
+                            null,
+                            false
                     );
                     dialogues.successUnmark(marquee.unmarkAllTasks());
                 } catch (DateTimeParseException e) {
