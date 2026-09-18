@@ -1,0 +1,225 @@
+package org.cs2103t.marquee.core.io;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.InputMismatchException;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+/**
+ * Utility class that provide methods for serializing and deserializing objects.
+ * @see Serializable
+ * @see FieldGetter
+ * @see FieldSetter
+ * @see PreprocessWith
+ */
+public class Serializer {
+    public static final String CLASS_NAME_FIELD_NAME = "";
+
+    private static final Map<Class<?>, Map<Class<? extends Annotation>, List<Method>>> ANNOTATED_METHODS =
+            new HashMap<>();
+
+    private Serializer() {}
+
+    private static Method searchMethod(Class<?> clazz, String name, Class<?> returns, Class<?>... params)
+            throws NoSuchMethodException {
+        return findAnnotatedMethods(clazz, null).stream()
+                .filter(method -> {
+                    Class<?>[] actualParams = method.getParameterTypes();
+                    return method.getName().equals(name)
+                            && returns.isAssignableFrom(method.getReturnType())
+                            && actualParams.length == params.length
+                            && IntStream.range(0, actualParams.length)
+                            .allMatch(i -> actualParams[i].isAssignableFrom(params[i]));
+                })
+                .findAny()
+                .orElseThrow(() -> new NoSuchMethodException("Method matching return and param types not found"));
+    }
+
+    private static List<Method> findAnnotatedMethods(Class<?> clazz, Class<? extends Annotation> annotationType) {
+        Stream<Method> annotatedMethods = Stream.empty();
+        Class<?> currentClass = clazz;
+        while (currentClass != null) {
+            if (!ANNOTATED_METHODS.containsKey(currentClass)) {
+                Class<?> constClassRef = currentClass;
+                Arrays.stream(currentClass.getDeclaredMethods()).forEach(method -> {
+                    Map<Class<? extends Annotation>, List<Method>> intermediateMap =
+                            ANNOTATED_METHODS.computeIfAbsent(constClassRef, _ -> new HashMap<>());
+                    Arrays.stream(method.getDeclaredAnnotations()).forEach(annotation ->
+                            intermediateMap
+                                    .computeIfAbsent(annotation.annotationType(), _ -> new LinkedList<>())
+                                    .add(method)
+                    );
+                    intermediateMap.computeIfAbsent(null, _ -> new LinkedList<>()).add(method);
+                });
+            }
+            Map<Class<? extends Annotation>, List<Method>> intermediateMap = ANNOTATED_METHODS.get(currentClass);
+            annotatedMethods = Stream.concat(
+                    annotatedMethods,
+                    intermediateMap == null
+                            ? Stream.empty()
+                            : annotationType == null
+                              ? intermediateMap.values().stream().flatMap(List::stream)
+                              : intermediateMap.getOrDefault(annotationType, Collections.emptyList()).stream()
+            );
+            currentClass = currentClass.getSuperclass();
+        }
+        return annotatedMethods.toList();
+    }
+
+    private static <T, U> U preprocess(Method method, T input, Class<U> outputType)
+            throws NoSuchMethodException, InvocationTargetException, ClassCastException {
+        PreprocessWith annotation = method.getAnnotation(PreprocessWith.class);
+        if (annotation != null) {
+            if (annotation.clazz() != void.class) {
+                Method preprocessor = searchMethod(
+                        annotation.clazz(),
+                        annotation.method(),
+                        outputType,
+                        input.getClass()
+                );
+                preprocessor.setAccessible(true);
+                try {
+                    return outputType.cast(preprocessor.invoke(null, input));
+                } catch (IllegalAccessException e) {
+                    throw new AssertionError("Unexpected IllegalAccessException on preprocessor", e);
+                }
+            } else {
+                Method preprocessor = searchMethod(
+                        input.getClass(),
+                        annotation.method(),
+                        outputType
+                );
+                preprocessor.setAccessible(true);
+                try {
+                    return outputType.cast(preprocessor.invoke(input));
+                } catch (IllegalAccessException e) {
+                    throw new AssertionError("Unexpected IllegalAccessException on preprocessor", e);
+                }
+            }
+        } else {
+            return outputType.cast(input);
+        }
+    }
+
+
+    /**
+     * Serializes the given object.
+     *
+     * @param target the object to inject into
+     * @return the serialized field mapping
+     * @throws IllegalStateException if the target class doesn't have the {@link Serializable @Serializable} annotation
+     * @throws NoSuchMethodException if the parser with the appropriate parameter and return types cannot be found
+     * @throws IllegalArgumentException if the getter doesn't have a return value
+     * @throws InvocationTargetException if the parser or getter throws an exception
+     * @throws ClassCastException if the attribute can't be converted to a string
+     */
+    public static Map<String, String> serialize(Object target)
+            throws IllegalStateException, NoSuchMethodException,
+            IllegalArgumentException, InvocationTargetException, ClassCastException {
+        Class<?> clazz = target.getClass();
+        if (!clazz.isAnnotationPresent(Serializable.class)) {
+            throw new IllegalStateException("Class " + clazz.getName() + " is not annotated with @Serializable");
+        }
+
+        Map<String, String> fields = new HashMap<>();
+        fields.put(CLASS_NAME_FIELD_NAME, clazz.getCanonicalName());
+
+        for (Method getter : findAnnotatedMethods(clazz, FieldGetter.class)) {
+            FieldGetter getterAnnotation = getter.getAnnotation(FieldGetter.class);
+            getter.setAccessible(true);
+
+            if (getter.getReturnType() == void.class) {
+                throw new IllegalArgumentException("Getter " + getter.getName() + " doesn't have return value");
+            }
+
+            Object attrValue;
+            try {
+                attrValue = getter.invoke(target);
+            } catch (IllegalAccessException e) {
+                throw new AssertionError("Unexpected IllegalAccessException on getter", e);
+            }
+
+            if (!(getter.isAnnotationPresent(Optional.class) && attrValue == null)) {
+                fields.put(getterAnnotation.value(),
+                        preprocess(getter, attrValue, String.class));
+            }
+        }
+        return fields;
+    }
+
+    /**
+     * Deserializes the mapping then injects the values into the given object.
+     *
+     * @param fields the mapping to deserialize
+     * @return the target object after injecting the field values
+     * @throws ClassNotFoundException if the class referenced in the mapping cannot be found
+     * @throws InputMismatchException if the serialized class cannot be assigned to the target object
+     * @throws IllegalStateException if the target class doesn't have the {@link Serializable @Serializable} annotation
+     * @throws NoSuchMethodException if the parser with the appropriate parameter and return types cannot be found
+     * @throws IllegalArgumentException if the setter doesn't accept an argument
+     * @throws NoSuchElementException if the field mapping is missing required fields
+     * @throws InvocationTargetException if the parser or setter throws an exception
+     * @throws ClassCastException if the attribute can't be converted to a string
+     */
+    public static Object deserialize(Map<String, String> fields)
+            throws ClassNotFoundException, InputMismatchException, NoSuchElementException,
+            InstantiationException, IllegalStateException, NoSuchMethodException,
+            IllegalArgumentException, InvocationTargetException, ClassCastException {
+        String className = fields.get(CLASS_NAME_FIELD_NAME);
+        if (className == null) {
+            throw new NoSuchElementException(CLASS_NAME_FIELD_NAME);
+        }
+        Class<?> clazz = Class.forName(className);
+
+        Constructor<?> constructor = clazz.getDeclaredConstructor();
+        constructor.setAccessible(true);
+        Object target;
+        try {
+            target = constructor.newInstance();
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException("Unexpected IllegalAccessException on instantiation", e);
+        }
+
+        Serializable annotation = clazz.getAnnotation(Serializable.class);
+        if (annotation == null) {
+            throw new IllegalStateException("Class " + clazz.getName() + " is not annotated with @Serializable");
+        }
+
+        for (Method setter : findAnnotatedMethods(clazz, FieldSetter.class)) {
+            FieldSetter setterAnnotation = setter.getAnnotation(FieldSetter.class);
+            if (setterAnnotation == null) {
+                continue;
+            }
+            setter.setAccessible(true);
+
+            if (setter.getParameterCount() != 1) {
+                throw new IllegalArgumentException("Setter " + setter.getName() + " must only have one parameter");
+            }
+
+            String fieldValue = fields.get(setterAnnotation.value());
+            if (fieldValue == null) {
+                throw new NoSuchElementException(setterAnnotation.value());
+            }
+
+            if (!(setter.isAnnotationPresent(Optional.class) && fieldValue.isEmpty())) {
+                try {
+                    setter.invoke(target,
+                            preprocess(setter, fieldValue, setter.getParameterTypes()[0]));
+                } catch (IllegalAccessException e) {
+                    throw new AssertionError("Unexpected IllegalAccessException on setter", e);
+                }
+            }
+        }
+        return target;
+    }
+}
