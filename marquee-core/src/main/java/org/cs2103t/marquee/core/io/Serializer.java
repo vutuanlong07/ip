@@ -132,7 +132,7 @@ public class Serializer {
         }
 
         Map<String, String> fields = new HashMap<>();
-        fields.put(CLASS_NAME_FIELD_NAME, clazz.getCanonicalName());
+        fields.put(CLASS_NAME_FIELD_NAME, clazz.getName());
 
         for (Method getter : findAnnotatedMethods(clazz, FieldGetter.class)) {
             FieldGetter getterAnnotation = getter.getAnnotation(FieldGetter.class);
@@ -164,6 +164,7 @@ public class Serializer {
      * @return the target object after injecting the field values
      * @throws ClassNotFoundException if the class referenced in the mapping cannot be found
      * @throws InputMismatchException if the serialized class cannot be assigned to the target object
+     * @throws InstantiationException if the serialized class doesn't have a nullary constructor
      * @throws IllegalStateException if the target class doesn't have the {@link Serializable @Serializable} annotation
      * @throws NoSuchMethodException if the parser with the appropriate parameter and return types cannot be found
      * @throws IllegalArgumentException if the setter doesn't accept an argument
@@ -172,16 +173,21 @@ public class Serializer {
      * @throws ClassCastException if the attribute can't be converted to a string
      */
     public static Object deserialize(Map<String, String> fields)
-            throws ClassNotFoundException, InputMismatchException, NoSuchElementException,
-            InstantiationException, IllegalStateException, NoSuchMethodException,
-            IllegalArgumentException, InvocationTargetException, ClassCastException {
+            throws ClassNotFoundException, InputMismatchException, InstantiationException,
+            IllegalStateException, NoSuchMethodException, IllegalArgumentException,
+            NoSuchElementException, InvocationTargetException, ClassCastException {
         String className = fields.get(CLASS_NAME_FIELD_NAME);
         if (className == null) {
             throw new NoSuchElementException(CLASS_NAME_FIELD_NAME);
         }
         Class<?> clazz = Class.forName(className);
 
-        Constructor<?> constructor = clazz.getDeclaredConstructor();
+        Constructor<?> constructor;
+        try {
+            constructor = clazz.getDeclaredConstructor();
+        } catch (NoSuchMethodException _) {
+            throw new InstantiationException("Class " + clazz.getName() + " doesn't have a nullary constructor");
+        }
         constructor.setAccessible(true);
         Object target;
         try {

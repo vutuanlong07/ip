@@ -8,6 +8,8 @@ import java.lang.annotation.Target;
 
 /**
  * Indicates the class to be serialized.
+ * <p>
+ * Serializable classes must provide a nullary constructor.
  * @see Serializer
  */
 @Inherited
