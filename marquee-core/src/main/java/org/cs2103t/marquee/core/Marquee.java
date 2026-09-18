@@ -1,6 +1,7 @@
 package org.cs2103t.marquee.core;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.text.ParseException;
@@ -8,10 +9,13 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.IntStream;
 
 import org.cs2103t.marquee.core.io.CsvTable;
+import org.cs2103t.marquee.core.io.Serializer;
 import org.cs2103t.marquee.core.task.Task;
 import org.cs2103t.marquee.core.task.TaskTag;
 
@@ -31,60 +35,58 @@ public class Marquee {
     public Marquee() {}
 
     /**
-     * Formats the list of {@code Task} into a {@code CsvTable} for storage.
-     * <p>
-     *
-     * @param list the list of {@link Task} to format
-     * @return a new {@link CsvTable} containing the formatted tasks
-     * @implSpec Override this to account for new {@link Task} subclasses
-     */
-    protected CsvTable listToCsv(List<Task> list) {
-        List<String> columnNames = list.stream()
-                .flatMap(task -> task.toValueMap().keySet().stream())
-                .toList();
-        CsvTable csv = new CsvTable(columnNames);
-        list.forEach(task -> csv.add(csv.createRecord(task.toValueMap())));
-        return csv;
-    }
-
-    /**
-     * Extracts {@code Task} items from {@code CsvTable} into the checklist.
-     * <p>
-     *
-     * @param csv the {@link CsvTable} to read from
-     * @return a new list containing the parsed {@link Task}
-     * @throws IllegalArgumentException if an unsupported or unknown task tag is found
-     * @implSpec Override this to account for new {@link Task} subclasses
-     */
-    protected List<Task> csvToList(CsvTable csv)
-            throws IllegalArgumentException {
-        List<Task> list = new ArrayList<>();
-        csv.getValues().forEach(record -> list.add(Task.fromValueMap(record.getAllFields())));
-        return list;
-    }
-
-    /**
      * Attempts to load the checklist from the save file.
      * <p>
-     * If the operation fails, no change is made to the checklist.
+     * If an I/O error or file format error occurs, no change is made to the checklist.
+     * <p>
+     * If a row cannot be deserialized, that row will be silently skipped.
      *
      * @param savePath the path to the CSV file Marquee will save its checklist to
      */
-    public void load(Path savePath) throws NoSuchFileException, IOException, ParseException, IllegalArgumentException {
-        List<Task> newChecklist = csvToList(CsvTable.readFile(savePath));
+    public void load(Path savePath) throws NoSuchFileException, IOException, ParseException, IllegalStateException {
+        CsvTable csv = CsvTable.readFile(savePath);
+        List<Task> tempList = new ArrayList<>();
+        for (CsvTable.Record record : csv.getValues()) {
+            try {
+                tempList.add((Task) Serializer.deserialize(record.getAllFields()));
+            } catch (InstantiationException | ClassNotFoundException | ClassCastException
+                     | NoSuchMethodException | InvocationTargetException e) {
+                System.out.println(e.getMessage());
+            } catch (NoSuchElementException e) {
+                throw new IllegalArgumentException("Save file is corrupted");
+            }
+        }
         checklist.clear();
-        checklist.addAll(newChecklist);
+        checklist.addAll(tempList);
     }
 
     /**
      * Saves the checklist into the save file.
      * <p>
      * If the operation fails, the original save file will not be changed.
+     * <p>
+     * If a row cannot be serialized, that row will be silently skipped.
      *
      * @param savePath the path to the CSV file Marquee will read the checklist from
+     * @throws IOException if an unexpected I/O error occurs
      */
     public void save(Path savePath) throws IOException {
-        CsvTable.writeFile(savePath, listToCsv(checklist));
+        CsvTable csv = new CsvTable();
+        for (Task task : checklist) {
+            try {
+                Map<String, String> fields = Serializer.serialize(task);
+                for (String fieldName : fields.keySet()) {
+                    if (!csv.getColumns().contains(fieldName)) {
+                        csv.newColumn(fieldName, "");
+                    }
+                }
+                csv.add(csv.createRecord(fields));
+            } catch (ClassCastException | NoSuchMethodException
+                     | InvocationTargetException | IllegalArgumentException e) {
+                continue;
+            }
+        }
+        CsvTable.writeFile(savePath, csv);
     }
 
     /**

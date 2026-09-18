@@ -28,4 +28,8 @@ public final class TodoTask extends Task {
     public TodoTask(String description) {
         this(description, false);
     }
+
+    private TodoTask() {
+        super();
+    }
 }

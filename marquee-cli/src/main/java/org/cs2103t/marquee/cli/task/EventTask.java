@@ -40,6 +40,10 @@ public final class EventTask extends Task {
         this(description, start, end, false);
     }
 
+    private EventTask() {
+        super();
+    }
+
     @Override
     public String toString() {
         return super.toString()

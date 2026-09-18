@@ -1,7 +1,14 @@
 package org.cs2103t.marquee.core.task;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.stream.Collectors;
+
+import org.cs2103t.marquee.core.io.FieldGetter;
+import org.cs2103t.marquee.core.io.FieldSetter;
+import org.cs2103t.marquee.core.io.Optional;
+import org.cs2103t.marquee.core.io.PreprocessWith;
+import org.cs2103t.marquee.core.io.Serializable;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -21,6 +28,7 @@ import javafx.collections.ObservableSet;
  *
  * @see TaskTag
  */
+@Serializable
 public class Task {
     private final StringProperty description = new SimpleStringProperty(this, "description");
     private final BooleanProperty isMarked = new SimpleBooleanProperty(this, "isMarked");
@@ -55,26 +63,40 @@ public class Task {
         this("New Task", false, null, null);
     }
 
+    @FieldGetter("tags")
+    private String getTagsAsString() {
+        return tags.get().stream().map(TaskTag::toString).collect(Collectors.joining(","));
+    }
+
+    @FieldSetter("tags")
+    private void setTagsFromString(String tags) {
+        setTags(FXCollections.observableSet());
+    }
+
     /**
-     * Gets the tag of this task.
+     * Gets the tag set of this task.
      *
-     * @return the tag of this task
+     * @return the tag set of this task
      */
     public ObservableSet<TaskTag> getTags() {
         return tags.get();
     }
 
     /**
-     * Sets the tag of this task. This operation overrides old tags.
+     * Sets the tag set of this task.
+     * <p>
+     * To set all tags instead, use {@link #getTags()}.{@link ObservableSet#clear() clear()}
+     * then {@link #getTags()}.{@link ObservableSet#addAll(Collection) addAll(newTags)}
      *
-     * @param newTags the new tags for this task
+     * @param newTags the new tag set for this task
      */
     public void setTags(ObservableSet<TaskTag> newTags) {
         if (newTags == null) {
             throw new NullPointerException("Tag list cannot be null");
         } else {
-            tags.forEach(this::removeTag);
-            newTags.forEach(this::addTag);
+            tags.forEach(t -> t.onTagRemoved(this));
+            tags.set(newTags);
+            newTags.forEach(t -> t.onTagAdded(this));
         }
     }
 
@@ -125,6 +147,7 @@ public class Task {
      *
      * @return the task description
      */
+    @FieldGetter("description")
     public String getDescription() {
         return this.description.get();
     }
@@ -134,6 +157,7 @@ public class Task {
      *
      * @param newDescription the new task description
      */
+    @FieldSetter("description")
     public void setDescription(String newDescription) throws NullPointerException {
         if (newDescription == null) {
             throw new NullPointerException("Description cannot be null");
@@ -158,6 +182,9 @@ public class Task {
      *
      * @return the starting time, or {@code null} if not applicable
      */
+    @FieldGetter("start")
+    @Optional
+    @PreprocessWith(method = "toString")
     public LocalDateTime getStart() {
         return start.get();
     }
@@ -167,6 +194,9 @@ public class Task {
      *
      * @param newStart the new starting time, or {@code null} if not applicable
      */
+    @FieldSetter("start")
+    @Optional
+    @PreprocessWith(clazz = LocalDateTime.class, method = "parse")
     public void setStart(LocalDateTime newStart) {
         start.set(newStart);
     }
@@ -205,6 +235,9 @@ public class Task {
      *
      * @return the ending time, or {@code null} if not applicable
      */
+    @FieldGetter("end")
+    @Optional
+    @PreprocessWith(method = "toString")
     public LocalDateTime getEnd() {
         return end.get();
     }
@@ -214,6 +247,9 @@ public class Task {
      *
      * @param newEnd the new ending time, or {@code null} if not applicable
      */
+    @FieldSetter("end")
+    @Optional
+    @PreprocessWith(clazz = LocalDateTime.class, method = "parse")
     public void setEnd(LocalDateTime newEnd) {
         end.set(newEnd);
     }
@@ -252,6 +288,8 @@ public class Task {
      *
      * @return whether this task is marked
      */
+    @FieldGetter("mark")
+    @PreprocessWith(method = "toString")
     public boolean isMarked() {
         return isMarked.get();
     }
@@ -262,6 +300,8 @@ public class Task {
      * @param newMark the new mark status for the task
      * @return whether the mark status was changed
      */
+    @FieldSetter("mark")
+    @PreprocessWith(clazz = Boolean.class, method = "parseBoolean")
     public boolean setMark(boolean newMark) {
         if (isMarked.get() != newMark) {
             isMarked.set(newMark);

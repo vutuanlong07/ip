@@ -70,9 +70,12 @@ public class Application {
             dialogues.successLoad();
         } catch (NoSuchFileException _) {
             dialogues.warningSaveNotFound();
-        } catch (IOException | ParseException | IllegalArgumentException e) {
+        } catch (IOException e) {
+            dialogues.errorSaveUnavailable(e.getMessage());
+        } catch (ParseException e) {
+            dialogues.errorSaveWrongFormat();
+        } catch (IllegalArgumentException e) {
             dialogues.errorSaveCorrupted();
-            System.out.print(e.getMessage());
         }
         dialogues.greetings();
         boolean isRunning = true;
@@ -124,9 +127,12 @@ public class Application {
                     dialogues.successLoad();
                 } catch (NoSuchFileException _) {
                     dialogues.warningSaveNotFound();
-                } catch (IOException | ParseException | IllegalArgumentException e) {
+                } catch (IOException e) {
+                    dialogues.errorSaveUnavailable(e.getMessage());
+                } catch (ParseException e) {
+                    dialogues.errorSaveWrongFormat();
+                } catch (IllegalArgumentException e) {
                     dialogues.errorSaveCorrupted();
-                    System.out.print(e.getMessage());
                 }
             } else if (Codes.SAVE.equals(command.getCode())) {
                 try {

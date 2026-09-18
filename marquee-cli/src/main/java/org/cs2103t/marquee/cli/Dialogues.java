@@ -187,7 +187,7 @@ public class Dialogues {
     }
 
     /**
-     * Prints error message when save file is of an unrecognized format.
+     * Prints error message when save file data cannot reconstruct tasks.
      */
     public void errorSaveCorrupted() {
         System.out.print("..ca.che..fi.le..cor.rup.te..d.  Σ( ﾟДﾟ)!\n");
@@ -200,6 +200,13 @@ public class Dialogues {
      */
     public void errorSaveUnavailable(String cause) {
         System.out.print("Somehow can't write save file?! Σ( ﾟДﾟ)!\nCause: " + cause + "\n");
+    }
+
+    /**
+     * Prints error message when save file is of an unrecognized format.
+     */
+    public void errorSaveWrongFormat() {
+        System.out.print("Save file is not in the right format  Σ( ﾟДﾟ)!)\n");
     }
 
     /**

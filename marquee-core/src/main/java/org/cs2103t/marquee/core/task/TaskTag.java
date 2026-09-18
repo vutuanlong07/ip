@@ -1,15 +1,23 @@
 package org.cs2103t.marquee.core.task;
 
 import java.util.HashSet;
+import java.util.NoSuchElementException;
 import java.util.Set;
 
 import org.cs2103t.marquee.core.DuplicateKeyException;
+
+import javafx.beans.property.MapProperty;
+import javafx.beans.property.SimpleMapProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 
 /**
  * Base class for tags used by {@code Task}.
  */
 public final class TaskTag {
     private static final Set<Character> SPECIAL_CHARACTERS = Set.of('-', '_', '.', ' ');
+    private static final MapProperty<String, TaskTag> DICTIONARY =
+            new SimpleMapProperty<>(null, "tags", FXCollections.observableHashMap());
 
     private final String label;
     private boolean stale;
@@ -42,16 +50,76 @@ public final class TaskTag {
         this.taggedTasks = new HashSet<>();
     }
 
+    public static ObservableMap<String, TaskTag> getDictionary() {
+        return DICTIONARY.get();
+    }
+
+    public static MapProperty<String, TaskTag> dictionaryProperty() {
+        return DICTIONARY;
+    }
+
     /**
-     * Remove the tag from tasks and mark it as stale.
+     * Adds the tag to the dictionary.
+     *
+     * @param tag the tag to add
+     * @throws DuplicateKeyException if the tag name already exist in dictionary
+     * @throws IllegalArgumentException if the tag is stale
+     */
+    public static void addTag(TaskTag tag) throws DuplicateKeyException, IllegalArgumentException {
+        if (DICTIONARY.containsKey(tag.label)) {
+            throw new DuplicateKeyException("Tag name already exist", tag.label);
+        } else if (tag.stale) {
+            throw new IllegalArgumentException("Tag is stale");
+        } else {
+            DICTIONARY.put(tag.label, tag);
+        }
+    }
+
+    /**
+     * Returns the tag with the given label in the dictionary, or {@code null} if there's none.
+     *
+     * @param label the label of the tag
+     * @return the tag with the given label, or {@code null} if there's none
+     */
+    public static TaskTag getTag(String label) {
+        return DICTIONARY.get(label);
+    }
+
+    /**
+     * Remove the tag from dictionary and tasks and mark it as stale.
      * <p>
      * Stale tags will throw an exception when trying to add it to tasks.
+     *
+     * @param tag the tag to remove
+     * @throws NoSuchElementException if the tag doesn't exist in the dictionary
      */
-    public void dispose() {
-        for (Task task : taggedTasks) {
-            onTagRemoved(task);
+    public static void removeTag(TaskTag tag) throws NoSuchElementException {
+        if (DICTIONARY.containsKey(tag.label)) {
+            for (Task task : tag.taggedTasks) {
+                tag.onTagRemoved(task);
+            }
+            tag.stale = true;
+        } else {
+            throw new NoSuchElementException("Tag does not exist");
         }
-        stale = true;
+    }
+
+    /**
+     * If a tag with this label exist in the dictionary, returns it.
+     * Otherwise, creates a new tag with the given label and add it to the dictionary.
+     *
+     * @param label the label of the tag, which is what
+     *              would be displayed when {@link #toString()} is invoked
+     * @return the tag with the given label
+     */
+    public static TaskTag createOrGet(String label) {
+        if (DICTIONARY.containsKey(label)) {
+            return DICTIONARY.get(label);
+        } else {
+            TaskTag newTag = new TaskTag(label);
+            addTag(newTag);
+            return newTag;
+        }
     }
 
     void onTagAdded(Task task) {
