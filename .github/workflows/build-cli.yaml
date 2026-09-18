@@ -51,7 +51,6 @@ jobs:
         with:
           name: marquee-${{ github.ref_name }}-jar
           path: marquee-cli/build/libs/*
-          archive: false
   publish:
     name: Publish the built binaries
     needs: [build-cli, build-cli-jar]
