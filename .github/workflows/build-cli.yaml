@@ -29,7 +29,7 @@ jobs:
       - name: Upload binaries
         uses: actions/upload-artifact@v7
         with:
-          name: marquee-cli-${{ github.ref_name }}-${{ matrix.os }}
+          name: marquee-${{ github.ref_name }}-${{ matrix.os }}
           path: marquee-cli/build/native/nativeCompile/*
   build-cli-jar:
     name: Build JAR for marquee-cli
@@ -49,7 +49,7 @@ jobs:
       - name: Upload JAR
         uses: actions/upload-artifact@v7
         with:
-          name: marquee-cli-${{ github.ref_name }}-jar
+          name: marquee-${{ github.ref_name }}-jar
           path: marquee-cli/build/libs/*
           archive: false
   publish:
