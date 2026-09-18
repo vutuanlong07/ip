@@ -2,6 +2,7 @@ package org.cs2103t.marquee.cli;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.cs2103t.marquee.cli.command.Code;
@@ -186,7 +187,7 @@ public class Dialogues {
     }
 
     /**
-     * Prints error message when save file is of an unrecognized format.
+     * Prints error message when save file data cannot reconstruct tasks.
      */
     public void errorSaveCorrupted() {
         System.out.print("..ca.che..fi.le..cor.rup.te..d.  Σ( ﾟДﾟ)!\n");
@@ -199,6 +200,13 @@ public class Dialogues {
      */
     public void errorSaveUnavailable(String cause) {
         System.out.print("Somehow can't write save file?! Σ( ﾟДﾟ)!\nCause: " + cause + "\n");
+    }
+
+    /**
+     * Prints error message when save file is of an unrecognized format.
+     */
+    public void errorSaveWrongFormat() {
+        System.out.print("Save file is not in the right format  Σ( ﾟДﾟ)!)\n");
     }
 
     /**
@@ -286,14 +294,9 @@ public class Dialogues {
      */
     public static String numberedList(List<?> list, int minIndent) {
         int extraIndent = Math.max(minIndent - 2, Integer.toString(list.size()).length());
-        StringBuilder builder = IntStream.range(0, list.size())
-                .mapToObj(idx -> String.format("%" + extraIndent + "d. %s\n", idx + 1, list.get(idx)))
-                .collect(
-                        StringBuilder::new,
-                        StringBuilder::append,
-                        StringBuilder::append
-                );
-        return builder.toString();
+        return IntStream.range(0, list.size())
+                .mapToObj(idx -> String.format("%" + extraIndent + "d. %s", idx + 1, list.get(idx)))
+                .collect(Collectors.joining("\n"));
     }
 
     /**
@@ -307,16 +310,11 @@ public class Dialogues {
      */
     public static String bulletList(List<?> list, int indent) {
         int extraIndents = indent - 2;
-        StringBuilder builder = list.stream()
+        return list.stream()
                 .map(item -> new StringBuilder()
                         .repeat(' ', extraIndents)
                         .append("- ").append(item).append('\n')
                 )
-                .collect(
-                        StringBuilder::new,
-                        StringBuilder::append,
-                        StringBuilder::append
-                );
-        return builder.toString();
+                .collect(Collectors.joining("\n"));
     }
 }

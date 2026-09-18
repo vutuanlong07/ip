@@ -1,12 +1,13 @@
 plugins {
+    `java-library`
     id("java-common-conventions")
-    id("org.openjfx.javafxplugin") version "0.1.0"
 }
 
 group = findProperty("group")!!
 version = findProperty(project.name + "-version")!!
 
-javafx {
-    version = "26.0.2"
-    modules.add("javafx.base")
+dependencies {
+    api("org.openjfx:javafx-base:26.0.2:win")
+    api("org.openjfx:javafx-base:26.0.2:mac")
+    api("org.openjfx:javafx-base:26.0.2:linux")
 }

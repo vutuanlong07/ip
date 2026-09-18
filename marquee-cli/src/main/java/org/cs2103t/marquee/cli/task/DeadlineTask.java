@@ -20,7 +20,7 @@ public final class DeadlineTask extends Task {
      * @param isMarked whether the task has been completed or not
      */
     public DeadlineTask(String description, LocalDateTime deadline, boolean isMarked) {
-        super(TaskTags.DEADLINE_TAG, description, null, deadline, isMarked);
+        super(description, isMarked, null, deadline, TaskTags.DEADLINE_TAG);
     }
 
     /**
@@ -32,6 +32,10 @@ public final class DeadlineTask extends Task {
      */
     public DeadlineTask(String description, LocalDateTime deadline) {
         this(description, deadline, false);
+    }
+
+    private DeadlineTask() {
+        super();
     }
 
     /**
