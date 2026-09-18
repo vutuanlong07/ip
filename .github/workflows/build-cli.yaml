@@ -54,7 +54,7 @@ jobs:
           archive: false
   publish:
     name: Publish the built binaries
-    needs: build-cli
+    needs: [build-cli, build-cli-jar]
     runs-on: ubuntu-slim
     steps:
       - name: Download binaries
