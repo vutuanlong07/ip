@@ -18,7 +18,7 @@ import javafx.scene.layout.StackPane;
 /**
  * Controller for read-only task item view.
  */
-public class TaskReadonlyView extends HBox {
+public class TaskItemView extends HBox {
     private static final PseudoClass MARKED_CLASS = PseudoClass.getPseudoClass("completed");
 
     private ObjectProperty<Task> task = new SimpleObjectProperty<>(this, "task");
@@ -28,7 +28,7 @@ public class TaskReadonlyView extends HBox {
     @FXML
     private Label description;
     @FXML
-    private TagsView tags;
+    private TagsListView tags;
     @FXML
     private Label start;
     @FXML
@@ -37,11 +37,11 @@ public class TaskReadonlyView extends HBox {
     private CheckBox selected;
 
     /**
-     * Creates a new {@code TaskReadonlyView}.
+     * Creates a new {@code TaskItemView}.
      * @throws IOException if an I/O error occurs
      */
-    public TaskReadonlyView() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/TaskReadonlyView.fxml"));
+    public TaskItemView() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/TaskItemView.fxml"));
         loader.setController(this);
         loader.setRoot(this);
         loader.load();

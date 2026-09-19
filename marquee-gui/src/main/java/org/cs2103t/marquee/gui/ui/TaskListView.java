@@ -21,7 +21,7 @@ public class TaskListView extends ListView<Task> {
      * Controller for a task list cell.
      */
     public static class TaskListCell extends ListCell<Task> {
-        private TaskReadonlyView taskView;
+        private TaskItemView taskView;
 
         /**
          * Creates a new {@code TaskListCell}.
@@ -30,7 +30,7 @@ public class TaskListView extends ListView<Task> {
             setPadding(new Insets(0));
             setMaxWidth(Double.MAX_VALUE);
             try {
-                taskView = new TaskReadonlyView();
+                taskView = new TaskItemView();
             } catch (IOException e) {
                 taskView = null;
             }

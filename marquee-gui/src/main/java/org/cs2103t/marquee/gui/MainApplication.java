@@ -12,6 +12,10 @@ import javafx.stage.Stage;
  * Entry point for Marquee GUI.
  */
 public class MainApplication extends Application {
+    public static void main(String[] args) {
+        launch(args);
+    }
+
     @Override
     public void start(Stage stage) throws IOException {
         MainMenu mainMenu = new MainMenu();
@@ -21,9 +25,5 @@ public class MainApplication extends Application {
         stage.setMinWidth(mainMenu.getMinWidth());
         stage.setMinHeight(mainMenu.getMinHeight());
         stage.show();
-    }
-
-    public static void main(String[] args) {
-        launch(args);
     }
 }

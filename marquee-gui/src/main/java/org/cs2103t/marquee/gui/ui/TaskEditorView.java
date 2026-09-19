@@ -19,7 +19,7 @@ import javafx.scene.layout.GridPane;
 /**
  * Controller for editable task item view.
  */
-public class TaskEditableView extends GridPane {
+public class TaskEditorView extends GridPane {
     private ObjectProperty<Task> task = new SimpleObjectProperty<>(this, "task");
 
     private TextFormatter<String> descriptionFormatter = new TextFormatter<>(TextFormatter.IDENTITY_STRING_CONVERTER);
@@ -31,18 +31,18 @@ public class TaskEditableView extends GridPane {
     @FXML
     private TextArea description;
     @FXML
-    private TagsView tags;
+    private TagsListView tags;
     @FXML
     private TextField start;
     @FXML
     private TextField end;
 
     /**
-     * Creates a new {@code TaskReadonlyView}.
+     * Creates a new {@code TaskEditorView}.
      * @throws IOException if an I/O error occurs
      */
-    public TaskEditableView() throws IOException {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/TaskEditableView.fxml"));
+    public TaskEditorView() throws IOException {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/TaskEditorView.fxml"));
         loader.setController(this);
         loader.setRoot(this);
         loader.load();

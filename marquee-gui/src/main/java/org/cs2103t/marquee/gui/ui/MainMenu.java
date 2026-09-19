@@ -40,10 +40,10 @@ public class MainMenu extends VBox {
     private Pane taskEditorContainer;
 
     private TaskListView taskList;
-    private TaskEditableView taskEditor;
+    private TaskEditorView taskEditor;
 
     /**
-     * Creates a new {@code TaskReadonlyView}.
+     * Creates a new {@code MainMenu}.
      * @throws IOException if an I/O error occurs
      */
     public MainMenu() throws IOException {
@@ -61,7 +61,7 @@ public class MainMenu extends VBox {
         taskList.itemsProperty().bind(marquee.checklistProperty());
         taskListContainer.getChildren().setAll(taskList);
 
-        taskEditor = new TaskEditableView();
+        taskEditor = new TaskEditorView();
         taskEditor.taskProperty().bind(taskList.getSelectionModel().selectedItemProperty());
         taskEditorContainer.getChildren().setAll(taskEditor);
     }

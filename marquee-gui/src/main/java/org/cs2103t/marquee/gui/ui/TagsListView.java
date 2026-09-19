@@ -16,7 +16,7 @@ import javafx.scene.layout.FlowPane;
 /**
  * Controller for an inline tag chip display.
  */
-public class TagsView extends FlowPane {
+public class TagsListView extends FlowPane {
     private SetProperty<TaskTag> tags = new SimpleSetProperty<>(this, "tags", FXCollections.observableSet());
 
     @FXML
@@ -25,10 +25,10 @@ public class TagsView extends FlowPane {
     private ListView<TaskTag> taskListView;
 
     /**
-     * Creates a new {@code TagsView}.
+     * Creates a new {@code TagsListView}.
      * @throws IOException if an I/O error occurs
      */
-    public TagsView() throws IOException {
+    public TagsListView() throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/TagsView.fxml"));
         loader.setController(this);
         loader.setRoot(this);
