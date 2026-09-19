@@ -46,7 +46,6 @@ public class Marquee {
     public ObservableList<Task> getChecklist() {
         return checklistReadOnly;
     }
-
     public ListProperty<Task> checklistProperty() {
         return checklistReadOnly;
     }
@@ -54,7 +53,6 @@ public class Marquee {
     public ObservableList<Task> getLastResult() {
         return lastResultReadOnly;
     }
-
     public ReadOnlyListProperty<Task> lastResultProperty() {
         return lastResultReadOnly;
     }
@@ -210,18 +208,19 @@ public class Marquee {
      * <p>
      * This operation is atomic - if an exception is thrown, no task will be modified.
      *
+     * @param inheritLastResult whether to perform operations on last result set
      * @param indices the indices of the tasks to be deleted
      * @return the deleted tasks
      * @throws IndexOutOfBoundsException if an index is out of the last task list's bounds
      */
-    public final List<Task> deleteTasks(int... indices) throws IndexOutOfBoundsException {
+    public final List<Task> deleteTasks(boolean inheritLastResult, int... indices) throws IndexOutOfBoundsException {
         List<Task> deletedTasks = IntStream.of(indices)
                 .peek(i -> {
                     if (i < 0 || i >= lastResult.size()) {
                         throw new IndexOutOfBoundsException(i);
                     }
                 })
-                .mapToObj(lastResult::get)
+                .mapToObj(inheritLastResult ? lastResult::get : checklist::get)
                 .peek(checklist::remove)
                 .toList();
         lastResult.setAll(deletedTasks);
@@ -231,10 +230,11 @@ public class Marquee {
     /**
      * Deleted all tasks from the last search/list result, then returns the modified tasks.
      *
+     * @param inheritLastResult whether to perform operations on last result set
      * @return the deleted tasks
      */
-    public final List<Task> deleteAllTasks() {
-        List<Task> deletedTasks = lastResult.stream()
+    public final List<Task> deleteAllTasks(boolean inheritLastResult) {
+        List<Task> deletedTasks = (inheritLastResult ? lastResult : checklist).stream()
                 .peek(checklist::remove)
                 .toList();
         lastResult.setAll(deletedTasks);
@@ -246,18 +246,19 @@ public class Marquee {
      * <p>
      * This operation is atomic - if an exception is thrown, no task will be modified.
      *
+     * @param inheritLastResult whether to perform operations on last result set
      * @param indices the indices of the tasks to be marked
      * @return the marked tasks
      * @throws IndexOutOfBoundsException if an index is out of the last task list's bounds
      */
-    public final List<Task> markTasks(int... indices) throws IndexOutOfBoundsException {
+    public final List<Task> markTasks(boolean inheritLastResult, int... indices) throws IndexOutOfBoundsException {
         List<Task> markedTasks = IntStream.of(indices)
                 .peek(i -> {
                     if (i < 0 || i >= lastResult.size()) {
                         throw new IndexOutOfBoundsException(i);
                     }
                 })
-                .mapToObj(lastResult::get)
+                .mapToObj(inheritLastResult ? lastResult::get : checklist::get)
                 .peek(Task::mark)
                 .toList();
         lastResult.setAll(markedTasks);
@@ -267,10 +268,11 @@ public class Marquee {
     /**
      * Marks all tasks from the last search/list result, then returns the modified tasks.
      *
+     * @param inheritLastResult whether to perform operations on last result set
      * @return the marked tasks
      */
-    public final List<Task> markAllTasks() {
-        List<Task> markedTasks = lastResult.stream()
+    public final List<Task> markAllTasks(boolean inheritLastResult) {
+        List<Task> markedTasks = (inheritLastResult ? lastResult : checklist).stream()
                 .peek(Task::mark)
                 .toList();
         lastResult.setAll(markedTasks);
@@ -282,18 +284,19 @@ public class Marquee {
      * <p>
      * This operation is atomic - if an exception is thrown, no task will be modified.
      *
+     * @param inheritLastResult whether to perform operations on last result set
      * @param indices the indices of the tasks to be unmarked
      * @return the unmarked tasks
      * @throws IndexOutOfBoundsException if an index is out of the last task list's bounds
      */
-    public final List<Task> unmarkTasks(int... indices) throws IndexOutOfBoundsException {
+    public final List<Task> unmarkTasks(boolean inheritLastResult, int... indices) throws IndexOutOfBoundsException {
         List<Task> unmarkedTasks = IntStream.of(indices)
                 .peek(i -> {
                     if (i < 0 || i >= lastResult.size()) {
                         throw new IndexOutOfBoundsException(i);
                     }
                 })
-                .mapToObj(lastResult::get)
+                .mapToObj(inheritLastResult ? lastResult::get : checklist::get)
                 .peek(Task::unmark)
                 .toList();
         lastResult.setAll(unmarkedTasks);
@@ -303,10 +306,11 @@ public class Marquee {
     /**
      * Unmarks all tasks from the last search/list result, then returns the modified tasks.
      *
+     * @param inheritLastResult whether to perform operations on last result set
      * @return the unmarked tasks
      */
-    public final List<Task> unmarkAllTasks() {
-        List<Task> unmarkedTasks = lastResult.stream()
+    public final List<Task> unmarkAllTasks(boolean inheritLastResult) {
+        List<Task> unmarkedTasks = (inheritLastResult ? lastResult : checklist).stream()
                 .peek(Task::unmark)
                 .toList();
         lastResult.setAll(unmarkedTasks);
