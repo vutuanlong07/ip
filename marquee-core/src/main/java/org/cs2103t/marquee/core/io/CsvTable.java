@@ -317,6 +317,7 @@ public final class CsvTable {
                 isNotEmpty = true;
             }
             if (isNotEmpty || !fieldBuilder.isEmpty()) {
+                fieldBuilder.append(content, fieldStart, fieldEnd);
                 newRecord.setField(columnNames.get(fieldCount), fieldBuilder.toString());
                 fieldBuilder.setLength(0);
                 fieldCount++;

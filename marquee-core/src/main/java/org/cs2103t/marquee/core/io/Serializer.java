@@ -88,11 +88,7 @@ public class Serializer {
                         input.getClass()
                 );
                 preprocessor.setAccessible(true);
-                try {
-                    return outputType.cast(preprocessor.invoke(null, input));
-                } catch (IllegalAccessException e) {
-                    throw new AssertionError("Unexpected IllegalAccessException on preprocessor", e);
-                }
+                return outputType.cast(forceInvoke(preprocessor, null, input));
             } else {
                 Method preprocessor = searchMethod(
                         input.getClass(),
@@ -100,14 +96,29 @@ public class Serializer {
                         outputType
                 );
                 preprocessor.setAccessible(true);
-                try {
-                    return outputType.cast(preprocessor.invoke(input));
-                } catch (IllegalAccessException e) {
-                    throw new AssertionError("Unexpected IllegalAccessException on preprocessor", e);
-                }
+                return outputType.cast(forceInvoke(preprocessor, input));
             }
         } else {
             return outputType.cast(input);
+        }
+    }
+
+    private static Object forceInvoke(Method method, Object target, Object... args) throws InvocationTargetException {
+        try {
+            method.setAccessible(true);
+            return method.invoke(target, args);
+        } catch (IllegalAccessException e) {
+            throw new AssertionError("Unexpected IllegalAccessException on " + method.getName(), e);
+        }
+    }
+
+    private static <T> T forceInvoke(Constructor<T> constructor, Object... args)
+            throws InvocationTargetException, InstantiationException {
+        try {
+            constructor.setAccessible(true);
+            return constructor.newInstance(args);
+        } catch (IllegalAccessException e) {
+            throw new AssertionError("Unexpected IllegalAccessException on " + constructor.getName(), e);
         }
     }
 
@@ -120,6 +131,7 @@ public class Serializer {
      * @throws IllegalStateException if the target class doesn't have the {@link Serializable @Serializable} annotation
      * @throws NoSuchMethodException if the parser with the appropriate parameter and return types cannot be found
      * @throws IllegalArgumentException if the getter doesn't have a return value
+     * @throws NoSuchElementException if the field mapping is missing required fields
      * @throws InvocationTargetException if the parser or getter throws an exception
      * @throws ClassCastException if the attribute can't be converted to a string
      */
@@ -142,16 +154,13 @@ public class Serializer {
                 throw new IllegalArgumentException("Getter " + getter.getName() + " doesn't have return value");
             }
 
-            Object attrValue;
-            try {
-                attrValue = getter.invoke(target);
-            } catch (IllegalAccessException e) {
-                throw new AssertionError("Unexpected IllegalAccessException on getter", e);
-            }
-
-            if (!(getter.isAnnotationPresent(Optional.class) && attrValue == null)) {
-                fields.put(getterAnnotation.value(),
-                        preprocess(getter, attrValue, String.class));
+            Object attrValue = forceInvoke(getter, target);
+            if (attrValue == null) {
+                if (!getter.isAnnotationPresent(Optional.class)) {
+                    throw new NoSuchElementException(getterAnnotation.value());
+                }
+            } else {
+                fields.put(getterAnnotation.value(), preprocess(getter, attrValue, String.class));
             }
         }
         return fields;
@@ -189,12 +198,7 @@ public class Serializer {
             throw new InstantiationException("Class " + clazz.getName() + " doesn't have a nullary constructor");
         }
         constructor.setAccessible(true);
-        Object target;
-        try {
-            target = constructor.newInstance();
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("Unexpected IllegalAccessException on instantiation", e);
-        }
+        Object target = forceInvoke(constructor);
 
         Serializable annotation = clazz.getAnnotation(Serializable.class);
         if (annotation == null) {
@@ -203,9 +207,6 @@ public class Serializer {
 
         for (Method setter : findAnnotatedMethods(clazz, FieldSetter.class)) {
             FieldSetter setterAnnotation = setter.getAnnotation(FieldSetter.class);
-            if (setterAnnotation == null) {
-                continue;
-            }
             setter.setAccessible(true);
 
             if (setter.getParameterCount() != 1) {
@@ -213,17 +214,12 @@ public class Serializer {
             }
 
             String fieldValue = fields.get(setterAnnotation.value());
-            if (fieldValue == null) {
-                throw new NoSuchElementException(setterAnnotation.value());
-            }
-
-            if (!(setter.isAnnotationPresent(Optional.class) && fieldValue.isEmpty())) {
-                try {
-                    setter.invoke(target,
-                            preprocess(setter, fieldValue, setter.getParameterTypes()[0]));
-                } catch (IllegalAccessException e) {
-                    throw new AssertionError("Unexpected IllegalAccessException on setter", e);
+            if (fieldValue == null || fieldValue.isEmpty()) {
+                if (!setter.isAnnotationPresent(Optional.class)) {
+                    throw new NoSuchElementException(setterAnnotation.value());
                 }
+            } else {
+                forceInvoke(setter, target, preprocess(setter, fieldValue, setter.getParameterTypes()[0]));
             }
         }
         return target;
