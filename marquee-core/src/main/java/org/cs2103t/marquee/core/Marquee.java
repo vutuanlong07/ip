@@ -19,6 +19,10 @@ import org.cs2103t.marquee.core.io.Serializer;
 import org.cs2103t.marquee.core.task.Task;
 import org.cs2103t.marquee.core.task.TaskTag;
 
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.ReadOnlyListProperty;
+import javafx.beans.property.ReadOnlyListWrapper;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -26,13 +30,31 @@ import javafx.collections.ObservableList;
  * Main class for the standalone chatbot Marquee.
  */
 public class Marquee {
-    private final ObservableList<Task> checklist = FXCollections.observableArrayList();
-    private final ObservableList<Task> lastResult = FXCollections.observableArrayList();
+    private final ListProperty<Task> checklist = new SimpleListProperty<>(FXCollections.observableArrayList());
+    private final ListProperty<Task> lastResult = new SimpleListProperty<>(FXCollections.observableArrayList());
+    private final ReadOnlyListWrapper<Task> checklistReadOnly = new ReadOnlyListWrapper<>(checklist);
+    private final ReadOnlyListWrapper<Task> lastResultReadOnly = new ReadOnlyListWrapper<>(lastResult);
 
     /**
      * Instantiates an instance of Marquee.
      */
     public Marquee() {}
+
+    public ObservableList<Task> getChecklist() {
+        return checklistReadOnly;
+    }
+
+    public ListProperty<Task> checklistProperty() {
+        return checklistReadOnly;
+    }
+
+    public ObservableList<Task> getLastResult() {
+        return lastResultReadOnly;
+    }
+
+    public ReadOnlyListProperty<Task> lastResultProperty() {
+        return lastResultReadOnly;
+    }
 
     /**
      * Attempts to load the checklist from the save file.
