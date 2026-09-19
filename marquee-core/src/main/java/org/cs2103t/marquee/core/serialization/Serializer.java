@@ -1,4 +1,4 @@
-package org.cs2103t.marquee.core.io;
+package org.cs2103t.marquee.core.serialization;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
@@ -127,6 +127,7 @@ public class Serializer {
      * Serializes the given object.
      *
      * @param target the object to inject into
+     * @param classNameEncoder the filter to obfuscate class name
      * @return the serialized field mapping
      * @throws IllegalStateException if the target class doesn't have the {@link Serializable @Serializable} annotation
      * @throws NoSuchMethodException if the parser with the appropriate parameter and return types cannot be found
@@ -135,7 +136,7 @@ public class Serializer {
      * @throws InvocationTargetException if the parser or getter throws an exception
      * @throws ClassCastException if the attribute can't be converted to a string
      */
-    public static Map<String, String> serialize(Object target)
+    public static Map<String, String> serialize(Object target, ClassNameEncoder classNameEncoder)
             throws IllegalStateException, NoSuchMethodException,
             IllegalArgumentException, InvocationTargetException, ClassCastException {
         Class<?> clazz = target.getClass();
@@ -144,7 +145,7 @@ public class Serializer {
         }
 
         Map<String, String> fields = new HashMap<>();
-        fields.put(CLASS_NAME_FIELD_NAME, clazz.getName());
+        fields.put(CLASS_NAME_FIELD_NAME, classNameEncoder.encode(clazz));
 
         for (Method getter : findAnnotatedMethods(clazz, FieldGetter.class)) {
             FieldGetter getterAnnotation = getter.getAnnotation(FieldGetter.class);
@@ -170,6 +171,7 @@ public class Serializer {
      * Deserializes the mapping then injects the values into the given object.
      *
      * @param fields the mapping to deserialize
+     * @param classNameDecoder the m
      * @return the target object after injecting the field values
      * @throws ClassNotFoundException if the class referenced in the mapping cannot be found
      * @throws InputMismatchException if the serialized class cannot be assigned to the target object
@@ -181,7 +183,7 @@ public class Serializer {
      * @throws InvocationTargetException if the parser or setter throws an exception
      * @throws ClassCastException if the attribute can't be converted to a string
      */
-    public static Object deserialize(Map<String, String> fields)
+    public static Object deserialize(Map<String, String> fields, ClassNameDecoder classNameDecoder)
             throws ClassNotFoundException, InputMismatchException, InstantiationException,
             IllegalStateException, NoSuchMethodException, IllegalArgumentException,
             NoSuchElementException, InvocationTargetException, ClassCastException {
@@ -189,7 +191,7 @@ public class Serializer {
         if (className == null) {
             throw new NoSuchElementException(CLASS_NAME_FIELD_NAME);
         }
-        Class<?> clazz = Class.forName(className);
+        Class<?> clazz = classNameDecoder.decode(className);
 
         Constructor<?> constructor;
         try {
@@ -223,5 +225,32 @@ public class Serializer {
             }
         }
         return target;
+    }
+
+    /**
+     * Functional interface for class name encoder.
+     */
+    @FunctionalInterface
+    public interface ClassNameEncoder {
+        /**
+         * Encodes the class name.
+         * @param clazz the class token
+         * @return the encoded class name
+         */
+        String encode(Class<?> clazz);
+    }
+
+    /**
+     * Functional interface for class name decoder.
+     */
+    @FunctionalInterface
+    public interface ClassNameDecoder {
+        /**
+         * Decodes the class name.
+         * @param className the encoded class name
+         * @return the decoded class token
+         * @throws ClassNotFoundException if no matching class is found
+         */
+        Class<?> decode(String className) throws ClassNotFoundException;
     }
 }

@@ -1,4 +1,4 @@
-package org.cs2103t.marquee.core.io;
+package org.cs2103t.marquee.core.serialization;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

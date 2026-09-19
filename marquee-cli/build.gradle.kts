@@ -26,17 +26,22 @@ application {
 }
 
 graalvmNative {
+    toolchainDetection = true
+
     binaries.named("main") {
         imageName = "${project.name}-v${project.version}-${platformTag}"
         buildArgs.add("--static-nolibc")
         buildArgs.add("-march=native")
         buildArgs.add("-O3")
     }
+
+    agent {
+        defaultMode = "standard"
+    }
 }
 
 tasks.jar {
-    enabled = false
-    archiveClassifier = "without-dependencies"
+    archiveFileName = "${project.name}-v${project.version}-jar_lean.jar"
 }
 
 tasks.shadowJar {

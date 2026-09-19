@@ -5,11 +5,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import org.cs2103t.marquee.core.io.FieldGetter;
-import org.cs2103t.marquee.core.io.FieldSetter;
-import org.cs2103t.marquee.core.io.Optional;
-import org.cs2103t.marquee.core.io.PreprocessWith;
-import org.cs2103t.marquee.core.io.Serializable;
+import org.cs2103t.marquee.core.serialization.FieldGetter;
+import org.cs2103t.marquee.core.serialization.FieldSetter;
+import org.cs2103t.marquee.core.serialization.Optional;
+import org.cs2103t.marquee.core.serialization.PreprocessWith;
+import org.cs2103t.marquee.core.serialization.Serializable;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;

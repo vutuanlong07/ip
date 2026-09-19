@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 import org.cs2103t.marquee.core.io.CsvTable;
-import org.cs2103t.marquee.core.io.Serializer;
+import org.cs2103t.marquee.core.serialization.Serializer;
 import org.cs2103t.marquee.core.task.Task;
 import org.cs2103t.marquee.core.task.TaskTag;
 
@@ -29,10 +29,28 @@ public class Marquee {
     private final ObservableList<Task> checklist = FXCollections.observableArrayList();
     private final ObservableList<Task> lastResult = FXCollections.observableArrayList();
 
+    private Serializer.ClassNameEncoder classNameEncoder = Class::getName;
+    private Serializer.ClassNameDecoder classNameDecoder = Class::forName;
+
     /**
      * Instantiates an instance of Marquee.
      */
     public Marquee() {}
+
+    /**
+     * Sets the class name encoder and decoder for task class name.
+     * Used by {@link Serializer} to serialize tasks for storing in files.
+     *
+     * @param classNameEncoder the class name encoder
+     * @param classNameDecoder the class name decoder
+     */
+    public void setClassNameEncoding(
+            Serializer.ClassNameEncoder classNameEncoder,
+            Serializer.ClassNameDecoder classNameDecoder
+    ) {
+        this.classNameEncoder = classNameEncoder;
+        this.classNameDecoder = classNameDecoder;
+    }
 
     /**
      * Attempts to load the checklist from the save file.
@@ -42,22 +60,26 @@ public class Marquee {
      * If a row cannot be deserialized, that row will be silently skipped.
      *
      * @param savePath the path to the CSV file Marquee will save its checklist to
+     * @return whether some items were skipped
      */
-    public void load(Path savePath) throws NoSuchFileException, IOException, ParseException, IllegalStateException {
+    public boolean load(Path savePath) throws NoSuchFileException, IOException, ParseException, IllegalStateException {
         CsvTable csv = CsvTable.readFile(savePath);
+        boolean lossless = true;
         List<Task> tempList = new ArrayList<>();
         for (CsvTable.Record record : csv.getValues()) {
             try {
-                tempList.add((Task) Serializer.deserialize(record.getAllFields()));
+                tempList.add((Task) Serializer.deserialize(record.getAllFields(), classNameDecoder));
             } catch (InstantiationException | ClassNotFoundException | ClassCastException
                      | NoSuchMethodException | InvocationTargetException e) {
-                System.out.println(e.getMessage());
+                e.printStackTrace();
+                lossless = false;
             } catch (NoSuchElementException e) {
                 throw new IllegalArgumentException("Save file is corrupted");
             }
         }
         checklist.clear();
         checklist.addAll(tempList);
+        return lossless;
     }
 
     /**
@@ -68,13 +90,15 @@ public class Marquee {
      * If a row cannot be serialized, that row will be silently skipped.
      *
      * @param savePath the path to the CSV file Marquee will read the checklist from
+     * @return whether some items were skipped
      * @throws IOException if an unexpected I/O error occurs
      */
-    public void save(Path savePath) throws IOException {
+    public boolean save(Path savePath) throws IOException {
         CsvTable csv = new CsvTable();
+        boolean lossless = true;
         for (Task task : checklist) {
             try {
-                Map<String, String> fields = Serializer.serialize(task);
+                Map<String, String> fields = Serializer.serialize(task, classNameEncoder);
                 for (String fieldName : fields.keySet()) {
                     if (!csv.getColumns().contains(fieldName)) {
                         csv.newColumn(fieldName, "");
@@ -83,10 +107,12 @@ public class Marquee {
                 csv.add(csv.createRecord(fields));
             } catch (ClassCastException | NoSuchMethodException
                      | InvocationTargetException | IllegalArgumentException e) {
-                continue;
+                e.printStackTrace();
+                lossless = false;
             }
         }
         CsvTable.writeFile(savePath, csv);
+        return lossless;
     }
 
     /**
