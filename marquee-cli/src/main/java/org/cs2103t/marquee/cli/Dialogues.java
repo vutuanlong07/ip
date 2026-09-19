@@ -152,6 +152,13 @@ public class Dialogues {
     }
 
     /**
+     * Prints warning message when some entries in the save file was skipped.
+     */
+    public void warningSaveIncomplete() {
+        System.out.print("Some tasks in the save file cannot be loaded Σ( °Д°)!\n");
+    }
+
+    /**
      * Prints error message when no task name was given.
      */
     public void errorTaskNameMissing() {
@@ -190,7 +197,7 @@ public class Dialogues {
      * Prints error message when save file data cannot reconstruct tasks.
      */
     public void errorSaveCorrupted() {
-        System.out.print("..ca.che..fi.le..cor.rup.te..d.  Σ( ﾟДﾟ)!\n");
+        System.out.print("..ca.che..fi.le..cor.rup.te..d.  Σ( °Д°)!\n");
     }
 
     /**
@@ -199,14 +206,14 @@ public class Dialogues {
      * @param cause error message returned by the {@link java.io.IOException}
      */
     public void errorSaveUnavailable(String cause) {
-        System.out.print("Somehow can't write save file?! Σ( ﾟДﾟ)!\nCause: " + cause + "\n");
+        System.out.print("Somehow can't write save file?! Σ( °Д°)!\nCause: " + cause + "\n");
     }
 
     /**
      * Prints error message when save file is of an unrecognized format.
      */
     public void errorSaveWrongFormat() {
-        System.out.print("Save file is not in the right format  Σ( ﾟДﾟ)!)\n");
+        System.out.print("Save file is not in the right format  Σ( °Д°)!)\n");
     }
 
     /**

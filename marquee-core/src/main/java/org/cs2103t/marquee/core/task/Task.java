@@ -1,14 +1,15 @@
 package org.cs2103t.marquee.core.task;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import org.cs2103t.marquee.core.io.FieldGetter;
-import org.cs2103t.marquee.core.io.FieldSetter;
-import org.cs2103t.marquee.core.io.Optional;
-import org.cs2103t.marquee.core.io.PreprocessWith;
-import org.cs2103t.marquee.core.io.Serializable;
+import org.cs2103t.marquee.core.serialization.FieldGetter;
+import org.cs2103t.marquee.core.serialization.FieldSetter;
+import org.cs2103t.marquee.core.serialization.Optional;
+import org.cs2103t.marquee.core.serialization.PreprocessWith;
+import org.cs2103t.marquee.core.serialization.Serializable;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -70,7 +71,9 @@ public class Task {
 
     @FieldSetter("tags")
     private void setTagsFromString(String tags) {
-        setTags(FXCollections.observableSet());
+        setTags(Arrays.stream(tags.split(","))
+                .map(TaskTag::createOrGet)
+                .collect(Collectors.toCollection(FXCollections::observableSet)));
     }
 
     /**
@@ -294,14 +297,17 @@ public class Task {
         return isMarked.get();
     }
 
+    @FieldSetter("mark")
+    private void setMarkFromString(String newMark) {
+        setMark(Boolean.parseBoolean(newMark));
+    }
+
     /**
      * Sets the task mark status.
      *
      * @param newMark the new mark status for the task
      * @return whether the mark status was changed
      */
-    @FieldSetter("mark")
-    @PreprocessWith(clazz = Boolean.class, method = "parseBoolean")
     public boolean setMark(boolean newMark) {
         if (isMarked.get() != newMark) {
             isMarked.set(newMark);

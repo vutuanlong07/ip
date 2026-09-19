@@ -10,7 +10,10 @@ import java.text.ParseException;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.cs2103t.marquee.cli.command.Codes;
 import org.cs2103t.marquee.cli.command.Command;
@@ -62,12 +65,18 @@ public class Application {
         BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
         CommandFormatter commandFormatter = new CommandFormatter("/", "/");
         Marquee marquee = new Marquee();
+        Map<String, Class<?>> classMap = Stream.of(TodoTask.class, EventTask.class, DeadlineTask.class)
+                .collect(Collectors.toUnmodifiableMap(Class::getSimpleName, c -> c));
+        marquee.setClassNameEncoding(Class::getSimpleName, classMap::get);
 
         dialogues.banner();
         dialogues.infoSaveFilePath(saveFile);
         try {
-            marquee.load(saveFile);
-            dialogues.successLoad();
+            if (marquee.load(saveFile)) {
+                dialogues.successLoad();
+            } else {
+                dialogues.warningSaveIncomplete();
+            }
         } catch (NoSuchFileException _) {
             dialogues.warningSaveNotFound();
         } catch (IOException e) {

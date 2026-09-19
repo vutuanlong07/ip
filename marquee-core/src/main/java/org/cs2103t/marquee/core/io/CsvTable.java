@@ -277,8 +277,13 @@ public final class CsvTable {
             Record newRecord = csv.createRecord();
             int fieldCount = 0;
             boolean isNotEmpty = false;
-            while ((fieldEnd = findNextSpecial(content, fieldStart)) < content.length()) {
+            while (true) {
+                fieldEnd = findNextSpecial(content, fieldStart);
                 fieldBuilder.append(content, fieldStart, fieldEnd);
+                if (fieldEnd == content.length()) {
+                    fieldStart = fieldEnd;
+                    break;
+                }
                 char current = content.charAt(fieldEnd);
                 if (current == '"') {
                     if (isEscaped) {
