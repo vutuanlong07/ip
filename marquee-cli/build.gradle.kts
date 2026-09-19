@@ -4,6 +4,7 @@ plugins {
     application
     id("java-common-conventions")
     id("org.graalvm.buildtools.native")
+    id("com.gradleup.shadow") version "9.5.1"
 }
 
 group = findProperty("group")!!
@@ -14,7 +15,7 @@ var platformTag = (
         if (platform.isMacOsX) "mac_os"
         else if (platform.isWindows) "windows"
         else if (platform.isLinux) "linux" else "others"
-) + "_" + platform.version + "_" + System.getProperty("os.arch")
+) + "_" + System.getProperty("os.arch")
 
 dependencies {
     implementation(project(":marquee-core"))
@@ -31,6 +32,15 @@ graalvmNative {
         buildArgs.add("-march=native")
         buildArgs.add("-O3")
     }
+}
+
+tasks.jar {
+    enabled = false
+    archiveClassifier = "without-dependencies"
+}
+
+tasks.shadowJar {
+    archiveFileName = "${project.name}-v${project.version}-jar.jar"
 }
 
 tasks.run {

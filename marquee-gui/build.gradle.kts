@@ -3,6 +3,7 @@ plugins {
     id("java-common-conventions")
     id("org.openjfx.javafxplugin") version "0.1.0"
     id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.29"
+    id("com.gradleup.shadow") version "9.5.1"
 }
 
 group = findProperty("group")!!
@@ -20,4 +21,13 @@ javafx {
 
 application {
     mainClass = "org.javafx.MainApplication"
+}
+
+tasks.jar {
+    enabled = false
+    archiveClassifier = "without-dependencies"
+}
+
+tasks.shadowJar {
+    archiveFileName = "${project.name}-v${project.version}-jar.jar"
 }
