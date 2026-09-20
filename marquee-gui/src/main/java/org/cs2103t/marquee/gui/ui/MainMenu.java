@@ -261,7 +261,10 @@ public class MainMenu extends VBox {
 
     @FXML
     void deleteSelected() {
-
+        Task selected = taskList.getSelectionModel().getSelectedItem();
+        if (selected != null) {
+            marquee.deleteTasks(false, marquee.getChecklist().indexOf(selected));
+        }
     }
 
     @FXML
