@@ -36,6 +36,63 @@ public class Dialogues {
     }
 
     /**
+     * Prints the user manual.
+     */
+    public void help() {
+        System.out.print("""
+                help            - Show this help message
+                bye             - Save and exit Marquee
+                load            - Load checklist from the save file
+                save            - Save the checklist to save file
+                list            - List all the current tasks
+
+                find            - Find tasks matching arguments, can be chained with other commands
+                  <argument>        match task description containing this string
+                  /from             match tasks starting at or after this time
+                  /to               match tasks ending at or before this time
+                  /completed        match completed tasks
+                  /incomplete       match incomplete tasks
+                  /chain            search over the last command's result
+
+                todo            - Creates a new task with no starting or ending time
+                  <argument>        the new task's name
+                  /completed        if the task is completed
+                  /incomplete       if the task is incomplete, on by default
+
+                deadline        - Creates a new task with an ending time (deadline)
+                  <argument>        the new task's name
+                  /by               the new task's deadline
+                  /completed        if the task is completed
+                  /incomplete       if the task is incomplete, on by default
+
+                event           - Creates a new task with a starting and ending time
+                  <argument>        the new task's name
+                  /from             the new task's starting time
+                  /to               the new task's ending time
+                  /completed        if the task is completed
+                  /incomplete       if the task is incomplete, on by default
+
+                delete          - Deletes tasks by index
+                  <index>, ...      the indices to delete
+                  /chain            delete at indices of the last command's result
+
+                delete-all      - Deletes all tasks
+                  /chain            delete all from the last command's result
+
+                delete-matching - Deletes tasks matching arguments, equivalent to
+                                  delete-all /chain after find
+
+                mark            - Mark the tasks at the given indices as completed, similar to delete
+                mark-all        - Similar to delete-all
+                mark-matching   - Similar to delete-matching
+
+                unmark          - Mark the tasks at the given indices as incomplete, similar to delete
+                unmark-all      - Similar to delete-all
+                unmark-matching - Similar to delete-matching
+                """);
+    }
+
+    /**
      * Prints the message that tells the save directory.
      *
      * @param savePath the save directory
@@ -48,7 +105,7 @@ public class Dialogues {
      * Prints greetings message.
      */
     public void greetings() {
-        System.out.print("Hi! I'm Marquee \\(>e<)/\nWhat will we do today? xD\n");
+        System.out.print("Hi! I'm Marquee \\(>e<)/\nWhat will we do today? xD\nType 'help' for the user manual");
     }
 
     /**

@@ -10,6 +10,8 @@ import org.cs2103t.marquee.core.Marquee;
 public final class Codes {
     /** Ends the chat session */
     public static final Code EXIT = Code.createOrGet("bye");
+    /** Gets user manual */
+    public static final Code HELP = Code.createOrGet("help");
     /** Loads the checklist from the save file */
     public static final Code LOAD = Code.createOrGet("load");
     /** Saves the checklist to the save file */
@@ -21,7 +23,7 @@ public final class Codes {
             "", "from", "to", "completed", "incomplete", "chain"
     );
     /** Create a new to-do task and add it to the checklist */
-    public static final Code TODO = Code.createOrGet("todo", "", "completed");
+    public static final Code TODO = Code.createOrGet("todo", "", "completed", "incomplete");
     /** Create a new task with deadline and add it to the checklist */
     public static final Code DEADLINE = Code.createOrGet("deadline",
             "", "by", "completed", "incomplete"

@@ -130,6 +130,8 @@ public class Application {
                 }
                 isRunning = false;
                 dialogues.successExit();
+            } else if (Codes.HELP.equals(command.getCode())) {
+                dialogues.help();
             } else if (Codes.LOAD.equals(command.getCode())) {
                 try {
                     marquee.load(saveFile);
