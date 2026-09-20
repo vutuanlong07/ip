@@ -191,7 +191,11 @@ public class Serializer {
         if (className == null) {
             throw new NoSuchElementException(CLASS_NAME_FIELD_NAME);
         }
+
         Class<?> clazz = classNameDecoder.decode(className);
+        if (clazz == null) {
+            throw new ClassNotFoundException(className);
+        }
 
         Constructor<?> constructor;
         try {
