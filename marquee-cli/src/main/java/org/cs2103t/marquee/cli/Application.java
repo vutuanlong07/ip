@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.ParseException;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +22,7 @@ import org.cs2103t.marquee.cli.task.EventTask;
 import org.cs2103t.marquee.cli.task.TodoTask;
 import org.cs2103t.marquee.core.DuplicateKeyException;
 import org.cs2103t.marquee.core.Marquee;
+import org.cs2103t.marquee.core.io.FileParseException;
 import org.cs2103t.marquee.core.task.Task;
 import org.cs2103t.marquee.core.time.DateTimeFormatter;
 
@@ -81,7 +81,7 @@ public class Application {
             dialogues.warningSaveNotFound();
         } catch (IOException e) {
             dialogues.errorSaveUnavailable(e.getMessage());
-        } catch (ParseException e) {
+        } catch (FileParseException e) {
             dialogues.errorSaveWrongFormat();
         } catch (IllegalArgumentException e) {
             dialogues.errorSaveCorrupted();
@@ -138,7 +138,7 @@ public class Application {
                     dialogues.warningSaveNotFound();
                 } catch (IOException e) {
                     dialogues.errorSaveUnavailable(e.getMessage());
-                } catch (ParseException e) {
+                } catch (FileParseException e) {
                     dialogues.errorSaveWrongFormat();
                 } catch (IllegalArgumentException e) {
                     dialogues.errorSaveCorrupted();

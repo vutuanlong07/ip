@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.text.ParseException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,6 +14,7 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 import org.cs2103t.marquee.core.io.CsvTable;
+import org.cs2103t.marquee.core.io.FileParseException;
 import org.cs2103t.marquee.core.serialization.Serializer;
 import org.cs2103t.marquee.core.task.Task;
 import org.cs2103t.marquee.core.task.TaskTag;
@@ -81,8 +81,12 @@ public class Marquee {
      *
      * @param savePath the path to the CSV file Marquee will save its checklist to
      * @return whether some items were skipped
+     * @throws NoSuchFileException if the file doesn't exist
+     * @throws IOException if an I/O error occurred during reading
+     * @throws FileParseException if the file doesn't follow the right format
      */
-    public boolean load(Path savePath) throws NoSuchFileException, IOException, ParseException, IllegalStateException {
+    public boolean load(Path savePath)
+            throws NoSuchFileException, IOException, FileParseException {
         CsvTable csv = CsvTable.readFile(savePath);
         boolean lossless = true;
         List<Task> tempList = new ArrayList<>();
@@ -90,7 +94,7 @@ public class Marquee {
             try {
                 tempList.add((Task) Serializer.deserialize(record.getAllFields(), classNameDecoder));
             } catch (InstantiationException | ClassNotFoundException | ClassCastException
-                     | NoSuchMethodException | InvocationTargetException e) {
+                     | NoSuchMethodException | InvocationTargetException | IllegalStateException e) {
                 e.printStackTrace();
                 lossless = false;
             } catch (NoSuchElementException e) {
