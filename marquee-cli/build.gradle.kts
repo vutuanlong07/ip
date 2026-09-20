@@ -31,7 +31,7 @@ graalvmNative {
     binaries.named("main") {
         imageName = "${project.name}-v${project.version}-${platformTag}"
         buildArgs.add("--static-nolibc")
-        buildArgs.add("-march=native")
+        buildArgs.add("-march=compatibility")
         buildArgs.add("-O3")
     }
 
