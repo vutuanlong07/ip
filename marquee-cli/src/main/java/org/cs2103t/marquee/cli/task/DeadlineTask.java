@@ -54,4 +54,11 @@ public final class DeadlineTask extends Task {
         return super.toString()
                 + " (complete by " + DateTimeFormatter.formatDateTime(this.getDeadline()) + ")";
     }
+
+    @Override
+    public void setStart(LocalDateTime newStart) {
+        if (newStart != null) {
+            throw new UnsupportedOperationException("Deadline task doesn't have a starting time");
+        }
+    }
 }

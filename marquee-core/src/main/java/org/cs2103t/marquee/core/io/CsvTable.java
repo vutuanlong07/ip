@@ -117,7 +117,7 @@ public final class CsvTable {
      * @return CSV-escaped input string
      */
     public static String quote(String input) {
-        return input.isEmpty()
+        return input == null || input.isEmpty()
                 ? "\"\""
                 : input.chars()
                 .filter(c -> SPECIAL_CHARACTERS.contains((char) c))

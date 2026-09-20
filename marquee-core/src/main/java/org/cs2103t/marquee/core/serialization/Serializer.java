@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -42,7 +43,15 @@ public class Serializer {
                             .allMatch(i -> actualParams[i].isAssignableFrom(params[i]));
                 })
                 .findAny()
-                .orElseThrow(() -> new NoSuchMethodException("Method matching return and param types not found"));
+                .orElseThrow(() -> new NoSuchMethodException(
+                        returns.getSimpleName()
+                                + " " + clazz.getSimpleName()
+                                + "#" + name + "("
+                                + Arrays.stream(params)
+                                .map(Class::getSimpleName)
+                                .collect(Collectors.joining(", "))
+                                + ")"
+                ));
     }
 
     private static List<Method> findAnnotatedMethods(Class<?> clazz, Class<? extends Annotation> annotationType) {
@@ -191,7 +200,11 @@ public class Serializer {
         if (className == null) {
             throw new NoSuchElementException(CLASS_NAME_FIELD_NAME);
         }
+
         Class<?> clazz = classNameDecoder.decode(className);
+        if (clazz == null) {
+            throw new ClassNotFoundException(className);
+        }
 
         Constructor<?> constructor;
         try {

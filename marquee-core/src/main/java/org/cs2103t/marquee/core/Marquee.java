@@ -10,7 +10,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import org.cs2103t.marquee.core.io.CsvTable;
@@ -86,19 +88,38 @@ public class Marquee {
      * @throws FileParseException if the file doesn't follow the right format
      */
     public boolean load(Path savePath)
-            throws NoSuchFileException, IOException, FileParseException, IllegalArgumentException {
+            throws NoSuchFileException, IOException, FileParseException {
         CsvTable csv = CsvTable.readFile(savePath);
         boolean lossless = true;
         List<Task> tempList = new ArrayList<>();
         for (CsvTable.Record record : csv.getValues()) {
             try {
                 tempList.add((Task) Serializer.deserialize(record.getAllFields(), classNameDecoder));
-            } catch (InstantiationException | ClassNotFoundException | ClassCastException
-                     | NoSuchMethodException | InvocationTargetException | IllegalStateException e) {
-                e.printStackTrace();
+            } catch (ClassNotFoundException e) {
                 lossless = false;
+                System.out.println("Cannot find class " + record.getField(Serializer.CLASS_NAME_FIELD_NAME));
+            } catch (IllegalStateException e) {
+                lossless = false;
+                System.out.println("Class is not marked for deserialization");
+            } catch (InstantiationException e) {
+                lossless = false;
+                System.out.println("Class " + record.getField(Serializer.CLASS_NAME_FIELD_NAME)
+                        + " cannot be instantiated");
             } catch (NoSuchElementException e) {
-                throw new IllegalArgumentException("Save file is missing column: " + e.getMessage());
+                lossless = false;
+                System.out.println("Task is missing attribute " + e.getMessage());
+            } catch (NoSuchMethodException e) {
+                lossless = false;
+                System.out.println("Preprocessor " + e.getMessage() + " not found");
+            } catch (ClassCastException e) {
+                lossless = false;
+                System.out.println("Preprocessor return type mismatch: " + e.getMessage());
+            } catch (IllegalArgumentException e) {
+                lossless = false;
+                System.out.println("Setter doesn't have 1 argument");
+            } catch (InvocationTargetException e) {
+                lossless = false;
+                System.out.println("Setter threw an exception: " + e.getMessage());
             }
         }
         checklist.clear();
@@ -129,10 +150,24 @@ public class Marquee {
                     }
                 }
                 csv.add(csv.createRecord(fields));
-            } catch (ClassCastException | NoSuchMethodException
-                     | InvocationTargetException | IllegalArgumentException e) {
-                e.printStackTrace();
+            } catch (IllegalStateException e) {
                 lossless = false;
+                System.out.println("Class is not marked for deserialization");
+            } catch (NoSuchElementException e) {
+                lossless = false;
+                System.out.println("Task is missing attribute " + e.getMessage());
+            } catch (NoSuchMethodException e) {
+                lossless = false;
+                System.out.println("Preprocessor " + e.getMessage() + " not found");
+            } catch (ClassCastException e) {
+                lossless = false;
+                System.out.println("Preprocessor return type mismatch: " + e.getMessage());
+            } catch (IllegalArgumentException e) {
+                lossless = false;
+                System.out.println("Getter doesn't have a return value");
+            } catch (InvocationTargetException e) {
+                lossless = false;
+                System.out.println("Getter threw an exception: " + e.getMessage());
             }
         }
         CsvTable.writeFile(savePath, csv);
@@ -146,7 +181,7 @@ public class Marquee {
      *
      * @return an unmodifiable view of the current checklist
      */
-    public List<Task> list() {
+    public final List<Task> list() {
         List<Task> tempList = Collections.unmodifiableList(checklist);
         lastResult.setAll(tempList);
         return tempList;
@@ -166,9 +201,12 @@ public class Marquee {
      * @param inheritLastResult whether to search only from the last result set
      * @return the tasks matching the filters
      */
-    public List<Task> find(String description, LocalDateTime start, LocalDateTime end,
+    public final List<Task> find(String description, LocalDateTime start, LocalDateTime end,
                            Boolean isMarked, Set<TaskTag> tags, boolean inheritLastResult) {
-        List<Task> matchingItems = (inheritLastResult ? lastResult.stream() : checklist.stream())
+        List<Task> matchingItems = (description == null || description.isEmpty())
+                && isMarked == null && start == null && end == null && tags == null
+                ? Collections.emptyList()
+                : (inheritLastResult ? lastResult.stream() : checklist.stream())
                 .filter(isMarked == null
                         ? _ -> true
                         : task -> task.isMarked() == isMarked
@@ -208,9 +246,7 @@ public class Marquee {
     }
 
     /**
-     * Deletes tasks from the last search/list result by index, then returns the modified tasks.
-     * <p>
-     * This operation is atomic - if an exception is thrown, no task will be modified.
+     * Deletes tasks from the last search/list result by index, then returns the deleted tasks.
      *
      * @param inheritLastResult whether to perform operations on last result set
      * @param indices the indices of the tasks to be deleted
@@ -233,7 +269,7 @@ public class Marquee {
     }
 
     /**
-     * Deleted all tasks from the last search/list result, then returns the modified tasks.
+     * Deleted all tasks from the last search/list result, then returns the deleted tasks.
      *
      * @param inheritLastResult whether to perform operations on last result set
      * @return the deleted tasks
@@ -247,9 +283,7 @@ public class Marquee {
     }
 
     /**
-     * Marks tasks from the last search/list result by index, then returns the modified tasks.
-     * <p>
-     * This operation is atomic - if an exception is thrown, no task will be modified.
+     * Marks tasks from the last search/list result by index, then returns the marked tasks.
      *
      * @param inheritLastResult whether to perform operations on last result set
      * @param indices the indices of the tasks to be marked
@@ -272,7 +306,7 @@ public class Marquee {
     }
 
     /**
-     * Marks all tasks from the last search/list result, then returns the modified tasks.
+     * Marks all tasks from the last search/list result, then returns the marked tasks.
      *
      * @param inheritLastResult whether to perform operations on last result set
      * @return the marked tasks
@@ -286,9 +320,7 @@ public class Marquee {
     }
 
     /**
-     * Unmarks tasks from the last search/list result by index, then returns the modified tasks.
-     * <p>
-     * This operation is atomic - if an exception is thrown, no task will be modified.
+     * Unmarks tasks from the last search/list result by index, then returns the unmarked tasks.
      *
      * @param inheritLastResult whether to perform operations on last result set
      * @param indices the indices of the tasks to be unmarked
@@ -311,7 +343,7 @@ public class Marquee {
     }
 
     /**
-     * Unmarks all tasks from the last search/list result, then returns the modified tasks.
+     * Unmarks all tasks from the last search/list result, then returns the unmarked tasks.
      *
      * @param inheritLastResult whether to perform operations on last result set
      * @return the unmarked tasks
@@ -322,5 +354,45 @@ public class Marquee {
                 .toList();
         lastResult.setAll(unmarkedTasks);
         return unmarkedTasks;
+    }
+
+    /**
+     * Performs an action on tasks from the last search/list result by index, then returns the list of action result.
+     *
+     * @param <T> the return type of the action
+     * @param action the action to perform on the target tasks
+     * @param inheritLastResult whether to perform operations on last result set
+     * @param indices the indices of the tasks to be operated on
+     * @return the action result
+     * @throws IndexOutOfBoundsException if an index is out of the last task list's bounds
+     */
+    public final <T> List<T> forTasks(Function<Task, T> action, boolean inheritLastResult, int... indices)
+            throws IndexOutOfBoundsException {
+        return IntStream.of(indices)
+                .peek(i -> {
+                    if (i < 0 || i >= lastResult.size()) {
+                        throw new IndexOutOfBoundsException(i);
+                    }
+                })
+                .mapToObj(inheritLastResult ? lastResult::get : checklist::get)
+                .map(action)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    /**
+     * Performs an action on all tasks from the last search/list result, then returns the list of action result.
+     *
+     * @param <T> the return type of the action
+     * @param action the action to perform on the target tasks
+     * @param inheritLastResult whether to perform operations on last result set
+     * @return the action result
+     */
+    public final <T> List<T> forAllTasks(Function<Task, T> action, boolean inheritLastResult)
+            throws IndexOutOfBoundsException {
+        return (inheritLastResult ? lastResult : checklist.stream().toList()).stream()
+                .map(action)
+                .filter(Objects::nonNull)
+                .toList();
     }
 }
