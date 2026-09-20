@@ -1,27 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<fx:root alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="75.0" spacing="5.0" styleClass="task-item" stylesheets="@../style/task.css" type="HBox" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="75.0" spacing="5.0" styleClass="task-item" stylesheets="@../style/task-list.css" type="HBox" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <StackPane minWidth="25.0" HBox.hgrow="NEVER">
-         <HBox.margin>
-            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-         </HBox.margin>
-         <children>
-            <CheckBox fx:id="selected" mnemonicParsing="false" />
-         </children>
-      </StackPane>
-      <Separator orientation="VERTICAL" HBox.hgrow="NEVER">
-         <HBox.margin>
-            <Insets />
-         </HBox.margin>
-      </Separator>
       <HBox fx:id="resizable" HBox.hgrow="SOMETIMES">
          <children>
             <StackPane fx:id="descriptionContainer" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minWidth="100.0" HBox.hgrow="NEVER">

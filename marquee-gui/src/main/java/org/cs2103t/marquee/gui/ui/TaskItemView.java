@@ -10,7 +10,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.HBox;
@@ -26,35 +25,29 @@ public class TaskItemView extends HBox {
     private final ChangeListener<Boolean> markListener = (_, oldValue, newValue) ->
             pseudoClassStateChanged(MARKED_CLASS, newValue);
 
-    private ListCell<Task> parent;
     @FXML
     private Label description;
     @FXML
     private StackPane descriptionContainer;
-    @FXML
-    private TagListView tags;
     @FXML
     private HBox resizable;
     @FXML
     private Label start;
     @FXML
     private Label end;
-    @FXML
-    private CheckBox selected;
 
     /**
      * Creates a new {@code TaskItemView}.
      * @throws IOException if an I/O error occurs
      */
     public TaskItemView(ListCell<Task> parent) throws IOException {
-        this.parent = parent;
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/TaskItemView.fxml"));
         loader.setController(this);
         loader.setRoot(this);
         loader.load();
 
-        maxWidthProperty().bind(this.parent.widthProperty());
+        maxWidthProperty().bind(parent.widthProperty());
         descriptionContainer.prefWidthProperty().bind(resizable.widthProperty().divide(2));
 
         task.addListener((_, oldValue, newValue) -> {

@@ -9,6 +9,13 @@ plugins {
 group = findProperty("group")!!
 version = findProperty(project.name + "-version")!!
 
+val platform: org.gradle.internal.os.OperatingSystem = org.gradle.internal.os.OperatingSystem.current()
+var platformTag = (
+        if (platform.isMacOsX) "mac_os"
+        else if (platform.isWindows) "windows"
+        else if (platform.isLinux) "linux" else "others"
+) + "_" + System.getProperty("os.arch")
+
 dependencies {
     implementation(project(":marquee-core"))
 }
@@ -28,5 +35,6 @@ tasks.jar {
 }
 
 tasks.shadowJar {
+    mainClass = "org.cs2103t.marquee.gui.AlternativeMain"
     archiveFileName = "${project.name}-v${project.version}-jar.jar"
 }

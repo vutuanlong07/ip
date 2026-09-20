@@ -2,7 +2,7 @@
 
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.layout.HBox?>
-<fx:root stylesheets="@../style/tag.css" type="HBox" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root stylesheets="@../style/tag-list.css" type="HBox" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <children>
       <ListView fx:id="tags" editable="true" styleClass="tag-list" />
    </children>
