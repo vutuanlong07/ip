@@ -1,0 +1,74 @@
+name: Build binaries for marquee-gui
+on:
+  push:
+    tags:
+      - 'gui-v*'
+      - '!gui-v*-SNAPSHOT'
+permissions:
+  contents: write
+jobs:
+#  build-gui:
+#    if: false
+#    name: Build binaries for marquee-gui
+#    runs-on: windows-latest
+#    strategy:
+#      matrix:
+#        arch: [amd64, amd64_x86, amd64_arm64]
+#    steps:
+#      - name: Checkout sources
+#        uses: actions/checkout@v7
+#      - name: Setup MSVC Build Tools
+#        uses: ilammy/msvc-dev-cmd@v1
+#        with:
+#          arch: ${{ matrix.arch }}
+#      - name: Setup GraalVM
+#        uses: graalvm/setup-graalvm@v1
+#        with:
+#          version: '25.0'
+#          distribution: 'graalvm'
+#          github-token: ${{ secrets.GITHUB_TOKEN }}
+#      - name: Setup Gradle
+#        uses: gradle/actions/setup-gradle@v6
+#      - name: Build with Gradle
+#        run: ./gradlew :marquee-gui:nativeBuild
+#      - name: Upload binaries
+#        uses: actions/upload-artifact@v7
+#        with:
+#          name: marquee-${{ github.ref_name }}-${{ matrix.os }}
+#          path: marquee-gui/build/native/nativeCompile/*
+  build-gui-jar:
+    name: Build JAR for marquee-gui
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Build with Gradle
+        run: ./gradlew :marquee-gui:shadowJar
+      - name: Upload JAR
+        uses: actions/upload-artifact@v7
+        with:
+          name: marquee-${{ github.ref_name }}-jar
+          path: marquee-gui/build/libs/*
+  publish:
+    name: Publish the built binaries
+    needs: [build-gui-jar]
+    runs-on: ubuntu-slim
+    steps:
+      - name: Download binaries
+        uses: actions/download-artifact@v8
+        with:
+          path: marquee-gui/releases
+          pattern: marquee-${{ github.ref_name }}-*
+          merge-multiple: true
+      - name: Create release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: marquee-gui/releases/*
+          draft: true
