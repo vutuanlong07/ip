@@ -2,16 +2,148 @@ package org.cs2103t.marquee.cli;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.cs2103t.marquee.cli.command.Code;
+import org.cs2103t.marquee.cli.command.Codes;
 import org.cs2103t.marquee.core.task.Task;
 
 /**
  * Data class for all dialogues used by Marquee.
  */
 public class Dialogues {
+
+    private final Map<Code, String> helpMessages = Map.ofEntries(
+            Map.entry(Codes.HELP, """
+                    help            - Show this help message
+                      <command name>    or help on a specific command
+                    """),
+            Map.entry(Codes.EXIT, """
+                    bye             - Save and exit Marquee
+                    """),
+            Map.entry(Codes.LOAD, """
+                    load            - Load checklist from the save file
+                    """),
+            Map.entry(Codes.SAVE, """
+                    save            - Save the checklist to save file
+                    """),
+            Map.entry(Codes.LIST, """
+                    list            - List all the current tasks
+                    """),
+            Map.entry(Codes.FIND, """
+                    find            - Find tasks matching arguments, can be chained with other commands
+                      <argument>        match task description containing this string
+                      /from <time>      match tasks starting at or after this time
+                      /to <time>        match tasks ending at or before this time
+                      /completed        match completed tasks, takes priority over /incomplete
+                      /incomplete       match incomplete tasks
+                      /tags <tag>...  match all the following tags
+                      /chain            search over the last command's result
+                    """),
+            Map.entry(Codes.TODO, """
+                    todo            - Creates a new task with no starting or ending time
+                      <argument>        the new task's name
+                      /completed        if the task is completed, takes priority over /incomplete
+                      /incomplete       if the task is incomplete, on by default
+                    """),
+            Map.entry(Codes.DEADLINE, """
+                    deadline        - Creates a new task with an ending time (deadline)
+                      <argument>        the new task's name
+                      /by <time>        the new task's deadline
+                      /completed        if the task is completed, takes priority over /incomplete
+                      /incomplete       if the task is incomplete, on by default
+                    """),
+            Map.entry(Codes.EVENT, """
+                    event           - Creates a new task with a starting and ending time
+                      <argument>        the new task's name
+                      /from <time>      the new task's starting time
+                      /to <time>        the new task's ending time
+                      /completed        if the task is completed, takes priority over /incomplete
+                      /incomplete       if the task is incomplete, on by default
+                    """),
+            Map.entry(Codes.EDIT, """
+                    edit            - Modifies tasks by index
+                      <index>...        the indices to modify
+                      /description      the tasks' new description
+                      /from <time>      the tasks' new starting time
+                      /to <time>        the tasks' new ending time
+                      /completed        mark the tasks as completed, takes priority over /incomplete
+                      /incomplete       mark the tasks as incomplete
+                      /chain            modify at indices of the last command's result
+                    """),
+            Map.entry(Codes.EDIT_ALL, """
+                    edit-all        - Modifies all tasks
+                      /description      the tasks' new description
+                      /from <time>      the tasks' new starting time
+                      /to <time>        the tasks' new ending time
+                      /completed        mark the tasks as completed, takes priority over /incomplete
+                      /incomplete       mark the tasks as incomplete
+                      /chain            modify all from the last command's result
+                    """),
+            Map.entry(Codes.DELETE, """
+                    delete          - Deletes tasks by index
+                      <index>...        the indices to delete
+                      /chain            delete at indices of the last command's result
+                    """),
+            Map.entry(Codes.DELETE_ALL, """
+                    delete-all      - Deletes all tasks
+                      /chain            delete all from the last command's result
+                    """),
+            Map.entry(Codes.DELETE_MATCHING, """
+                    delete-matching - Deletes tasks matching arguments, equivalent to
+                                      find..., then delete-all /chain
+                      <argument>        match task description containing this string
+                      /from <time>      match tasks starting at or after this time
+                      /to <time>        match tasks ending at or before this time
+                      /completed        match completed tasks
+                      /incomplete       match incomplete tasks
+                      /tags <tag>...    match all the following tags
+                      /chain            search over the last command's result
+                    """),
+            Map.entry(Codes.MARK, """
+                    mark            - Mark the tasks at the given indices as completed
+                      <index>...        the indices to mark
+                      /chain            mark at indices of the last command's result
+                    """),
+            Map.entry(Codes.MARK_ALL, """
+                    mark-all        - Mark all tasks as completed
+                      /chain            mark all from the last command's result
+                    """),
+            Map.entry(Codes.MARK_MATCHING, """
+                    mark-matching   - Mark tasks matching arguments as completed, equivalent to
+                                      find..., then mark-all /chain
+                      <argument>        match task description containing this string
+                      /from <time>      match tasks starting at or after this time
+                      /to <time>        match tasks ending at or before this time
+                      /completed        match completed tasks
+                      /incomplete       match incomplete tasks
+                      /tags <tag>...    match all the following tags
+                      /chain            search over the last command's result
+                    """),
+            Map.entry(Codes.UNMARK, """
+                    unmark          - Mark the tasks at the given indices as incomplete
+                      <index>...        the indices to unmark
+                      /chain            unmark at indices of the last command's result
+                    """),
+            Map.entry(Codes.UNMARK_ALL, """
+                    unmark-all      - Mark all tasks as incomplete
+                      /chain            unmark all from the last command's result
+                    """),
+            Map.entry(Codes.UNMARK_MATCHING, """
+                    unmark-matching - Mark tasks matching arguments as incomplete, equivalent to
+                                      find..., then unmark-all /chain
+                      <argument>        match task description containing this string
+                      /from <time>      match tasks starting at or after this time
+                      /to <time>        match tasks ending at or before this time
+                      /completed        match completed tasks
+                      /incomplete       match incomplete tasks
+                      /tags <tag>...    match all the following tags
+                      /chain            search over the last command's result
+                    """)
+    );
+
     /**
      * Prints the chatbot banner
      */
@@ -37,59 +169,14 @@ public class Dialogues {
 
     /**
      * Prints the user manual.
+     *
+     * @param code the command code to get help for
      */
-    public void help() {
-        System.out.print("""
-                help            - Show this help message
-                bye             - Save and exit Marquee
-                load            - Load checklist from the save file
-                save            - Save the checklist to save file
-                list            - List all the current tasks
-
-                find            - Find tasks matching arguments, can be chained with other commands
-                  <argument>        match task description containing this string
-                  /from             match tasks starting at or after this time
-                  /to               match tasks ending at or before this time
-                  /completed        match completed tasks
-                  /incomplete       match incomplete tasks
-                  /chain            search over the last command's result
-
-                todo            - Creates a new task with no starting or ending time
-                  <argument>        the new task's name
-                  /completed        if the task is completed
-                  /incomplete       if the task is incomplete, on by default
-
-                deadline        - Creates a new task with an ending time (deadline)
-                  <argument>        the new task's name
-                  /by               the new task's deadline
-                  /completed        if the task is completed
-                  /incomplete       if the task is incomplete, on by default
-
-                event           - Creates a new task with a starting and ending time
-                  <argument>        the new task's name
-                  /from             the new task's starting time
-                  /to               the new task's ending time
-                  /completed        if the task is completed
-                  /incomplete       if the task is incomplete, on by default
-
-                delete          - Deletes tasks by index
-                  <index>, ...      the indices to delete
-                  /chain            delete at indices of the last command's result
-
-                delete-all      - Deletes all tasks
-                  /chain            delete all from the last command's result
-
-                delete-matching - Deletes tasks matching arguments, equivalent to
-                                  delete-all /chain after find
-
-                mark            - Mark the tasks at the given indices as completed, similar to delete
-                mark-all        - Similar to delete-all
-                mark-matching   - Similar to delete-matching
-
-                unmark          - Mark the tasks at the given indices as incomplete, similar to delete
-                unmark-all      - Similar to delete-all
-                unmark-matching - Similar to delete-matching
-                """);
+    public void help(Code code) {
+        System.out.print(code != null
+                ? helpMessages.get(code)
+                : String.join("\n", helpMessages.values())
+        );
     }
 
     /**
@@ -112,7 +199,7 @@ public class Dialogues {
      * Prints session exit message.
      */
     public void successExit() {
-        System.out.print("See you later :3\n");
+        System.out.print("See you later :3\nPress <Enter> to exit.");
     }
 
     /**
@@ -166,6 +253,18 @@ public class Dialogues {
     }
 
     /**
+     * Prints message for displaying modified tasks.
+     *
+     * @param tasks list of modified tasks
+     */
+    public void successModify(List<Task> tasks) {
+        System.out.print(tasks.isEmpty()
+                ? "No items were modified (‾ 3‾)\n"
+                : "Modified items(s):\n" + numberedList(tasks, 4) + "\nfrom the list (‾ v‾)✎\n"
+        );
+    }
+
+    /**
      * Prints message for displaying removed tasks.
      *
      * @param tasks list of removed tasks
@@ -204,7 +303,7 @@ public class Dialogues {
     /**
      * Prints warning message when no save file has been created.
      */
-    public void warningSaveNotFound() {
+    public void warningFileNotFound() {
         System.out.print("No save file created yet (‾ 3‾)\n");
     }
 
@@ -212,6 +311,13 @@ public class Dialogues {
      * Prints warning message when some entries in the save file was skipped.
      */
     public void warningSaveIncomplete() {
+        System.out.print("Some tasks in the save file cannot be saved Σ( °Д°)!\n");
+    }
+
+    /**
+     * Prints warning message when some entries in the save file was skipped.
+     */
+    public void warningLoadIncomplete() {
         System.out.print("Some tasks in the save file cannot be loaded Σ( °Д°)!\n");
     }
 

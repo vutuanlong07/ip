@@ -1,5 +1,7 @@
 package org.cs2103t.marquee.cli.task;
 
+import java.time.LocalDateTime;
+
 import org.cs2103t.marquee.core.task.Task;
 
 /**
@@ -31,5 +33,19 @@ public final class TodoTask extends Task {
 
     private TodoTask() {
         super();
+    }
+
+    @Override
+    public void setStart(LocalDateTime newStart) {
+        if (newStart != null) {
+            throw new UnsupportedOperationException("Todo task doesn't have a starting time");
+        }
+    }
+
+    @Override
+    public void setEnd(LocalDateTime newEnd) {
+        if (newEnd != null) {
+            throw new UnsupportedOperationException("Todo task doesn't have an ending time");
+        }
     }
 }
