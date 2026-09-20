@@ -12,6 +12,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 
@@ -21,14 +22,19 @@ import javafx.scene.layout.StackPane;
 public class TaskItemView extends HBox {
     private static final PseudoClass MARKED_CLASS = PseudoClass.getPseudoClass("completed");
 
-    private ObjectProperty<Task> task = new SimpleObjectProperty<>(this, "task");
-    private ChangeListener<Boolean> markListener = (_, oldValue, newValue) ->
+    private final ObjectProperty<Task> task = new SimpleObjectProperty<>(this, "task");
+    private final ChangeListener<Boolean> markListener = (_, oldValue, newValue) ->
             pseudoClassStateChanged(MARKED_CLASS, newValue);
 
+    private ListCell<Task> parent;
     @FXML
     private Label description;
     @FXML
-    private TagsListView tags;
+    private StackPane descriptionContainer;
+    @FXML
+    private TagListView tags;
+    @FXML
+    private HBox resizable;
     @FXML
     private Label start;
     @FXML
@@ -40,33 +46,37 @@ public class TaskItemView extends HBox {
      * Creates a new {@code TaskItemView}.
      * @throws IOException if an I/O error occurs
      */
-    public TaskItemView() throws IOException {
+    public TaskItemView(ListCell<Task> parent) throws IOException {
+        this.parent = parent;
+
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/TaskItemView.fxml"));
         loader.setController(this);
         loader.setRoot(this);
         loader.load();
 
-        description.maxWidthProperty().bind(((StackPane) description.getParent()).widthProperty());
+        maxWidthProperty().bind(this.parent.widthProperty());
+        descriptionContainer.prefWidthProperty().bind(resizable.widthProperty().divide(2));
 
         task.addListener((_, oldValue, newValue) -> {
             if (oldValue != null) {
-                description.textProperty().unbindBidirectional(oldValue.descriptionProperty());
                 oldValue.markProperty().removeListener(markListener);
+                description.textProperty().unbindBidirectional(oldValue.descriptionProperty());
                 start.textProperty().unbindBidirectional(oldValue.startProperty());
                 end.textProperty().unbindBidirectional(oldValue.endProperty());
             }
             if (newValue != null) {
                 this.setDisable(false);
 
-                description.textProperty().bindBidirectional(newValue.descriptionProperty());
                 newValue.markProperty().addListener(markListener);
+                pseudoClassStateChanged(MARKED_CLASS, newValue.isMarked());
+                description.textProperty().bindBidirectional(newValue.descriptionProperty());
                 start.textProperty().bindBidirectional(newValue.startProperty(), MainMenu.DATETIME_STRING_CONVERTER);
                 end.textProperty().bindBidirectional(newValue.endProperty(), MainMenu.DATETIME_STRING_CONVERTER);
             } else {
                 this.setDisable(true);
 
+                pseudoClassStateChanged(MARKED_CLASS, true);
                 description.setText("");
-                pseudoClassStateChanged(MARKED_CLASS, false);
                 start.setText("");
                 end.setText("");
             }

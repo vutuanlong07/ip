@@ -216,12 +216,14 @@ public class Serializer {
             }
 
             String fieldValue = fields.get(setterAnnotation.value());
-            if (fieldValue == null || fieldValue.isEmpty()) {
+            if (fieldValue == null) {
                 if (!setter.isAnnotationPresent(Optional.class)) {
                     throw new NoSuchElementException(setterAnnotation.value());
                 }
             } else {
-                forceInvoke(setter, target, preprocess(setter, fieldValue, setter.getParameterTypes()[0]));
+                if (!setter.isAnnotationPresent(Optional.class) || !fieldValue.isEmpty()) {
+                    forceInvoke(setter, target, preprocess(setter, fieldValue, setter.getParameterTypes()[0]));
+                }
             }
         }
         return target;

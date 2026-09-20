@@ -31,7 +31,7 @@ public class TaskEditorView extends GridPane {
     @FXML
     private TextArea description;
     @FXML
-    private TagsListView tags;
+    private TagListView tags;
     @FXML
     private TextField start;
     @FXML

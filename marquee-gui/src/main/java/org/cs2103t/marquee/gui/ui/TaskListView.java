@@ -30,7 +30,7 @@ public class TaskListView extends ListView<Task> {
             setPadding(new Insets(0));
             setMaxWidth(Double.MAX_VALUE);
             try {
-                taskView = new TaskItemView();
+                taskView = new TaskItemView(this);
             } catch (IOException e) {
                 taskView = null;
             }
@@ -62,7 +62,6 @@ public class TaskListView extends ListView<Task> {
     public TaskListView() {
         setFixedCellSize(75);
         setMaxWidth(Double.MAX_VALUE);
-        setMaxHeight(Double.MAX_VALUE);
         setCellFactory(_ -> new TaskListCell());
     }
 }

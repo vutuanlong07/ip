@@ -86,7 +86,7 @@ public class Marquee {
      * @throws FileParseException if the file doesn't follow the right format
      */
     public boolean load(Path savePath)
-            throws NoSuchFileException, IOException, FileParseException {
+            throws NoSuchFileException, IOException, FileParseException, IllegalArgumentException {
         CsvTable csv = CsvTable.readFile(savePath);
         boolean lossless = true;
         List<Task> tempList = new ArrayList<>();
@@ -98,7 +98,7 @@ public class Marquee {
                 e.printStackTrace();
                 lossless = false;
             } catch (NoSuchElementException e) {
-                throw new IllegalArgumentException("Save file is corrupted");
+                throw new IllegalArgumentException("Save file is missing column: " + e.getMessage());
             }
         }
         checklist.clear();
@@ -238,7 +238,7 @@ public class Marquee {
      * @return the deleted tasks
      */
     public final List<Task> deleteAllTasks(boolean inheritLastResult) {
-        List<Task> deletedTasks = (inheritLastResult ? lastResult : checklist).stream()
+        List<Task> deletedTasks = (inheritLastResult ? lastResult : checklist.stream().toList()).stream()
                 .peek(checklist::remove)
                 .toList();
         lastResult.setAll(deletedTasks);
