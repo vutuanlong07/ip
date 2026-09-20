@@ -1,0 +1,14 @@
+.tag-chip {
+    -fx-border-radius: 1em;
+    -fx-background-radius: 1em;
+    -fx-background-color: grey;
+    -fx-padding: 2 1em 2 1em;
+}
+
+.tag-list .virtual-flow {
+    -fx-background-color: transparent;
+}
+
+.tag-list .virtual-flow .clipped-container .sheet {
+    -fx-wrap-length: 0;
+}

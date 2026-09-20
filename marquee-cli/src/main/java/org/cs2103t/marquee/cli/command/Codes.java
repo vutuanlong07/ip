@@ -18,7 +18,7 @@ public final class Codes {
     public static final Code LIST = Code.createOrGet("list");
     /** Searches for tasks that matches the filters */
     public static final Code FIND = Code.createOrGet("find",
-            "", "from", "to", "completed", "incomplete"
+            "", "from", "to", "completed", "incomplete", "chain"
     );
     /** Create a new to-do task and add it to the checklist */
     public static final Code TODO = Code.createOrGet("todo", "", "completed");
@@ -31,28 +31,28 @@ public final class Codes {
             "", "from", "to", "completed", "incomplete"
     );
     /** Delete the tasks at the given indices */
-    public static final Code DELETE = Code.createOrGet("delete", "");
+    public static final Code DELETE = Code.createOrGet("delete", "", "chain");
     /** Delete all tasks in the checklist */
-    public static final Code DELETE_ALL = Code.createOrGet("delete-all");
+    public static final Code DELETE_ALL = Code.createOrGet("delete-all", "chain");
     /** Delete all tasks that matches the filters */
     public static final Code DELETE_MATCHING = Code.createOrGet("delete-matching",
-            "", "from", "to", "completed", "incomplete"
+            "", "from", "to", "completed", "incomplete", "chain"
     );
     /** Mark the tasks at the given indices as completed */
-    public static final Code MARK = Code.createOrGet("mark", "");
+    public static final Code MARK = Code.createOrGet("mark", "", "chain");
     /** Mark all tasks in the checklist as completed */
-    public static final Code MARK_ALL = Code.createOrGet("mark-all");
+    public static final Code MARK_ALL = Code.createOrGet("mark-all", "chain");
     /** Mark all tasks that matches the filters as completed*/
     public static final Code MARK_MATCHING = Code.createOrGet("mark-matching",
-            "", "from", "to", "completed", "incomplete"
+            "", "from", "to", "completed", "incomplete", "chain"
     );
     /** Remove the mark from the tasks at the given indices */
-    public static final Code UNMARK = Code.createOrGet("unmark", "");
+    public static final Code UNMARK = Code.createOrGet("unmark", "", "chain");
     /** Remove the mark from all tasks in the checklist */
-    public static final Code UNMARK_ALL = Code.createOrGet("unmark-all");
+    public static final Code UNMARK_ALL = Code.createOrGet("unmark-all", "chain");
     /** Remove the mark from all tasks that matches the filters */
     public static final Code UNMARK_MATCHING = Code.createOrGet("unmark-matching",
-            "", "from", "to", "completed", "incomplete"
+            "", "from", "to", "completed", "incomplete", "chain"
     );
 
     // prevent instantiation

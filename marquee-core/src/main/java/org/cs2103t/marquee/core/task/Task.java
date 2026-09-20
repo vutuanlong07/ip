@@ -21,6 +21,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableSet;
+import javafx.collections.SetChangeListener;
 
 /**
  * Base class for all tasks.
@@ -51,6 +52,15 @@ public class Task {
      */
     public Task(String description, boolean isMarked, LocalDateTime start, LocalDateTime end, TaskTag... tags)
             throws NullPointerException, IllegalArgumentException {
+        this.tags.addListener((SetChangeListener<? super TaskTag>) change -> {
+            if (change.wasAdded()) {
+                change.getElementAdded().onTagAdded(this);
+            }
+            if (change.wasRemoved()) {
+                change.getElementRemoved().onTagRemoved(this);
+            }
+        });
+
         this.setDescription(description);
         this.setMark(isMarked);
         this.setStart(start);

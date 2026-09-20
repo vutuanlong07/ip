@@ -20,12 +20,11 @@ javafx {
 }
 
 application {
-    mainClass = "org.javafx.MainApplication"
+    mainClass = "org.cs2103t.marquee.gui.MainApplication"
 }
 
 tasks.jar {
-    enabled = false
-    archiveClassifier = "without-dependencies"
+    archiveFileName = "${project.name}-v${project.version}-jar_lean.jar"
 }
 
 tasks.shadowJar {

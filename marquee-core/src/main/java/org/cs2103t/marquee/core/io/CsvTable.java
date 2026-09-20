@@ -1,12 +1,13 @@
 package org.cs2103t.marquee.core.io;
 
+import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -22,6 +23,8 @@ import org.cs2103t.marquee.core.DuplicateKeyException;
  * Representation of a CSV table.
  */
 public final class CsvTable {
+    public static final Set<Character> SPECIAL_CHARACTERS = Set.of(',', '"', '\r', '\n');
+
     private final Set<String> columns;
     private final List<Record> values;
 
@@ -117,7 +120,7 @@ public final class CsvTable {
         return input == null || input.isEmpty()
                 ? "\"\""
                 : input.chars()
-                .filter(c -> c == '"' || c == ',' || c == '\r' || c == '\n')
+                .filter(c -> SPECIAL_CHARACTERS.contains((char) c))
                 .findAny().isPresent()
                   ? '"' + input.replace("\"", "\"\"") + '"'
                   : input;
@@ -181,21 +184,19 @@ public final class CsvTable {
     /**
      * Adds the given {@code Record} to the table.
      *
+     * @param row the {@link Record} to add
+     */
+    public void add(Record row) {
+        values.add(row);
+    }
+
+    /**
+     * Adds the given {@code Record} to the table.
+     *
      * @param rows the {@link Record} to add
      */
     public void add(Record... rows) {
         values.addAll(List.of(rows));
-    }
-
-    private static int findNextSpecial(String string, int start) {
-        int i = start;
-        for (; i < string.length(); i++) {
-            if (string.charAt(i) == '"' || string.charAt(i) == ','
-                    || (string.charAt(i) == '\r' && i + 1 < string.length() && string.charAt(i + 1) == '\n')) {
-                break;
-            }
-        }
-        return i;
     }
 
     /**
@@ -206,12 +207,12 @@ public final class CsvTable {
      * @return the new {@link CsvTable} with columns and rows from the file
      * @throws NoSuchFileException if no file is found at the location
      * @throws AccessDeniedException if the file can't be accessed
-     * @throws ParseException if the file isn't in the proper CSV format
+     * @throws FileParseException if the file isn't in the proper CSV format
      * @throws IOException if an unexpected I/O error occurs while reading the file
      * @throws DuplicateKeyException if a duplicate column name is found
      */
     public static CsvTable readFile(Path filepath)
-            throws NoSuchFileException, AccessDeniedException, ParseException,
+            throws NoSuchFileException, AccessDeniedException, FileParseException,
             IOException, DuplicateKeyException {
         if (!Files.isRegularFile(filepath)) {
             throw new NoSuchFileException(filepath.toString());
@@ -220,122 +221,22 @@ public final class CsvTable {
             throw new AccessDeniedException(filepath.toString());
         }
 
-        String content = Files.readString(filepath);
-        List<String> columnNames = new ArrayList<>();
-
-        StringBuilder fieldBuilder = new StringBuilder();
-        boolean isEscaped = false;
-        int fieldStart = 0;
-        int fieldEnd;
-        boolean headerIsNotEmpty = false;
-        while ((fieldEnd = findNextSpecial(content, fieldStart)) < content.length()) {
-            fieldBuilder.append(content, fieldStart, fieldEnd);
-            char current = content.charAt(fieldEnd);
-            if (current == '"') {
-                if (isEscaped) {
-                    if (fieldEnd + 1 < content.length()
-                            && content.charAt(fieldEnd + 1) == '"') {
-                        fieldStart = fieldEnd + 2;
-                        fieldBuilder.append('"');
-                    } else {
-                        fieldStart = fieldEnd + 1;
-                        isEscaped = false;
-                    }
-                } else {
-                    fieldStart = fieldEnd + 1;
-                    isEscaped = true;
-                }
-            } else if (current == ',') {
-                fieldStart = fieldEnd + 1;
-                if (isEscaped) {
-                    fieldBuilder.append(',');
-                } else {
-                    columnNames.add(fieldBuilder.toString());
-                    fieldBuilder.setLength(0);
-                }
-            } else {
-                fieldStart = fieldEnd + 2;
-                if (isEscaped) {
-                    fieldBuilder.append("\r\n");
-                } else {
-                    break;
-                }
+        try (InputStream inputStream = Files.newInputStream(filepath)) {
+            CsvParser parser = new CsvParser(inputStream);
+            List<String> columnNames = new ArrayList<>();
+            try {
+                parser.parseRow((_, value) -> columnNames.add(value), -1);
+            } catch (EOFException _) {
+                return new CsvTable();
             }
-            headerIsNotEmpty = true;
+            CsvTable csv = new CsvTable(columnNames);
+            while (!parser.isEndOfStream()) {
+                Record record = csv.createRecord();
+                parser.parseRow((i, value) -> record.setField(columnNames.get(i), value), columnNames.size());
+                csv.add(record);
+            }
+            return csv;
         }
-        if (headerIsNotEmpty || !fieldBuilder.isEmpty()) {
-            columnNames.add(fieldBuilder.toString());
-            fieldBuilder.setLength(0);
-
-            if (isEscaped) {
-                throw new ParseException("Escaped field not closed", fieldStart);
-            }
-        }
-
-        CsvTable csv = new CsvTable(columnNames);
-        while (fieldEnd < content.length()) {
-            Record newRecord = csv.createRecord();
-            int fieldCount = 0;
-            boolean isNotEmpty = false;
-            while (true) {
-                fieldEnd = findNextSpecial(content, fieldStart);
-                fieldBuilder.append(content, fieldStart, fieldEnd);
-                if (fieldEnd == content.length()) {
-                    fieldStart = fieldEnd;
-                    break;
-                }
-                char current = content.charAt(fieldEnd);
-                if (current == '"') {
-                    if (isEscaped) {
-                        if (fieldEnd + 1 < content.length()
-                                && content.charAt(fieldEnd + 1) == '"') {
-                            fieldStart = fieldEnd + 2;
-                            fieldBuilder.append('"');
-                        } else {
-                            fieldStart = fieldEnd + 1;
-                            isEscaped = false;
-                        }
-                    } else {
-                        fieldStart = fieldEnd + 1;
-                        isEscaped = true;
-                    }
-                } else if (current == ',') {
-                    fieldStart = fieldEnd + 1;
-                    if (isEscaped) {
-                        fieldBuilder.append(',');
-                    } else {
-                        newRecord.setField(columnNames.get(fieldCount), fieldBuilder.toString());
-                        fieldBuilder.setLength(0);
-                        fieldCount++;
-                        if (fieldCount > columnNames.size()) {
-                            throw new ParseException("Too many fields", fieldStart);
-                        }
-                    }
-                } else {
-                    fieldStart = fieldEnd + 2;
-                    if (isEscaped) {
-                        fieldBuilder.append("\r\n");
-                    } else {
-                        break;
-                    }
-                }
-                isNotEmpty = true;
-            }
-            if (isNotEmpty || !fieldBuilder.isEmpty()) {
-                newRecord.setField(columnNames.get(fieldCount), fieldBuilder.toString());
-                fieldBuilder.setLength(0);
-                fieldCount++;
-
-                if (isEscaped) {
-                    throw new ParseException("Escaped field not closed", fieldStart);
-                } else if (fieldCount < columnNames.size()) {
-                    throw new ParseException("Not enough fields", fieldStart);
-                } else {
-                    csv.add(newRecord);
-                }
-            }
-        }
-        return csv;
     }
 
     /**

@@ -20,7 +20,6 @@ public final class TaskTag {
             new SimpleMapProperty<>(null, "tags", FXCollections.observableHashMap());
 
     private final String label;
-    private boolean stale;
     private final Set<Task> taggedTasks;
 
     /**
@@ -46,7 +45,6 @@ public final class TaskTag {
         }
 
         this.label = label;
-        this.stale = false;
         this.taggedTasks = new HashSet<>();
     }
 
@@ -68,8 +66,6 @@ public final class TaskTag {
     public static void addTag(TaskTag tag) throws DuplicateKeyException, IllegalArgumentException {
         if (DICTIONARY.containsKey(tag.label)) {
             throw new DuplicateKeyException("Tag name already exist", tag.label);
-        } else if (tag.stale) {
-            throw new IllegalArgumentException("Tag is stale");
         } else {
             DICTIONARY.put(tag.label, tag);
         }
@@ -98,7 +94,6 @@ public final class TaskTag {
             for (Task task : tag.taggedTasks) {
                 tag.onTagRemoved(task);
             }
-            tag.stale = true;
         } else {
             throw new NoSuchElementException("Tag does not exist");
         }
@@ -123,9 +118,6 @@ public final class TaskTag {
     }
 
     void onTagAdded(Task task) {
-        if (stale) {
-            throw new UnsupportedOperationException("Stale tag");
-        }
         this.taggedTasks.add(task);
     }
 
@@ -133,21 +125,13 @@ public final class TaskTag {
         this.taggedTasks.remove(task);
     }
 
-    public boolean isStale() {
-        return stale;
-    }
-
     /**
      * Returns the tag's label.
      *
      * @return the label of the tag
-     * @throws UnsupportedOperationException if the tag is stale
      */
     @Override
     public String toString() {
-        if (stale) {
-            throw new UnsupportedOperationException("Stale tag");
-        }
         return this.label;
     }
 }

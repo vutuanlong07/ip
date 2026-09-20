@@ -6,7 +6,6 @@ import java.io.InputStreamReader;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.ParseException;
 import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +22,7 @@ import org.cs2103t.marquee.cli.task.EventTask;
 import org.cs2103t.marquee.cli.task.TodoTask;
 import org.cs2103t.marquee.core.DuplicateKeyException;
 import org.cs2103t.marquee.core.Marquee;
+import org.cs2103t.marquee.core.io.FileParseException;
 import org.cs2103t.marquee.core.task.Task;
 import org.cs2103t.marquee.core.time.DateTimeFormatter;
 
@@ -81,7 +81,7 @@ public class Application {
             dialogues.warningSaveNotFound();
         } catch (IOException e) {
             dialogues.errorSaveUnavailable(e.getMessage());
-        } catch (ParseException e) {
+        } catch (FileParseException e) {
             dialogues.errorSaveWrongFormat();
         } catch (IllegalArgumentException e) {
             dialogues.errorSaveCorrupted();
@@ -138,7 +138,7 @@ public class Application {
                     dialogues.warningSaveNotFound();
                 } catch (IOException e) {
                     dialogues.errorSaveUnavailable(e.getMessage());
-                } catch (ParseException e) {
+                } catch (FileParseException e) {
                     dialogues.errorSaveWrongFormat();
                 } catch (IllegalArgumentException e) {
                     dialogues.errorSaveCorrupted();
@@ -200,14 +200,17 @@ public class Application {
                     }
                 }
             } else if (Codes.DELETE_ALL.equals(command.getCode())) {
-                dialogues.successDelete(marquee.deleteAllTasks());
+                dialogues.successDelete(marquee.deleteAllTasks(command.hasFlag("chain")));
             } else if (Codes.MARK_ALL.equals(command.getCode())) {
-                dialogues.successMark(marquee.markAllTasks());
+                dialogues.successMark(marquee.markAllTasks(command.hasFlag("chain")));
             } else if (Codes.UNMARK_ALL.equals(command.getCode())) {
-                dialogues.successUnmark(marquee.unmarkAllTasks());
+                dialogues.successUnmark(marquee.unmarkAllTasks(command.hasFlag("chain")));
             } else if (Codes.DELETE.equals(command.getCode())) {
                 try {
-                    dialogues.successDelete(marquee.deleteTasks(parseIntArray(command.getArgument())));
+                    dialogues.successDelete(marquee.deleteTasks(
+                            command.hasFlag("chain"),
+                            parseIntArray(command.getArgument())
+                    ));
                 } catch (NumberFormatException e) {
                     dialogues.errorNan(e.getMessage());
                 } catch (IndexOutOfBoundsException e) {
@@ -215,7 +218,10 @@ public class Application {
                 }
             } else if (Codes.MARK.equals(command.getCode())) {
                 try {
-                    dialogues.successMark(marquee.markTasks(parseIntArray(command.getArgument())));
+                    dialogues.successMark(marquee.markTasks(
+                            command.hasFlag("chain"),
+                            parseIntArray(command.getArgument())
+                    ));
                 } catch (NumberFormatException e) {
                     dialogues.errorNan(e.getMessage());
                 } catch (IndexOutOfBoundsException e) {
@@ -223,7 +229,10 @@ public class Application {
                 }
             } else if (Codes.UNMARK.equals(command.getCode())) {
                 try {
-                    dialogues.successUnmark(marquee.unmarkTasks(parseIntArray(command.getArgument())));
+                    dialogues.successUnmark(marquee.unmarkTasks(
+                            command.hasFlag("chain"),
+                            parseIntArray(command.getArgument())
+                    ));
                 } catch (NumberFormatException e) {
                     dialogues.errorNan(e.getMessage());
                 } catch (IndexOutOfBoundsException e) {
@@ -231,80 +240,88 @@ public class Application {
                 }
             } else if (Codes.FIND.equals(command.getCode())) {
                 try {
-                    dialogues.successFind(marquee.find(
-                            command.getArgument(),
-                            command.hasFlag("from")
-                                    ? DateTimeFormatter.parseDateTime(command.getFlag("from"))
-                                    : null,
-                            command.hasFlag("to")
-                                    ? DateTimeFormatter.parseDateTime(command.getFlag("to"))
-                                    : null,
-                            command.hasFlag("completed") != command.hasFlag("incomplete")
-                                    ? command.hasFlag("completed")
-                                    : null,
-                            null,
-                            false
-                    ));
+                    if (command.hasFlag("chain")) {
+                        dialogues.successFind(marquee.find(
+                                command.getArgument(),
+                                command.hasFlag("from")
+                                        ? DateTimeFormatter.parseDateTime(command.getFlag("from"))
+                                        : null,
+                                command.hasFlag("to")
+                                        ? DateTimeFormatter.parseDateTime(command.getFlag("to"))
+                                        : null,
+                                command.hasFlag("completed") != command.hasFlag("incomplete")
+                                        ? command.hasFlag("completed")
+                                        : null,
+                                null,
+                                false
+                        ));
+                    }
                 } catch (DateTimeParseException e) {
                     dialogues.errorDatetime(e.getParsedString());
                 }
             } else if (Codes.DELETE_MATCHING.equals(command.getCode())) {
                 try {
-                    marquee.find(
-                            command.getArgument(),
-                            command.hasFlag("from")
-                                    ? DateTimeFormatter.parseDateTime(command.getFlag("from"))
-                                    : null,
-                            command.hasFlag("to")
-                                    ? DateTimeFormatter.parseDateTime(command.getFlag("to"))
-                                    : null,
-                            command.hasFlag("completed") != command.hasFlag("incomplete")
-                                    ? command.hasFlag("completed")
-                                    : null,
-                            null,
-                            false
-                    );
-                    dialogues.successDelete(marquee.deleteAllTasks());
+                    if (command.hasFlag("chain")) {
+                        marquee.find(
+                                command.getArgument(),
+                                command.hasFlag("from")
+                                        ? DateTimeFormatter.parseDateTime(command.getFlag("from"))
+                                        : null,
+                                command.hasFlag("to")
+                                        ? DateTimeFormatter.parseDateTime(command.getFlag("to"))
+                                        : null,
+                                command.hasFlag("completed") != command.hasFlag("incomplete")
+                                        ? command.hasFlag("completed")
+                                        : null,
+                                null,
+                                false
+                        );
+                    }
+                    dialogues.successDelete(marquee.deleteAllTasks(command.hasFlag("chain")));
                 } catch (DateTimeParseException e) {
                     dialogues.errorDatetime(e.getParsedString());
                 }
             } else if (Codes.MARK_MATCHING.equals(command.getCode())) {
                 try {
-                    marquee.find(
-                            command.getArgument(),
-                            command.hasFlag("from")
-                                    ? DateTimeFormatter.parseDateTime(command.getFlag("from"))
-                                    : null,
-                            command.hasFlag("to")
-                                    ? DateTimeFormatter.parseDateTime(command.getFlag("to"))
-                                    : null,
-                            command.hasFlag("completed") != command.hasFlag("incomplete")
-                                    ? command.hasFlag("completed")
-                                    : null,
-                            null,
-                            false
-                    );
-                    dialogues.successMark(marquee.markAllTasks());
+                    if (command.hasFlag("chain")) {
+                        marquee.find(
+                                command.getArgument(),
+                                command.hasFlag("from")
+                                        ? DateTimeFormatter.parseDateTime(command.getFlag("from"))
+                                        : null,
+                                command.hasFlag("to")
+                                        ? DateTimeFormatter.parseDateTime(command.getFlag("to"))
+                                        : null,
+                                command.hasFlag("completed") != command.hasFlag("incomplete")
+                                        ? command.hasFlag("completed")
+                                        : null,
+                                null,
+                                false
+                        );
+                    }
+                    dialogues.successMark(marquee.markAllTasks(command.hasFlag("chain")));
                 } catch (DateTimeParseException e) {
                     dialogues.errorDatetime(e.getParsedString());
                 }
             } else if (Codes.UNMARK_MATCHING.equals(command.getCode())) {
                 try {
-                    marquee.find(
-                            command.getArgument(),
-                            command.hasFlag("from")
-                                    ? DateTimeFormatter.parseDateTime(command.getFlag("from"))
-                                    : null,
-                            command.hasFlag("to")
-                                    ? DateTimeFormatter.parseDateTime(command.getFlag("to"))
-                                    : null,
-                            command.hasFlag("completed") != command.hasFlag("incomplete")
-                                    ? command.hasFlag("completed")
-                                    : null,
-                            null,
-                            false
-                    );
-                    dialogues.successUnmark(marquee.unmarkAllTasks());
+                    if (command.hasFlag("chain")) {
+                        marquee.find(
+                                command.getArgument(),
+                                command.hasFlag("from")
+                                        ? DateTimeFormatter.parseDateTime(command.getFlag("from"))
+                                        : null,
+                                command.hasFlag("to")
+                                        ? DateTimeFormatter.parseDateTime(command.getFlag("to"))
+                                        : null,
+                                command.hasFlag("completed") != command.hasFlag("incomplete")
+                                        ? command.hasFlag("completed")
+                                        : null,
+                                null,
+                                false
+                        );
+                    }
+                    dialogues.successUnmark(marquee.unmarkAllTasks(command.hasFlag("chain")));
                 } catch (DateTimeParseException e) {
                     dialogues.errorDatetime(e.getParsedString());
                 }
