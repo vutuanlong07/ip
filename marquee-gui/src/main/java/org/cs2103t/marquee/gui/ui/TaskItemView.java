@@ -4,16 +4,17 @@ import java.io.IOException;
 
 import org.cs2103t.marquee.core.task.Task;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
 
 /**
  * Controller for read-only task item view.
@@ -22,13 +23,12 @@ public class TaskItemView extends HBox {
     private static final PseudoClass MARKED_CLASS = PseudoClass.getPseudoClass("completed");
 
     private final ObjectProperty<Task> task = new SimpleObjectProperty<>(this, "task");
-    private final ChangeListener<Boolean> markListener = (_, oldValue, newValue) ->
-            pseudoClassStateChanged(MARKED_CLASS, newValue);
+    private final BooleanProperty mark = new SimpleBooleanProperty(this, "mark");
 
     @FXML
     private Label description;
     @FXML
-    private StackPane descriptionContainer;
+    private Label tags;
     @FXML
     private HBox resizable;
     @FXML
@@ -40,35 +40,40 @@ public class TaskItemView extends HBox {
      * Creates a new {@code TaskItemView}.
      * @throws IOException if an I/O error occurs
      */
+    @SuppressWarnings("checkstyle:SeparatorWrap")
     public TaskItemView(ListCell<Task> parent) throws IOException {
+        mark.addListener((_, oldValue, newValue) ->
+                pseudoClassStateChanged(MARKED_CLASS, newValue)
+        );
+        mark.set(true);
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/TaskItemView.fxml"));
         loader.setController(this);
         loader.setRoot(this);
         loader.load();
 
-        maxWidthProperty().bind(parent.widthProperty());
-        descriptionContainer.prefWidthProperty().bind(resizable.widthProperty().divide(2));
+        prefWidthProperty().bind(parent.widthProperty());
 
         task.addListener((_, oldValue, newValue) -> {
-            if (oldValue != null) {
-                oldValue.markProperty().removeListener(markListener);
-                description.textProperty().unbindBidirectional(oldValue.descriptionProperty());
-                start.textProperty().unbindBidirectional(oldValue.startProperty());
-                end.textProperty().unbindBidirectional(oldValue.endProperty());
-            }
+            mark.unbind();
+            description.textProperty().unbind();
+            start.textProperty().unbind();
+            end.textProperty().unbind();
             if (newValue != null) {
                 this.setDisable(false);
-
-                newValue.markProperty().addListener(markListener);
-                pseudoClassStateChanged(MARKED_CLASS, newValue.isMarked());
-                description.textProperty().bindBidirectional(newValue.descriptionProperty());
-                start.textProperty().bindBidirectional(newValue.startProperty(), MainMenu.DATETIME_STRING_CONVERTER);
-                end.textProperty().bindBidirectional(newValue.endProperty(), MainMenu.DATETIME_STRING_CONVERTER);
+                mark.bind(newValue.markProperty());
+                description.textProperty().bind(newValue.descriptionProperty());
+                start.textProperty().bind(Bindings.createStringBinding(
+                        () -> MainMenu.DATETIME_STRING_CONVERTER.toString(newValue.getStart()),
+                        newValue.startProperty()
+                ));
+                end.textProperty().bind(Bindings.createStringBinding(
+                        () -> MainMenu.DATETIME_STRING_CONVERTER.toString(newValue.getEnd()),
+                        newValue.endProperty()
+                ));
             } else {
                 this.setDisable(true);
-
-                pseudoClassStateChanged(MARKED_CLASS, true);
+                mark.set(false);
                 description.setText("");
                 start.setText("");
                 end.setText("");

@@ -65,9 +65,22 @@ public class Task {
         this.setMark(isMarked);
         this.setStart(start);
         this.setEnd(end);
-        for (TaskTag tag : tags) {
-            this.addTag(tag);
-        }
+        this.setTags(FXCollections.observableSet(tags));
+    }
+
+    /**
+     * Creates a copy of the given {@code Task}.
+     *
+     * @param task the task to copy
+     */
+    public Task(Task task) {
+        this(
+                task.getDescription(),
+                task.isMarked(),
+                task.getStart(),
+                task.getEnd(),
+                task.getTags().toArray(TaskTag[]::new)
+        );
     }
 
     public Task() {

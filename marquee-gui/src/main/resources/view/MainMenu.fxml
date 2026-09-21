@@ -39,7 +39,6 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
-<?import javafx.scene.control.SeparatorMenuItem?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
@@ -58,21 +57,10 @@
         </Menu>
         <Menu mnemonicParsing="false" text="Edit">
           <items>
-                  <MenuItem mnemonicParsing="false" onAction="#newTask" text="New task" />
-                  <MenuItem mnemonicParsing="false" onAction="#newTag" text="New tag" />
-                  <SeparatorMenuItem mnemonicParsing="false" />
             <MenuItem mnemonicParsing="false" onAction="#cutSelected" text="Cut" />
             <MenuItem mnemonicParsing="false" onAction="#copySelected" text="Copy" />
             <MenuItem mnemonicParsing="false" onAction="#paste" text="Paste" />
             <MenuItem mnemonicParsing="false" onAction="#deleteSelected" text="Delete" />
-                  <SeparatorMenuItem mnemonicParsing="false" />
-            <MenuItem mnemonicParsing="false" onAction="#selectAll" text="Select All" />
-            <MenuItem mnemonicParsing="false" onAction="#deselectAll" text="Deselect All" />
-          </items>
-        </Menu>
-        <Menu mnemonicParsing="false" text="Help">
-          <items>
-            <MenuItem mnemonicParsing="false" onAction="#showHelp" text="User Guide" />
           </items>
         </Menu>
       </menus>
@@ -92,9 +80,9 @@
             <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
          </padding>
       </HBox>
-      <SplitPane dividerPositions="0.5" VBox.vgrow="ALWAYS">
+      <SplitPane fx:id="content" dividerPositions="0.5" VBox.vgrow="ALWAYS">
          <items>
-            <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER">
+            <ScrollPane fitToHeight="true" fitToWidth="true" focusTraversable="false" hbarPolicy="NEVER">
                <content>
                </content>
                <content>

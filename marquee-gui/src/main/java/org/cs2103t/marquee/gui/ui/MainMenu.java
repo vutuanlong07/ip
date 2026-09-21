@@ -15,14 +15,17 @@ import org.cs2103t.marquee.core.task.TaskTag;
 import org.cs2103t.marquee.core.time.DateTimeFormatter;
 import org.cs2103t.marquee.gui.MainApplication;
 
+import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.StringConverter;
@@ -39,8 +42,44 @@ public class MainMenu extends VBox {
                 }
 
                 @Override
-                public LocalDateTime fromString(String string) throws DateTimeParseException {
-                    return string.isEmpty() ? null : DateTimeFormatter.parseDateTime(string);
+                public LocalDateTime fromString(String string) {
+                    try {
+                        return string.isEmpty() ? null : DateTimeFormatter.parseDateTime(string);
+                    } catch (DateTimeParseException e) {
+                        Platform.runLater(() -> {
+                            try {
+                                CustomAlert<ButtonType> dialog = new CustomAlert<>(
+                                        Alert.AlertType.ERROR,
+                                        "Not a valid date-time",
+                                        ButtonType.OK
+                                );
+                                dialog.getContent().add(new Text("Parsing error at:\n"));
+                                int start = e.getErrorIndex() - 10;
+                                int at = e.getErrorIndex();
+                                int after = e.getErrorIndex() + 1;
+                                int end = e.getErrorIndex() + 5;
+                                Text beforeText = new Text((start < 0 ? "..." : "")
+                                        + e.getParsedString().substring(Math.max(0, start), at));
+                                Text errorText = new Text(e.getParsedString().substring(at, after));
+                                Text afterText = new Text(
+                                        e.getParsedString().substring(after, Math.min(e.getParsedString().length(), end))
+                                                + (end > e.getParsedString().length() ? "..." : "")
+                                );
+                                errorText.getStyleClass().add("error");
+                                dialog.getContent().addAll(beforeText, errorText, afterText);
+                                dialog.getContent().add(new Text("\n" + e.getMessage()));
+                                dialog.showAndWait();
+                            } catch (IOException ex) {
+                                Alert backupDialog = new Alert(
+                                        Alert.AlertType.ERROR,
+                                        "'" + e.getParsedString() + "' is not a valid date-time",
+                                        ButtonType.OK
+                                );
+                                backupDialog.showAndWait();
+                            }
+                        });
+                        throw e;
+                    }
                 }
             };
 
@@ -49,12 +88,18 @@ public class MainMenu extends VBox {
 
     private Stage stage;
     @FXML
+    private SplitPane content;
+    @FXML
     private AnchorPane taskListContainer;
     @FXML
     private AnchorPane taskEditorContainer;
 
     private TaskListView taskList;
     private TaskEditorView taskEditor;
+
+    private ObjectProperty<Task> selected = new SimpleObjectProperty<>(this, "selected");
+    private Task clipboard;
+    private CustomAlert<ButtonType> datetimeHelpDialog;
 
     /**
      * Creates a new {@code MainMenu}.
@@ -79,6 +124,8 @@ public class MainMenu extends VBox {
 
     @FXML
     void initialize() throws IOException {
+        content.setDividerPosition(0, 0.7);
+
         taskList = new TaskListView();
         taskList.itemsProperty().bind(marquee.checklistProperty());
         taskListContainer.getChildren().setAll(taskList);
@@ -86,6 +133,7 @@ public class MainMenu extends VBox {
         AnchorPane.setRightAnchor(taskList, 0.0);
         AnchorPane.setBottomAnchor(taskList, 0.0);
         AnchorPane.setLeftAnchor(taskList, 0.0);
+        selected.bind(taskList.getSelectionModel().selectedItemProperty());
 
         taskEditor = new TaskEditorView();
         taskEditor.taskProperty().bind(taskList.getSelectionModel().selectedItemProperty());
@@ -94,6 +142,9 @@ public class MainMenu extends VBox {
         AnchorPane.setRightAnchor(taskEditor, 0.0);
         AnchorPane.setBottomAnchor(taskEditor, 0.0);
         AnchorPane.setLeftAnchor(taskEditor, 0.0);
+
+        datetimeHelpDialog = new CustomAlert<>(Alert.AlertType.INFORMATION, "Date-time formats");
+        datetimeHelpDialog = new CustomAlert<>(Alert.AlertType.INFORMATION, "Date-time formats");
     }
 
     private boolean saveAt(Path saveLocation) {
@@ -245,46 +296,32 @@ public class MainMenu extends VBox {
     }
 
     @FXML
-    void newTag() {
-
-    }
-
-    @FXML
     void copySelected() {
-
-    }
-
-    @FXML
-    void cutSelected() {
-
-    }
-
-    @FXML
-    void deleteSelected() {
-        Task selected = taskList.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            marquee.deleteTasks(false, marquee.getChecklist().indexOf(selected));
+        if (selected.get() != null) {
+            clipboard = new Task(selected.get());
         }
     }
 
     @FXML
-    void deselectAll() {
+    void deleteSelected() {
+        if (selected.get() != null) {
+            marquee.checklistProperty().remove(selected.get());
+        }
+    }
 
+    @FXML
+    void cutSelected() {
+        copySelected();
+        deleteSelected();
     }
 
     @FXML
     void paste() {
-
-    }
-
-    @FXML
-    void selectAll() {
-
-    }
-
-    @FXML
-    void showHelp() {
-
+        if (clipboard != null) {
+            if (selected.get() != null) {
+                marquee.checklistProperty().add(new Task(clipboard));
+            }
+        }
     }
 
     @FXML

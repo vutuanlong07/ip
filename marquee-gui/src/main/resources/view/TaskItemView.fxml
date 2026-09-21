@@ -6,24 +6,24 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<fx:root alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="75.0" spacing="5.0" styleClass="task-item" stylesheets="@../style/task-list.css" type="HBox" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root alignment="CENTER" focusTraversable="true" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="75.0" spacing="5.0" styleClass="task-item" stylesheets="@../style/task-list.css" type="HBox" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <HBox fx:id="resizable" HBox.hgrow="SOMETIMES">
+      <StackPane maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="0.0" HBox.hgrow="ALWAYS">
          <children>
-            <StackPane fx:id="descriptionContainer" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minWidth="100.0" HBox.hgrow="NEVER">
-               <children>
-                  <Label fx:id="description" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="New Task" wrapText="true" />
-               </children>
-            </StackPane>
-            <Separator orientation="VERTICAL" />
-            <StackPane maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minWidth="100.0" HBox.hgrow="ALWAYS" />
+            <Label fx:id="description" text="New Task" wrapText="true" />
          </children>
-      </HBox>
+      </StackPane>
+      <Separator orientation="VERTICAL" />
+      <StackPane maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="0.0" HBox.hgrow="ALWAYS">
+         <children>
+            <Label fx:id="tags" text="Tags" wrapText="true" />
+         </children>
+      </StackPane>
       <Separator orientation="VERTICAL">
          <HBox.margin>
             <Insets />
          </HBox.margin></Separator>
-      <StackPane minWidth="100.0" HBox.hgrow="NEVER">
+      <StackPane maxWidth="100.0" minWidth="100.0" prefWidth="100.0" HBox.hgrow="NEVER">
          <children>
             <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
                <children>

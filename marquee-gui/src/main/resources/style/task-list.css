@@ -1,25 +1,27 @@
-.task-item {
+.list-cell .task-item {
     -fx-background-color: whitesmoke;
     -fx-border-color: lightgrey;
+    -fx-border-insets: 1px;
+    -fx-border-width: 2px;
 }
 
-.task-item .label {
+.list-cell .task-item .label {
     -fx-text-fill: black;
 }
 
-.task-item:focused {
-    -fx-border-color: dodgerblue;
+.list-cell .task-item:completed {
+    -fx-background-color: lightgrey;
+    -fx-border-color: lightgrey;
 }
 
-.task-item:completed {
-    -fx-background-color: lightgrey;
+.list-cell .task-item:completed .label {
+    -fx-text-fill: black;
+}
+
+.list-cell:filled:selected .task-item {
     -fx-border-color: darkgrey;
 }
 
-.task-item:completed .label {
-    -fx-text-fill: white;
-}
-
-.task-item:completed:focused {
+.list-view:focused .list-cell:filled:selected .task-item {
     -fx-border-color: dodgerblue;
 }
