@@ -5,6 +5,8 @@ import java.io.IOException;
 import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
@@ -40,7 +42,18 @@ public class TagListAddButton extends HBox {
     }
 
     @FXML
-    private void selectTagDialog() {
-
+    private void addTag() {
+        try {
+            TagSelectDialog dialog = new TagSelectDialog();
+            dialog.showAndWait().ifPresent(result ->
+                    parent.getItems().add(result)
+            );
+        } catch (IOException e) {
+            new Alert(
+                    Alert.AlertType.ERROR,
+                    "Cannot open tag list dialog\n" + e.getMessage(),
+                    ButtonType.OK
+            ).showAndWait();
+        }
     }
 }

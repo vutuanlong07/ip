@@ -11,7 +11,7 @@
       <Label fx:id="hiddenCountLabel" contentDisplay="TEXT_ONLY" opacity="0.5" text="Label" />
       <HBox fx:id="buttonContainer" alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" spacing="5.0">
          <children>
-            <Button contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" minHeight="0.0" minWidth="0.0" mnemonicParsing="false">
+            <Button contentDisplay="GRAPHIC_ONLY" graphicTextGap="0.0" minHeight="0.0" minWidth="0.0" mnemonicParsing="false" onAction="#addTag">
                <graphic>
                   <ImageView pickOnBounds="true" preserveRatio="true" rotate="45.0">
                      <image>

@@ -146,7 +146,7 @@ public class TagListView extends FlowPane {
     private void resetCellLayout() {
         getChildren().remove(addButton);
         getChildren().add(addButton);
-        cellsByTag.forEach((_, cell) -> cell.setVisible(true));
+        cellsByTag.forEach((_, cell) -> cell.setOverflow(false));
         layoutCells();
     }
 
@@ -157,7 +157,7 @@ public class TagListView extends FlowPane {
             while (i < cellsByTag.size()) {
                 i++;
                 if (getChildren().get(i).getBoundsInParent().getMaxY() < getLayoutBounds().getMaxY()) {
-                    getChildren().get(i).setVisible(true);
+                    ((TagItemView) getChildren().get(i)).setOverflow(false);
                 } else {
                     i--;
                     break;
@@ -166,7 +166,7 @@ public class TagListView extends FlowPane {
         } else {
             while (i > 0) {
                 i--;
-                getChildren().get(i).setVisible(false);
+                ((TagItemView) getChildren().get(i)).setOverflow(true);
                 if (getChildren().get(i).getBoundsInParent().getMaxY() < getLayoutBounds().getMaxY()) {
                     break;
                 }
@@ -176,6 +176,6 @@ public class TagListView extends FlowPane {
             getChildren().remove(addButton);
             getChildren().add(i, addButton);
         }
-        hiddenCount.set((int) cellsByTag.values().stream().filter(cell -> !cell.isVisible()).count());
+        hiddenCount.set((int) cellsByTag.values().stream().filter(cell -> !cell.isOverflow()).count());
     }
 }

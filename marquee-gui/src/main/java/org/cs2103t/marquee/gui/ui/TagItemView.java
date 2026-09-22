@@ -4,7 +4,9 @@ import java.io.IOException;
 
 import org.cs2103t.marquee.core.task.TaskTag;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -17,6 +19,7 @@ import javafx.scene.layout.HBox;
  */
 public class TagItemView extends HBox {
     private final ObjectProperty<TaskTag> tag = new SimpleObjectProperty<>(this, "tag");
+    private final BooleanProperty overflow = new SimpleBooleanProperty(this, "overflow");
 
     private final TagListView parent;
 
@@ -35,6 +38,8 @@ public class TagItemView extends HBox {
         loader.setController(this);
         loader.setRoot(this);
         loader.load();
+
+        visibleProperty().bind(overflow.not());
     }
 
     @FXML
@@ -47,6 +52,16 @@ public class TagItemView extends HBox {
     @FXML
     private void removeTag() {
         parent.getItems().remove(tag.get());
+    }
+
+    public boolean isOverflow() {
+        return overflow.get();
+    }
+    public void setOverflow(boolean newOverflow) {
+        overflow.set(newOverflow);
+    }
+    public BooleanProperty overflowProperty() {
+        return overflow;
     }
 
     public TaskTag getTag() {

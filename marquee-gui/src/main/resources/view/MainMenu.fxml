@@ -37,7 +37,6 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.layout.AnchorPane?>
@@ -82,14 +81,8 @@
       </HBox>
       <SplitPane fx:id="content" dividerPositions="0.5" VBox.vgrow="ALWAYS">
          <items>
-            <ScrollPane fitToHeight="true" fitToWidth="true" focusTraversable="false" hbarPolicy="NEVER">
-               <content>
-               </content>
-               <content>
-                  <AnchorPane fx:id="taskListContainer" />
-               </content>
-            </ScrollPane>
-            <AnchorPane fx:id="taskEditorContainer" />
+            <AnchorPane fx:id="taskListContainer" />
+            <AnchorPane fx:id="taskEditorContainer" SplitPane.resizableWithParent="false" />
          </items>
       </SplitPane>
   </children>

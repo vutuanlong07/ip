@@ -14,13 +14,13 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.StackPane;
 
 /**
  * Controller for read-only task item view.
  */
-public class TaskItemView extends HBox {
+public class TaskItemView extends GridPane {
     private static final PseudoClass MARKED_CLASS = PseudoClass.getPseudoClass("completed");
 
     private final ObjectProperty<Task> task = new SimpleObjectProperty<>(this, "task");
@@ -29,9 +29,7 @@ public class TaskItemView extends HBox {
     @FXML
     private Label description;
     @FXML
-    private AnchorPane tagsContainer;
-    @FXML
-    private HBox resizable;
+    private StackPane tagsContainer;
     @FXML
     private Label start;
     @FXML
@@ -46,10 +44,6 @@ public class TaskItemView extends HBox {
     public TaskItemView(ListCell<Task> parent) throws IOException {
         tags = new TagListView();
         tags.setAddAllowed(false);
-        AnchorPane.setTopAnchor(tags, 0.0);
-        AnchorPane.setRightAnchor(tags, 0.0);
-        AnchorPane.setBottomAnchor(tags, 0.0);
-        AnchorPane.setLeftAnchor(tags, 0.0);
 
         mark.addListener((_, _, isMarked) ->
                 pseudoClassStateChanged(MARKED_CLASS, isMarked)
