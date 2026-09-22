@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
@@ -14,11 +15,7 @@
          </children>
       </StackPane>
       <Separator orientation="VERTICAL" />
-      <StackPane maxWidth="1.7976931348623157E308" minWidth="100.0" prefWidth="0.0" HBox.hgrow="ALWAYS">
-         <children>
-            <Label fx:id="tags" text="Tags" wrapText="true" />
-         </children>
-      </StackPane>
+      <AnchorPane fx:id="tagsContainer" maxWidth="1.7976931348623157E308" minWidth="125.0" prefWidth="0.0" HBox.hgrow="ALWAYS" />
       <Separator orientation="VERTICAL">
          <HBox.margin>
             <Insets />

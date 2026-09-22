@@ -3,6 +3,7 @@ package org.cs2103t.marquee.core.task;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.cs2103t.marquee.core.serialization.FieldGetter;
@@ -96,6 +97,7 @@ public class Task {
     private void setTagsFromString(String tags) {
         setTags(Arrays.stream(tags.split(","))
                 .map(TaskTag::createOrGet)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(FXCollections::observableSet)));
     }
 

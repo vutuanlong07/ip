@@ -29,16 +29,19 @@ public class TaskListView extends ListView<Task> {
         public TaskListCell() {
             setPadding(new Insets(0));
             setMaxWidth(Double.MAX_VALUE);
-            try {
-                taskView = new TaskItemView(this);
-            } catch (IOException e) {
-                taskView = null;
-            }
+            taskView = null;
         }
 
         @Override
         protected void updateItem(Task item, boolean empty) {
             super.updateItem(item, empty);
+            if (taskView == null) {
+                try {
+                    taskView = new TaskItemView(this);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
             if (empty || item == null) {
                 setText(null);
                 setGraphic(null);

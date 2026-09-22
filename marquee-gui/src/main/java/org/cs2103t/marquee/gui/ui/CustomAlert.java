@@ -70,13 +70,11 @@ public class CustomAlert<R> extends Dialog<ButtonType> {
             header.textProperty().bind(headerTextProperty());
             Bindings.bindContent(content.getChildren(), CustomAlert.this.getContent());
             Bindings.bindContent(details.getChildren(), CustomAlert.this.getDetails());
-            CustomAlert.this.detailsProperty().emptyProperty().addListener((_, oldValue, newValue) -> {
-                if (oldValue != newValue) {
-                    if (newValue) {
-                        setExpandableContent(null);
-                    } else {
-                        setExpandableContent(details);
-                    }
+            CustomAlert.this.detailsProperty().emptyProperty().addListener((_, _, isDetailsEmpty) -> {
+                if (isDetailsEmpty) {
+                    setExpandableContent(null);
+                } else {
+                    setExpandableContent(details);
                 }
             });
             if (CustomAlert.this.detailsProperty().isEmpty()) {

@@ -178,7 +178,9 @@ public final class DateTimeFormatter {
      * @throws DateTimeParseException if the string doesn't follow the class-defined format
      */
     public static LocalDateTime parseDateTime(String input) throws DateTimeParseException {
-        if (input.equals("now")) {
+        if (input == null || input.isEmpty()) {
+            return null;
+        } else if (input.equals("now")) {
             return LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS);
         } else {
             try {
@@ -200,6 +202,9 @@ public final class DateTimeFormatter {
      * @return the formatted date-time string
      */
     public static String formatDateTime(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return "";
+        }
         StringBuilder res = new StringBuilder();
 
         LocalDate today = LocalDate.now();

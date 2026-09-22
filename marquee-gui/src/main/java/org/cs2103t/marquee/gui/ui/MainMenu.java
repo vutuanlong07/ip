@@ -5,17 +5,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 
 import org.cs2103t.marquee.core.Marquee;
 import org.cs2103t.marquee.core.io.FileParseException;
 import org.cs2103t.marquee.core.task.Task;
 import org.cs2103t.marquee.core.task.TaskTag;
-import org.cs2103t.marquee.core.time.DateTimeFormatter;
 import org.cs2103t.marquee.gui.MainApplication;
 
-import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
@@ -25,64 +21,13 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.util.StringConverter;
 
 /**
  * Controller class for the main menu.
  */
 public class MainMenu extends VBox {
-    public static final StringConverter<LocalDateTime> DATETIME_STRING_CONVERTER =
-            new StringConverter<LocalDateTime>() {
-                @Override
-                public String toString(LocalDateTime object) {
-                    return object == null ? "" : DateTimeFormatter.formatDateTime(object);
-                }
-
-                @Override
-                public LocalDateTime fromString(String string) {
-                    try {
-                        return string.isEmpty() ? null : DateTimeFormatter.parseDateTime(string);
-                    } catch (DateTimeParseException e) {
-                        Platform.runLater(() -> {
-                            try {
-                                CustomAlert<ButtonType> dialog = new CustomAlert<>(
-                                        Alert.AlertType.ERROR,
-                                        "Not a valid date-time",
-                                        ButtonType.OK
-                                );
-                                dialog.getContent().add(new Text("Parsing error at:\n"));
-                                int start = e.getErrorIndex() - 10;
-                                int at = e.getErrorIndex();
-                                int after = e.getErrorIndex() + 1;
-                                int end = e.getErrorIndex() + 5;
-                                Text beforeText = new Text((start < 0 ? "..." : "")
-                                        + e.getParsedString().substring(Math.max(0, start), at));
-                                Text errorText = new Text(e.getParsedString().substring(at, after));
-                                Text afterText = new Text(
-                                        e.getParsedString().substring(after, Math.min(e.getParsedString().length(), end))
-                                                + (end > e.getParsedString().length() ? "..." : "")
-                                );
-                                errorText.getStyleClass().add("error");
-                                dialog.getContent().addAll(beforeText, errorText, afterText);
-                                dialog.getContent().add(new Text("\n" + e.getMessage()));
-                                dialog.showAndWait();
-                            } catch (IOException ex) {
-                                Alert backupDialog = new Alert(
-                                        Alert.AlertType.ERROR,
-                                        "'" + e.getParsedString() + "' is not a valid date-time",
-                                        ButtonType.OK
-                                );
-                                backupDialog.showAndWait();
-                            }
-                        });
-                        throw e;
-                    }
-                }
-            };
-
     private final Marquee marquee;
     private final ObjectProperty<Path> currentFile = new SimpleObjectProperty<>(this, "currentFile");
 
@@ -99,7 +44,6 @@ public class MainMenu extends VBox {
 
     private ObjectProperty<Task> selected = new SimpleObjectProperty<>(this, "selected");
     private Task clipboard;
-    private CustomAlert<ButtonType> datetimeHelpDialog;
 
     /**
      * Creates a new {@code MainMenu}.
@@ -108,27 +52,16 @@ public class MainMenu extends VBox {
     public MainMenu(Stage stage) throws IOException {
         this.stage = stage;
         marquee = new Marquee();
-        currentFile.addListener((_, oldValue, newValue) -> {
-            if (newValue == null) {
+        currentFile.addListener((_, _, filepath) -> {
+            if (filepath == null) {
                 stage.setTitle("Marquee: Untitled");
             } else {
-                stage.setTitle("Marquee: " + newValue);
+                stage.setTitle("Marquee: " + filepath);
             }
         });
 
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/MainMenu.fxml"));
-        loader.setController(this);
-        loader.setRoot(this);
-        loader.load();
-    }
-
-    @FXML
-    void initialize() throws IOException {
-        content.setDividerPosition(0, 0.7);
-
         taskList = new TaskListView();
         taskList.itemsProperty().bind(marquee.checklistProperty());
-        taskListContainer.getChildren().setAll(taskList);
         AnchorPane.setTopAnchor(taskList, 0.0);
         AnchorPane.setRightAnchor(taskList, 0.0);
         AnchorPane.setBottomAnchor(taskList, 0.0);
@@ -137,14 +70,22 @@ public class MainMenu extends VBox {
 
         taskEditor = new TaskEditorView();
         taskEditor.taskProperty().bind(taskList.getSelectionModel().selectedItemProperty());
-        taskEditorContainer.getChildren().setAll(taskEditor);
         AnchorPane.setTopAnchor(taskEditor, 0.0);
         AnchorPane.setRightAnchor(taskEditor, 0.0);
         AnchorPane.setBottomAnchor(taskEditor, 0.0);
         AnchorPane.setLeftAnchor(taskEditor, 0.0);
 
-        datetimeHelpDialog = new CustomAlert<>(Alert.AlertType.INFORMATION, "Date-time formats");
-        datetimeHelpDialog = new CustomAlert<>(Alert.AlertType.INFORMATION, "Date-time formats");
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/MainMenu.fxml"));
+        loader.setController(this);
+        loader.setRoot(this);
+        loader.load();
+    }
+
+    @FXML
+    void initialize() {
+        content.setDividerPosition(0, 0.7);
+        taskListContainer.getChildren().setAll(taskList);
+        taskEditorContainer.getChildren().setAll(taskEditor);
     }
 
     private boolean saveAt(Path saveLocation) {
@@ -292,7 +233,14 @@ public class MainMenu extends VBox {
 
     @FXML
     void newTask() {
-        marquee.addTasks(new Task());
+        marquee.addTasks(new Task(
+                "New Task",
+                false,
+                null,
+                null,
+                TaskTag.createOrGet("Abiau"),
+                TaskTag.createOrGet("aeystrhfg"),
+                TaskTag.createOrGet("AAvcccb V")));
     }
 
     @FXML

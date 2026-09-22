@@ -37,6 +37,9 @@ public final class TaskTag {
         if (label == null) {
             throw new NullPointerException("Tag label cannot be null");
         }
+        if (label.isEmpty()) {
+            throw new IllegalArgumentException("Tag label cannot be empty");
+        }
         int invalidCharCodePoint = label.chars()
                 .dropWhile(c -> Character.isLetterOrDigit(c) || SPECIAL_CHARACTERS.contains((char) c))
                 .findAny().orElse(-1);
@@ -108,7 +111,11 @@ public final class TaskTag {
      * @return the tag with the given label
      */
     public static TaskTag createOrGet(String label) {
-        if (DICTIONARY.containsKey(label)) {
+        if (label == null) {
+            throw new IllegalArgumentException("Label cannot be null");
+        } else if (label.isEmpty()) {
+            return null;
+        } else if (DICTIONARY.containsKey(label)) {
             return DICTIONARY.get(label);
         } else {
             TaskTag newTag = new TaskTag(label);

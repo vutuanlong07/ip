@@ -19,15 +19,16 @@ public class MainApplication extends Application {
     }
 
     public static Path getLocalStoragePath() {
+        String applicationFolder = "Marquee";
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("windows")) {
-            return Paths.get(System.getenv("LOCALAPPDATA"));
+            return Paths.get(System.getenv("LOCALAPPDATA"), applicationFolder);
         } else if (os.contains("mac")) {
-            return Paths.get(System.getProperty("user.home")).resolve("Library");
+            return Paths.get(System.getProperty("user.home"), "Library", applicationFolder);
         } else {
             String dataHome = System.getenv("XDG_DATA_HOME");
             String userHome = System.getProperty("user.home");
-            return Paths.get(dataHome != null && !dataHome.isEmpty() ? dataHome : userHome);
+            return Paths.get(dataHome != null && !dataHome.isEmpty() ? dataHome : userHome, applicationFolder);
         }
     }
 
