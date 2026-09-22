@@ -45,11 +45,19 @@ public class TagListView extends FlowPane {
      * Creates a {@code TagListView}.
      */
     public TagListView() throws IOException {
+        getStylesheets().add(getClass().getResource("/style/tag-list.css").toExternalForm());
+        getStyleClass().add("debug");
+
         addButton = new TagListAddButton(this);
         getChildren().add(addButton);
 
         items.addListener(this::fixCellCount);
-        needsLayoutProperty().addListener((_, _, _) -> Platform.runLater(this::layoutCells));
+        layoutBoundsProperty().addListener((_, _, _) -> Platform.runLater(this::layoutCells));
+        layoutBoundsProperty().addListener((_, oldValue, newValue) -> {
+            if (newValue.getHeight() != oldValue.getHeight()) {
+                System.out.println(getParent().getParent() + " " + getParent().getParent().hashCode());
+            }
+        });
 
         setHgap(10);
         setVgap(10);
@@ -176,6 +184,6 @@ public class TagListView extends FlowPane {
             getChildren().remove(addButton);
             getChildren().add(i, addButton);
         }
-        hiddenCount.set((int) cellsByTag.values().stream().filter(cell -> !cell.isOverflow()).count());
+        hiddenCount.set((int) cellsByTag.values().stream().filter(TagItemView::isOverflow).count());
     }
 }
