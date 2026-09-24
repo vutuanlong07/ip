@@ -38,7 +38,10 @@ jobs:
 #          path: marquee-gui/build/native/nativeCompile/*
   build-gui-jar:
     name: Build JAR for marquee-gui
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, windows-11-arm, macos-26, macos-26-intel, ubuntu-26.04, ubuntu-26.04-arm]
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7
@@ -54,7 +57,7 @@ jobs:
       - name: Upload JAR
         uses: actions/upload-artifact@v7
         with:
-          name: marquee-${{ github.ref_name }}-jar
+          name: marquee-${{ github.ref_name }}-${{ matrix.os }}
           path: marquee-gui/build/libs/*
   publish:
     name: Publish the built binaries
