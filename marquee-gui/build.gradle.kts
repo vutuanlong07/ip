@@ -8,7 +8,7 @@ plugins {
 group = findProperty("group")!!
 version = findProperty(project.name + "-version")!!
 
-val platform = (findProperty("myProperty") ?: "unknown").toString()
+val platform = (findProperty("platform") ?: "unknown").toString()
 
 dependencies {
     implementation(project(":marquee-core"))
