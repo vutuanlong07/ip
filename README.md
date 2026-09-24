@@ -1,5 +1,7 @@
 # Marquee
 
+[![CLI Build](https://github.com/vutuanlong07/ip/actions/workflows/build-cli.yaml/badge.svg)](https://github.com/vutuanlong07/ip/releases)
+
 ## Overview
 
 Marquee is an API for a task-keeping assistant that tries to mimic natural language as close as possible to give you a smooth conversation.
