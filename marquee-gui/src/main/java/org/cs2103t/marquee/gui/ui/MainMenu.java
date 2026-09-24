@@ -233,14 +233,7 @@ public class MainMenu extends VBox {
 
     @FXML
     void newTask() {
-        marquee.addTasks(new Task(
-                "New Task",
-                false,
-                null,
-                null,
-                TaskTag.createOrGet("Abiau"),
-                TaskTag.createOrGet("aeystrhfg"),
-                TaskTag.createOrGet("AAvcccb V")));
+        marquee.addTasks(new Task());
     }
 
     @FXML

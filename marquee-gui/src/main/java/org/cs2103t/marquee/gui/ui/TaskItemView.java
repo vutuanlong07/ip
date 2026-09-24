@@ -53,21 +53,21 @@ public class TaskItemView extends GridPane {
         mark.addListener((_, _, isMarked) ->
                 pseudoClassStateChanged(MARKED_CLASS, isMarked)
         );
-        task.addListener((_, oldValue, newValue) -> {
-            if (oldValue != null) {
+        task.addListener((_, oldTask, newTask) -> {
+            if (oldTask != null) {
                 mark.unbind();
                 description.textProperty().unbind();
                 tags.itemsProperty().unbind();
                 start.textProperty().unbind();
                 end.textProperty().unbind();
             }
-            if (newValue != null) {
+            if (newTask != null) {
                 setDisable(false);
-                mark.bind(newValue.markProperty());
-                description.textProperty().bind(newValue.descriptionProperty());
-                tags.itemsProperty().bind(newValue.tagsProperty());
-                start.textProperty().bind(newValue.startProperty().map(DateTimeFormatter::formatDateTime));
-                end.textProperty().bind(newValue.endProperty().map(DateTimeFormatter::formatDateTime));
+                mark.bind(newTask.markProperty());
+                description.textProperty().bind(newTask.descriptionProperty());
+                tags.itemsProperty().bind(newTask.tagsProperty());
+                start.textProperty().bind(newTask.startProperty().map(DateTimeFormatter::formatDateTime));
+                end.textProperty().bind(newTask.endProperty().map(DateTimeFormatter::formatDateTime));
             } else {
                 setDisable(true);
                 mark.set(false);

@@ -102,21 +102,21 @@ public class TaskEditorView extends GridPane {
         tags = new TagListView();
         tags.setAddAllowed(true);
 
-        task.addListener((_, oldValue, newValue) -> {
-            if (oldValue != null) {
-                mark.selectedProperty().unbindBidirectional(oldValue.markProperty());
-                description.textProperty().unbindBidirectional(oldValue.descriptionProperty());
-                tags.itemsProperty().unbindBidirectional(oldValue.tagsProperty());
-                startFormatter.valueProperty().unbindBidirectional(oldValue.startProperty());
-                endFormatter.valueProperty().unbindBidirectional(oldValue.endProperty());
+        task.addListener((_, oldTask, newTask) -> {
+            if (oldTask != null) {
+                mark.selectedProperty().unbindBidirectional(oldTask.markProperty());
+                description.textProperty().unbindBidirectional(oldTask.descriptionProperty());
+                tags.itemsProperty().unbindBidirectional(oldTask.tagsProperty());
+                startFormatter.valueProperty().unbindBidirectional(oldTask.startProperty());
+                endFormatter.valueProperty().unbindBidirectional(oldTask.endProperty());
             }
-            if (newValue != null) {
+            if (newTask != null) {
                 setDisable(false);
-                mark.selectedProperty().bindBidirectional(newValue.markProperty());
-                description.textProperty().bindBidirectional(newValue.descriptionProperty());
-                tags.itemsProperty().bindBidirectional(newValue.tagsProperty());
-                startFormatter.valueProperty().bindBidirectional(newValue.startProperty());
-                endFormatter.valueProperty().bindBidirectional(newValue.endProperty());
+                mark.selectedProperty().bindBidirectional(newTask.markProperty());
+                description.textProperty().bindBidirectional(newTask.descriptionProperty());
+                tags.itemsProperty().bindBidirectional(newTask.tagsProperty());
+                startFormatter.valueProperty().bindBidirectional(newTask.startProperty());
+                endFormatter.valueProperty().bindBidirectional(newTask.endProperty());
             } else {
                 setDisable(true);
                 mark.setSelected(false);

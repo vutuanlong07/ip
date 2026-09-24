@@ -3,6 +3,7 @@ package org.cs2103t.marquee.gui.ui;
 import java.io.IOException;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.NumberBinding;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
@@ -35,10 +36,12 @@ public class TagListAddButton extends HBox {
 
     @FXML
     void initialize() {
-        hiddenCountLabel.textProperty().bind(Bindings.concat("+", parent.hiddenCountProperty(), " more..."));
-        hiddenCountLabel.visibleProperty().bind(parent.hiddenCountProperty().isNotEqualTo(0));
-        hiddenCountLabel.managedProperty().bind(parent.hiddenCountProperty().isNotEqualTo(0));
-        buttonContainer.visibleProperty().bind(parent.addAllowedProperty());
+        NumberBinding hiddenCount = parent.itemsProperty().sizeProperty().subtract(parent.lastIndexProperty());
+        hiddenCountLabel.textProperty().bind(Bindings.concat("+", hiddenCount, " more..."));
+        hiddenCountLabel.visibleProperty().bind(hiddenCount.isNotEqualTo(0));
+        hiddenCountLabel.managedProperty().bind(hiddenCount.isNotEqualTo(0));
+
+        //buttonContainer.visibleProperty().bind(parent.addAllowedProperty());
     }
 
     @FXML
