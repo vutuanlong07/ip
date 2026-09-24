@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<fx:root alignment="CENTER" prefHeight="75.0" prefWidth="437.0" styleClass="task-item" stylesheets="@../style/task-list.css" type="GridPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root alignment="BOTTOM_RIGHT" prefHeight="75.0" prefWidth="437.0" styleClass="task-item" stylesheets="@../style/task-list.css" type="GridPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <columnConstraints>
       <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" minWidth="150.0" percentWidth="45.0" />
       <ColumnConstraints hgrow="ALWAYS" minWidth="100.0" />
@@ -18,7 +18,7 @@
       <RowConstraints maxHeight="75.0" minHeight="75.0" prefHeight="75.0" valignment="TOP" vgrow="SOMETIMES" />
    </rowConstraints>
    <children>
-      <StackPane style="-fx-background-insets: 1;" styleClass="field">
+      <StackPane style="-fx-background-insets: 0 1 1 1;" styleClass="field">
          <children>
             <Label fx:id="description" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" prefHeight="0.0" text="New Task" wrapText="true" />
          </children>
