@@ -3,84 +3,92 @@ package org.cs2103t.marquee.gui.ui;
 import java.io.IOException;
 
 import org.cs2103t.marquee.core.task.Task;
+import org.cs2103t.marquee.core.time.DateTimeFormatter;
 
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 
 /**
  * Controller for read-only task item view.
  */
-public class TaskItemView extends HBox {
+public class TaskItemView extends GridPane {
     private static final PseudoClass MARKED_CLASS = PseudoClass.getPseudoClass("completed");
 
     private final ObjectProperty<Task> task = new SimpleObjectProperty<>(this, "task");
-    private final ChangeListener<Boolean> markListener = (_, oldValue, newValue) ->
-            pseudoClassStateChanged(MARKED_CLASS, newValue);
+    private final BooleanProperty mark = new SimpleBooleanProperty(this, "mark");
 
-    private ListCell<Task> parent;
     @FXML
     private Label description;
     @FXML
-    private StackPane descriptionContainer;
-    @FXML
-    private TagListView tags;
-    @FXML
-    private HBox resizable;
+    private AnchorPane tagsContainer;
     @FXML
     private Label start;
     @FXML
     private Label end;
-    @FXML
-    private CheckBox selected;
+
+    private final TagListView tags;
 
     /**
      * Creates a new {@code TaskItemView}.
      * @throws IOException if an I/O error occurs
      */
     public TaskItemView(ListCell<Task> parent) throws IOException {
-        this.parent = parent;
+        tags = new TagListView();
+        tags.setAddAllowed(false);
+        tags.setAddAllowed(false);
+        AnchorPane.setTopAnchor(tags, 0.0);
+        AnchorPane.setRightAnchor(tags, 0.0);
+        AnchorPane.setBottomAnchor(tags, 0.0);
+        AnchorPane.setLeftAnchor(tags, 0.0);
+
+        mark.addListener((_, _, isMarked) ->
+                pseudoClassStateChanged(MARKED_CLASS, isMarked)
+        );
+        task.addListener((_, oldValue, newValue) -> {
+            if (oldValue != null) {
+                mark.unbind();
+                description.textProperty().unbind();
+                tags.itemsProperty().unbind();
+                start.textProperty().unbind();
+                end.textProperty().unbind();
+            }
+            if (newValue != null) {
+                setDisable(false);
+                mark.bind(newValue.markProperty());
+                description.textProperty().bind(newValue.descriptionProperty());
+                tags.itemsProperty().bind(newValue.tagsProperty());
+                start.textProperty().bind(newValue.startProperty().map(DateTimeFormatter::formatDateTime));
+                end.textProperty().bind(newValue.endProperty().map(DateTimeFormatter::formatDateTime));
+            } else {
+                setDisable(true);
+                mark.set(false);
+                description.setText("");
+                tags.setItems(null);
+                start.setText("");
+                end.setText("");
+            }
+        });
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/TaskItemView.fxml"));
         loader.setController(this);
         loader.setRoot(this);
         loader.load();
 
-        maxWidthProperty().bind(this.parent.widthProperty());
-        descriptionContainer.prefWidthProperty().bind(resizable.widthProperty().divide(2));
+        mark.set(true);
+    }
 
-        task.addListener((_, oldValue, newValue) -> {
-            if (oldValue != null) {
-                oldValue.markProperty().removeListener(markListener);
-                description.textProperty().unbindBidirectional(oldValue.descriptionProperty());
-                start.textProperty().unbindBidirectional(oldValue.startProperty());
-                end.textProperty().unbindBidirectional(oldValue.endProperty());
-            }
-            if (newValue != null) {
-                this.setDisable(false);
-
-                newValue.markProperty().addListener(markListener);
-                pseudoClassStateChanged(MARKED_CLASS, newValue.isMarked());
-                description.textProperty().bindBidirectional(newValue.descriptionProperty());
-                start.textProperty().bindBidirectional(newValue.startProperty(), MainMenu.DATETIME_STRING_CONVERTER);
-                end.textProperty().bindBidirectional(newValue.endProperty(), MainMenu.DATETIME_STRING_CONVERTER);
-            } else {
-                this.setDisable(true);
-
-                pseudoClassStateChanged(MARKED_CLASS, true);
-                description.setText("");
-                start.setText("");
-                end.setText("");
-            }
-        });
+    @FXML
+    void initialize() {
+        tagsContainer.getChildren().setAll(tags);
     }
 
     public Task getTask() {

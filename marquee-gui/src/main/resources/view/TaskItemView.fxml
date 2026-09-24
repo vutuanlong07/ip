@@ -1,55 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Separator?>
-<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<fx:root alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="75.0" spacing="5.0" styleClass="task-item" stylesheets="@../style/task.css" type="HBox" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root alignment="CENTER" prefHeight="75.0" prefWidth="437.0" styleClass="task-item" stylesheets="@../style/task-list.css" type="GridPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+   <columnConstraints>
+      <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" minWidth="150.0" percentWidth="45.0" />
+      <ColumnConstraints hgrow="ALWAYS" minWidth="100.0" />
+      <ColumnConstraints hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="100.0" />
+   </columnConstraints>
+   <rowConstraints>
+      <RowConstraints maxHeight="75.0" minHeight="75.0" prefHeight="75.0" valignment="TOP" vgrow="SOMETIMES" />
+   </rowConstraints>
    <children>
-      <StackPane minWidth="25.0" HBox.hgrow="NEVER">
-         <HBox.margin>
+      <StackPane style="-fx-background-insets: 1;" styleClass="field">
+         <children>
+            <Label fx:id="description" contentDisplay="TEXT_ONLY" graphicTextGap="0.0" prefHeight="0.0" text="New Task" wrapText="true" />
+         </children>
+      </StackPane>
+      <AnchorPane fx:id="tagsContainer" maxHeight="75.0" minHeight="75.0" prefHeight="75.0" styleClass="field" GridPane.columnIndex="1">
+         <padding>
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-         </HBox.margin>
+         </padding>
+      </AnchorPane>
+      <VBox alignment="CENTER" styleClass="field" GridPane.columnIndex="2">
          <children>
-            <CheckBox fx:id="selected" mnemonicParsing="false" />
+            <Label fx:id="start" text="Start Time" />
+            <Label text="—" />
+            <Label fx:id="end" text="End Time" />
          </children>
-      </StackPane>
-      <Separator orientation="VERTICAL" HBox.hgrow="NEVER">
-         <HBox.margin>
-            <Insets />
-         </HBox.margin>
-      </Separator>
-      <HBox fx:id="resizable" HBox.hgrow="SOMETIMES">
-         <children>
-            <StackPane fx:id="descriptionContainer" maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minWidth="100.0" HBox.hgrow="NEVER">
-               <children>
-                  <Label fx:id="description" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="New Task" wrapText="true" />
-               </children>
-            </StackPane>
-            <Separator orientation="VERTICAL" />
-            <StackPane maxHeight="1.7976931348623157E308" maxWidth="-Infinity" minWidth="100.0" HBox.hgrow="ALWAYS" />
-         </children>
-      </HBox>
-      <Separator orientation="VERTICAL">
-         <HBox.margin>
-            <Insets />
-         </HBox.margin></Separator>
-      <StackPane minWidth="100.0" HBox.hgrow="NEVER">
-         <children>
-            <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
-               <children>
-                  <Label fx:id="start" text="Start Time" />
-                  <Label text="—" />
-                  <Label fx:id="end" text="End Time" />
-               </children>
-            </VBox>
-         </children>
-      </StackPane>
+      </VBox>
    </children>
-   <padding>
-      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-   </padding>
 </fx:root>

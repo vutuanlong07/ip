@@ -2,7 +2,7 @@ plugins {
     application
     id("java-common-conventions")
     id("org.openjfx.javafxplugin") version "0.1.0"
-    id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.29"
+//    id("com.gluonhq.gluonfx-gradle-plugin") version "1.0.29"
     id("com.gradleup.shadow") version "9.5.1"
 }
 
@@ -28,5 +28,6 @@ tasks.jar {
 }
 
 tasks.shadowJar {
+    mainClass = "org.cs2103t.marquee.gui.AlternativeMain"
     archiveFileName = "${project.name}-v${project.version}-jar.jar"
 }

@@ -5,14 +5,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
 
 import org.cs2103t.marquee.core.Marquee;
 import org.cs2103t.marquee.core.io.FileParseException;
 import org.cs2103t.marquee.core.task.Task;
 import org.cs2103t.marquee.core.task.TaskTag;
-import org.cs2103t.marquee.core.time.DateTimeFormatter;
 import org.cs2103t.marquee.gui.MainApplication;
 
 import javafx.beans.property.ObjectProperty;
@@ -21,33 +18,22 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.util.StringConverter;
 
 /**
  * Controller class for the main menu.
  */
 public class MainMenu extends VBox {
-    public static final StringConverter<LocalDateTime> DATETIME_STRING_CONVERTER =
-            new StringConverter<LocalDateTime>() {
-                @Override
-                public String toString(LocalDateTime object) {
-                    return object == null ? "" : DateTimeFormatter.formatDateTime(object);
-                }
-
-                @Override
-                public LocalDateTime fromString(String string) throws DateTimeParseException {
-                    return string.isEmpty() ? null : DateTimeFormatter.parseDateTime(string);
-                }
-            };
-
     private final Marquee marquee;
     private final ObjectProperty<Path> currentFile = new SimpleObjectProperty<>(this, "currentFile");
 
     private Stage stage;
+    @FXML
+    private SplitPane content;
     @FXML
     private AnchorPane taskListContainer;
     @FXML
@@ -56,6 +42,9 @@ public class MainMenu extends VBox {
     private TaskListView taskList;
     private TaskEditorView taskEditor;
 
+    private ObjectProperty<Task> selected = new SimpleObjectProperty<>(this, "selected");
+    private Task clipboard;
+
     /**
      * Creates a new {@code MainMenu}.
      * @throws IOException if an I/O error occurs
@@ -63,13 +52,28 @@ public class MainMenu extends VBox {
     public MainMenu(Stage stage) throws IOException {
         this.stage = stage;
         marquee = new Marquee();
-        currentFile.addListener((_, oldValue, newValue) -> {
-            if (newValue == null) {
+        currentFile.addListener((_, _, filepath) -> {
+            if (filepath == null) {
                 stage.setTitle("Marquee: Untitled");
             } else {
-                stage.setTitle("Marquee: " + newValue);
+                stage.setTitle("Marquee: " + filepath);
             }
         });
+
+        taskList = new TaskListView();
+        taskList.itemsProperty().bind(marquee.checklistProperty());
+        AnchorPane.setTopAnchor(taskList, 0.0);
+        AnchorPane.setRightAnchor(taskList, 0.0);
+        AnchorPane.setBottomAnchor(taskList, 0.0);
+        AnchorPane.setLeftAnchor(taskList, 0.0);
+        selected.bind(taskList.getSelectionModel().selectedItemProperty());
+
+        taskEditor = new TaskEditorView();
+        taskEditor.taskProperty().bind(taskList.getSelectionModel().selectedItemProperty());
+        AnchorPane.setTopAnchor(taskEditor, 0.0);
+        AnchorPane.setRightAnchor(taskEditor, 0.0);
+        AnchorPane.setBottomAnchor(taskEditor, 0.0);
+        AnchorPane.setLeftAnchor(taskEditor, 0.0);
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/MainMenu.fxml"));
         loader.setController(this);
@@ -78,22 +82,10 @@ public class MainMenu extends VBox {
     }
 
     @FXML
-    void initialize() throws IOException {
-        taskList = new TaskListView();
-        taskList.itemsProperty().bind(marquee.checklistProperty());
+    void initialize() {
+        content.setDividerPosition(0, 0.7);
         taskListContainer.getChildren().setAll(taskList);
-        AnchorPane.setTopAnchor(taskList, 0.0);
-        AnchorPane.setRightAnchor(taskList, 0.0);
-        AnchorPane.setBottomAnchor(taskList, 0.0);
-        AnchorPane.setLeftAnchor(taskList, 0.0);
-
-        taskEditor = new TaskEditorView();
-        taskEditor.taskProperty().bind(taskList.getSelectionModel().selectedItemProperty());
         taskEditorContainer.getChildren().setAll(taskEditor);
-        AnchorPane.setTopAnchor(taskEditor, 0.0);
-        AnchorPane.setRightAnchor(taskEditor, 0.0);
-        AnchorPane.setBottomAnchor(taskEditor, 0.0);
-        AnchorPane.setLeftAnchor(taskEditor, 0.0);
     }
 
     private boolean saveAt(Path saveLocation) {
@@ -241,47 +233,43 @@ public class MainMenu extends VBox {
 
     @FXML
     void newTask() {
-        marquee.addTasks(new Task());
-    }
-
-    @FXML
-    void newTag() {
-
+        marquee.addTasks(new Task(
+                "New Task",
+                false,
+                null,
+                null,
+                TaskTag.createOrGet("Abiau"),
+                TaskTag.createOrGet("aeystrhfg"),
+                TaskTag.createOrGet("AAvcccb V")));
     }
 
     @FXML
     void copySelected() {
-
-    }
-
-    @FXML
-    void cutSelected() {
-
+        if (selected.get() != null) {
+            clipboard = new Task(selected.get());
+        }
     }
 
     @FXML
     void deleteSelected() {
-
+        if (selected.get() != null) {
+            marquee.checklistProperty().remove(selected.get());
+        }
     }
 
     @FXML
-    void deselectAll() {
-
+    void cutSelected() {
+        copySelected();
+        deleteSelected();
     }
 
     @FXML
     void paste() {
-
-    }
-
-    @FXML
-    void selectAll() {
-
-    }
-
-    @FXML
-    void showHelp() {
-
+        if (clipboard != null) {
+            if (selected.get() != null) {
+                marquee.checklistProperty().add(new Task(clipboard));
+            }
+        }
     }
 
     @FXML

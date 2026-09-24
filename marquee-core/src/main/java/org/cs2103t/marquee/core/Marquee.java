@@ -254,9 +254,10 @@ public class Marquee {
      * @throws IndexOutOfBoundsException if an index is out of the last task list's bounds
      */
     public final List<Task> deleteTasks(boolean inheritLastResult, int... indices) throws IndexOutOfBoundsException {
+        int limit = inheritLastResult ? lastResult.size() : checklist.size();
         List<Task> deletedTasks = IntStream.of(indices)
                 .peek(i -> {
-                    if (i < 0 || i >= lastResult.size()) {
+                    if (i < 0 || i >= limit) {
                         throw new IndexOutOfBoundsException(i);
                     }
                 })
@@ -290,9 +291,10 @@ public class Marquee {
      * @throws IndexOutOfBoundsException if an index is out of the last task list's bounds
      */
     public final List<Task> markTasks(boolean inheritLastResult, int... indices) throws IndexOutOfBoundsException {
+        int limit = inheritLastResult ? lastResult.size() : checklist.size();
         List<Task> markedTasks = IntStream.of(indices)
                 .peek(i -> {
-                    if (i < 0 || i >= lastResult.size()) {
+                    if (i < 0 || i >= limit) {
                         throw new IndexOutOfBoundsException(i);
                     }
                 })
@@ -326,9 +328,10 @@ public class Marquee {
      * @throws IndexOutOfBoundsException if an index is out of the last task list's bounds
      */
     public final List<Task> unmarkTasks(boolean inheritLastResult, int... indices) throws IndexOutOfBoundsException {
+        int limit = inheritLastResult ? lastResult.size() : checklist.size();
         List<Task> unmarkedTasks = IntStream.of(indices)
                 .peek(i -> {
-                    if (i < 0 || i >= lastResult.size()) {
+                    if (i < 0 || i >= limit) {
                         throw new IndexOutOfBoundsException(i);
                     }
                 })
