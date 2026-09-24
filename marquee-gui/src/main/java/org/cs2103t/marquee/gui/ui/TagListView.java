@@ -70,7 +70,7 @@ public class TagListView extends FlowPane {
         getChildren().add(addButton);
 
         sentinel = new Region();
-        sentinel.getStyleClass().add("tag-chip");
+        sentinel.setVisible(false);
         content.add(sentinel);
         getChildren().add(sentinel);
 
