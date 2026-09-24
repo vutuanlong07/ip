@@ -42,7 +42,7 @@ public class TagItemView extends HBox {
         label.textProperty().bind(tag.asString());
 
         button.visibleProperty().bind(parent.addAllowedProperty().and(tag.isNotNull()));
-        button.managedProperty().bind(parent.addAllowedProperty().and(tag.isNotNull()));
+        button.disableProperty().bind(parent.addAllowedProperty().and(tag.isNotNull()).not());
     }
 
     @FXML

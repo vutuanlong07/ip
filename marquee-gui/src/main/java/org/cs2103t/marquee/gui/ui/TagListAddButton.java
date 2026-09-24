@@ -41,7 +41,7 @@ public class TagListAddButton extends HBox {
         hiddenCountLabel.visibleProperty().bind(hiddenCount.isNotEqualTo(0));
         hiddenCountLabel.managedProperty().bind(hiddenCount.isNotEqualTo(0));
 
-        //buttonContainer.visibleProperty().bind(parent.addAllowedProperty());
+        buttonContainer.visibleProperty().bind(parent.addAllowedProperty());
     }
 
     @FXML

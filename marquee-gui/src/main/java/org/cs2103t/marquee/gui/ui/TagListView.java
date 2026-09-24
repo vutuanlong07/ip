@@ -216,14 +216,12 @@ public class TagListView extends FlowPane {
     }
 
     private void layoutCells() {
-        System.out.println("end cell layout");
         Node curr = content.get(lastIndex.get());
         curr.boundsInParentProperty().removeListener(layoutListener);
         if (getLayoutBounds().contains(curr.getBoundsInParent())) {
             curr.setVisible(true);
             Node last;
             while (lastIndex.get() < content.size() - 1) {
-                System.out.println(curr.getBoundsInParent().getMaxY() + "   " + getLayoutBounds().getMaxY());
                 lastIndex.set(lastIndex.get() + 1);
                 last = curr;
                 curr = content.get(lastIndex.get());
@@ -237,7 +235,6 @@ public class TagListView extends FlowPane {
             curr.setVisible(false);
             Node last;
             while (lastIndex.get() > 0) {
-                System.out.println(curr.getBoundsInParent().getMaxY() + "   " + getLayoutBounds().getMaxY());
                 lastIndex.set(lastIndex.get() - 1);
                 last = curr;
                 curr = content.get(lastIndex.get());
