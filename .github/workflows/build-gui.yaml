@@ -12,14 +12,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, windows-11-arm, macos-26, macos-26-intel, ubuntu-26.04, ubuntu-26.04-arm]
+        os: [windows-latest, macos-26, macos-26-intel, ubuntu-26.04, ubuntu-26.04-arm]
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7
       - name: Setup Java
         uses: actions/setup-java@v6
         with:
-          distribution: ${{ case(startsWith(matrix.os, 'windows'), 'microsoft', 'temurin') }}
+          distribution: temurin
           java-version: 25
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
