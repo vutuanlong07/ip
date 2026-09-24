@@ -1,4 +1,4 @@
-name: Build binaries for marquee-gui
+name: GUI build
 on:
   push:
     tags:
