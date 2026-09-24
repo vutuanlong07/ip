@@ -31,7 +31,6 @@ public class MainMenu extends VBox {
     private final Marquee marquee;
     private final ObjectProperty<Path> currentFile = new SimpleObjectProperty<>(this, "currentFile");
 
-    private Stage stage;
     @FXML
     private SplitPane content;
     @FXML
@@ -50,13 +49,17 @@ public class MainMenu extends VBox {
      * @throws IOException if an I/O error occurs
      */
     public MainMenu(Stage stage) throws IOException {
-        this.stage = stage;
         marquee = new Marquee();
         currentFile.addListener((_, _, filepath) -> {
             if (filepath == null) {
                 stage.setTitle("Marquee: Untitled");
             } else {
                 stage.setTitle("Marquee: " + filepath);
+            }
+        });
+        stage.setOnCloseRequest(e -> {
+            if (!reset()) {
+                e.consume();
             }
         });
 
@@ -237,29 +240,32 @@ public class MainMenu extends VBox {
     }
 
     @FXML
-    void copySelected() {
+    public void copySelected() {
         if (selected.get() != null) {
             clipboard = new Task(selected.get());
         }
     }
 
     @FXML
-    void deleteSelected() {
+    public void deleteSelected() {
         if (selected.get() != null) {
             marquee.checklistProperty().remove(selected.get());
         }
     }
 
     @FXML
-    void cutSelected() {
+    public void cutSelected() {
         copySelected();
         deleteSelected();
     }
 
     @FXML
-    void paste() {
+    public void paste() {
         if (clipboard != null) {
             if (selected.get() != null) {
+                marquee.checklistProperty().add(
+                        marquee.getChecklist().indexOf(selected.get()) + 1, new Task(clipboard));
+            } else {
                 marquee.checklistProperty().add(new Task(clipboard));
             }
         }

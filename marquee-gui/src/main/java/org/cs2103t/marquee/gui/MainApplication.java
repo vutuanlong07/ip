@@ -8,6 +8,9 @@ import org.cs2103t.marquee.gui.ui.MainMenu;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.stage.Stage;
 
 /**
@@ -36,6 +39,22 @@ public class MainApplication extends Application {
     public void start(Stage stage) throws IOException {
         MainMenu mainMenu = new MainMenu(stage);
         Scene scene = new Scene(mainMenu);
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.DELETE),
+                mainMenu::deleteSelected
+        );
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN),
+                mainMenu::copySelected
+        );
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN),
+                mainMenu::copySelected
+        );
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN),
+                mainMenu::paste
+        );
         stage.setTitle("Marquee: Untitled");
         stage.setScene(scene);
         stage.setMinWidth(mainMenu.getMinWidth());
