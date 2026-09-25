@@ -8,16 +8,16 @@ plugins {
 group = findProperty("group")!!
 version = findProperty(project.name + "-version")!!
 
-val platform = (findProperty("platform") ?: "unknown").toString()
-
 dependencies {
     implementation(project(":marquee-core"))
-}
 
-javafx {
-    version = "26.0.2"
-    modules.add("javafx.controls")
-    modules.add("javafx.fxml")
+    val jfxVersion = "26.0.2"
+    val jfxPlatforms = arrayOf("win", "linux", "mac")
+    for (platform in jfxPlatforms) {
+        implementation("org.openjfx:javafx-base:$jfxVersion:$platform")
+        implementation("org.openjfx:javafx-controls:$jfxVersion:$platform")
+        implementation("org.openjfx:javafx-fxml:$jfxVersion:$platform")
+    }
 }
 
 application {
@@ -25,10 +25,10 @@ application {
 }
 
 tasks.jar {
-    archiveFileName = "${project.name}-v${project.version}-${platform}-lean.jar"
+    archiveFileName = "${project.name}-v${project.version}-all-lean.jar"
 }
 
 tasks.shadowJar {
     mainClass = "org.cs2103t.marquee.gui.AlternativeMain"
-    archiveFileName = "${project.name}-v${project.version}-${platform}.jar"
+    archiveFileName = "${project.name}-v${project.version}-all.jar"
 }
