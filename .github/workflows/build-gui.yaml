@@ -9,10 +9,7 @@ permissions:
 jobs:
   build-gui-jar:
     name: Build JAR for marquee-gui
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, macos-26, macos-26-intel, ubuntu-26.04, ubuntu-26.04-arm]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7
@@ -24,12 +21,34 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Build with Gradle
-        run: ./gradlew :marquee-gui:shadowJar -Pplatform=${{ matrix.os }}
+        run: ./gradlew :marquee-gui:shadowJar
       - name: Upload JAR
         uses: actions/upload-artifact@v7
         with:
-          name: marquee-${{ github.ref_name }}-${{ matrix.os }}
-          path: marquee-gui/build/libs/marquee-gui-*.jar
+          name: marquee-${{ github.ref_name }}-all
+          path: marquee-gui/build/libs/marquee-${{ github.ref_name }}-all.jar
+  check-jar:
+    name: Test run the JAR
+    needs: [build-gui-jar]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, windows-11-arm, macos-26, macos-26-intel, ubuntu-26.04, ubuntu-26.04-arm]
+    steps:
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+      - name: Download binaries
+        uses: actions/download-artifact@v8
+        with:
+          path: ./
+          name: marquee-${{ github.ref_name }}-all
+      - name: Run the JAR on ${{ matrix.os }}
+        timeout-minutes: 1
+        continue-on-error: true
+        run: java -jar marquee-${{ github.ref_name }}-all.jar
   publish:
     name: Publish the built binaries
     needs: [build-gui-jar]
