@@ -52,15 +52,17 @@ jobs:
         shell: pwsh
         run: |
           $job = Start-Job -ScriptBlock {
-            java -jar ${{ env.JAR_NAME }}.jar *> $null
-            return $?
+            java -jar ${{ env.JAR_NAME }}.jar *> $logs
+            return @{ logs=$logs, exitcode=$LASTEXITCODE }
           }
           Wait-Job $job -Timeout 10
           if ($job.State -eq "Running") {
             Stop-Job $job
             exit 0
           } else {
-            exit (Receive-Job $job) ? 0 : 1
+            $result = Receive-Job $job
+            echo result.logs
+            exit result.exitcode
           }
   publish:
     name: Publish the built binaries
