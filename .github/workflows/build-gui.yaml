@@ -52,9 +52,16 @@ jobs:
         shell: pwsh
         run: |
           $job = Start-Job -ScriptBlock {
-            & "$env:JAVA_HOME/bin/java" -jar ${{ env.JAR_NAME }}.jar
+            java -jar ${{ env.JAR_NAME }}.jar *> $null
+            return $?
           }
-          Start-Sleep 10
+          Wait-Job $job -Timeout 10
+          if ($job.State -eq "Running") {
+            Stop-Job $job
+            exit 0
+          } else {
+            exit (Receive-Job $job) ? 0 : 1
+          }
   publish:
     name: Publish the built binaries
     needs: [build-gui-jar]
