@@ -4,6 +4,12 @@ on:
     tags:
       - 'gui-v*'
       - '!gui-v*-SNAPSHOT'
+  workflow_dispatch:
+    inputs:
+      jar_name:
+        description: 'Name of JAR to create'
+        required: true
+        type: string
 permissions:
   contents: write
 env:
