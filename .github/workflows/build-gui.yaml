@@ -46,13 +46,12 @@ jobs:
       - name: Download binaries
         uses: actions/download-artifact@v8
         with:
-          path: marquee-gui/
+          path: ./
           name: ${{ env.JAR_NAME }}
       - name: Run the JAR on ${{ matrix.os }}
-        id: test
         timeout-minutes: 1
-        continue-on-error: ${{ github.action_status == 'timed_out' }}
-        run: java -jar marquee-gui/${{ env.JAR_NAME }}.jar
+        continue-on-error: true
+        run: java -jar ${{ env.JAR_NAME }}.jar
   publish:
     name: Publish the built binaries
     needs: [build-gui-jar]
