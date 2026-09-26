@@ -8,7 +8,7 @@ plugins {
 group = findProperty("group")!!
 version = findProperty(project.name + "-version")!!
 
-val jarName = findProperty("name") ?: "${project.name}-v${project.version}"
+val jarName = findProperty("jarName") ?: "${project.name}-v${project.version}-all"
 
 dependencies {
     implementation(project(":marquee-core"))
@@ -27,10 +27,10 @@ application {
 }
 
 tasks.jar {
-    archiveFileName = "${jarName}-all-lean.jar"
+    archiveFileName = "${jarName}-lean.jar"
 }
 
 tasks.shadowJar {
     mainClass = "org.cs2103t.marquee.gui.AlternativeMain"
-    archiveFileName = "${jarName}-all.jar"
+    archiveFileName = "${jarName}.jar"
 }
