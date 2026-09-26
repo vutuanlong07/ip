@@ -6,12 +6,12 @@ on:
       - '!gui-v*-SNAPSHOT'
 permissions:
   contents: write
+env:
+  JAR_NAME: "marquee-${{ github.ref_name }}"
 jobs:
   build-gui-jar:
     name: Build JAR for marquee-gui
     runs-on: ubuntu-latest
-    env:
-      JAR_NAME: "marquee-${{ github.ref_name }}"
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7
