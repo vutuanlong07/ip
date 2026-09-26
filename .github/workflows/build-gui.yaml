@@ -49,8 +49,9 @@ jobs:
           path: ./
           name: ${{ env.JAR_NAME }}
       - name: Run the JAR on ${{ matrix.os }}
+        id: test_step
         timeout-minutes: 1
-        continue-on-error: true
+        continue-on-error: ${{ steps.test_step.outcome == 'timed_out' }}
         run: java -jar ${{ env.JAR_NAME }}.jar
   publish:
     name: Publish the built binaries
