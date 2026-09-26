@@ -33,4 +33,15 @@ tasks.jar {
 tasks.shadowJar {
     mainClass = "org.cs2103t.marquee.gui.AlternativeMain"
     archiveFileName = "${jarName}.jar"
+
+    doLast {
+        val dir = file("/build/libs")
+        if (dir.exists() && dir.isDirectory) {
+            dir.listFiles()?.forEach { file ->
+                if (file.isFile) {
+                    println(file.name)
+                }
+            }
+        }
+    }
 }
