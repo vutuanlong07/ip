@@ -67,8 +67,8 @@ jobs:
             exit 0
           } else {
             $result = Receive-Job $job
-            echo result.logs
-            exit result.exitcode
+            echo $result.logs
+            exit $result.exitcode
           }
   publish:
     name: Publish the built binaries
