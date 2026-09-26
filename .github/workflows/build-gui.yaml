@@ -4,15 +4,20 @@ on:
     tags:
       - 'gui-v*'
       - '!gui-v*-SNAPSHOT'
+  workflow_dispatch:
+    inputs:
+      jar_name:
+        description: 'Name of JAR to create'
+        required: true
+        type: string
 permissions:
   contents: write
+env:
+  JAR_NAME: marquee-${{ github.ref_name }}
 jobs:
   build-gui-jar:
     name: Build JAR for marquee-gui
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [windows-latest, macos-26, macos-26-intel, ubuntu-26.04, ubuntu-26.04-arm]
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7
@@ -24,12 +29,47 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Build with Gradle
-        run: ./gradlew :marquee-gui:shadowJar -Pplatform=${{ matrix.os }}
+        run: ./gradlew :marquee-gui:shadowJar -PjarName="${{ env.JAR_NAME }}"
       - name: Upload JAR
         uses: actions/upload-artifact@v7
         with:
-          name: marquee-${{ github.ref_name }}-${{ matrix.os }}
-          path: marquee-gui/build/libs/marquee-gui-*.jar
+          name: ${{ env.JAR_NAME }}
+          path: marquee-gui/build/libs/${{ env.JAR_NAME }}.jar
+  check-jar:
+    name: Test run the JAR
+    needs: [build-gui-jar]
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-26, macos-26-intel, ubuntu-26.04, ubuntu-26.04-arm]
+    steps:
+      - name: Setup Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 25
+      - name: Download binaries
+        uses: actions/download-artifact@v8
+        with:
+          path: ./
+          name: ${{ env.JAR_NAME }}
+      - name: Run the JAR on ${{ matrix.os }}
+        shell: pwsh
+        run: |
+          $job = Start-Job -ScriptBlock {
+            $logs = $(java -jar ${{ env.JAR_NAME }}.jar) *>&1
+            return @{ logs=$logs; exitcode=$LASTEXITCODE }
+          }
+          Wait-Job $job -Timeout 10
+          if ($job.State -eq "Running") {
+            Stop-Job $job
+            exit 0
+          } else {
+            $result = Receive-Job $job
+            echo $result.logs
+            exit $result.exitcode
+          }
   publish:
     name: Publish the built binaries
     needs: [build-gui-jar]
@@ -39,7 +79,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: marquee-gui/releases
-          pattern: marquee-${{ github.ref_name }}-*
+          pattern: marquee-${{ github.ref_name }}*
           merge-multiple: true
       - name: Create release
         uses: softprops/action-gh-release@v3
