@@ -59,7 +59,7 @@ jobs:
         run: |
           $job = Start-Job -ScriptBlock {
             java -jar ${{ env.JAR_NAME }}.jar *> $logs
-            return @{ logs=$logs, exitcode=$LASTEXITCODE }
+            return @{ logs=$logs; exitcode=$LASTEXITCODE }
           }
           Wait-Job $job -Timeout 10
           if ($job.State -eq "Running") {
