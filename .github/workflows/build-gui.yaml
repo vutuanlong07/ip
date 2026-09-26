@@ -10,6 +10,8 @@ jobs:
   build-gui-jar:
     name: Build JAR for marquee-gui
     runs-on: ubuntu-latest
+    env:
+      JAR_NAME: "marquee-${{ github.ref_name }}"
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7
@@ -21,12 +23,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Build with Gradle
-        run: ./gradlew :marquee-gui:shadowJar
+        run: ./gradlew :marquee-gui:shadowJar -PjarName="${{ JAR_NAME }}"
       - name: Upload JAR
         uses: actions/upload-artifact@v7
         with:
-          name: marquee-${{ github.ref_name }}-all
-          path: marquee-gui/build/libs/marquee-${{ github.ref_name }}-all.jar
+          name: ${{ JAR_NAME }}-all
+          path: marquee-gui/build/libs/${{ JAR_NAME }}-all.jar
   check-jar:
     name: Test run the JAR
     needs: [build-gui-jar]
@@ -44,11 +46,11 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: ./
-          name: marquee-${{ github.ref_name }}-all
+          name: ${{ JAR_NAME }}-all
       - name: Run the JAR on ${{ matrix.os }}
         timeout-minutes: 1
         continue-on-error: true
-        run: java -jar marquee-${{ github.ref_name }}-all.jar
+        run: java -jar ${{ JAR_NAME }}-all.jar
   publish:
     name: Publish the built binaries
     needs: [build-gui-jar]
@@ -58,7 +60,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: marquee-gui/releases
-          pattern: marquee-${{ github.ref_name }}-*
+          pattern: ${{ JAR_NAME }}-*
           merge-multiple: true
       - name: Create release
         uses: softprops/action-gh-release@v3
