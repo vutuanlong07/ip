@@ -13,7 +13,7 @@ dependencies {
     implementation(project(":marquee-core"))
 
     val jfxVersion = "26.0.2"
-    val jfxPlatforms = arrayOf("win", "linux", "linux-aarch64", "mac", "mac-aarch64")
+    val jfxPlatforms = arrayOf("win", "linux-x86_64", "linux-aarch64", "mac-x86_64", "mac-aarch64")
     for (platform in jfxPlatforms) {
         implementation("org.openjfx:javafx-base:$jfxVersion:$platform")
         implementation("org.openjfx:javafx-controls:$jfxVersion:$platform")
