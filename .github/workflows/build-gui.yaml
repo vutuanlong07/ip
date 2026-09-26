@@ -34,8 +34,9 @@ jobs:
     needs: [build-gui-jar]
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
-        os: [windows-latest, windows-11-arm, macos-26, macos-26-intel, ubuntu-26.04, ubuntu-26.04-arm]
+        os: [windows-latest, macos-26, macos-26-intel, ubuntu-26.04, ubuntu-26.04-arm]
     steps:
       - name: Setup Java
         uses: actions/setup-java@v6
