@@ -10,6 +10,11 @@ version = findProperty(project.name + "-version")!!
 
 val jarName = findProperty("jarName") ?: "${project.name}-v${project.version}-all"
 
+javafx {
+    version = "26.0.2"
+    modules("javafx.controls", "javafx.graphics", "javafx.fxml")
+}
+
 dependencies {
     implementation(project(":marquee-core"))
 
@@ -18,6 +23,7 @@ dependencies {
     for (platform in jfxPlatforms) {
         implementation("org.openjfx:javafx-base:$jfxVersion:$platform")
         implementation("org.openjfx:javafx-controls:$jfxVersion:$platform")
+        implementation("org.openjfx:javafx-graphics:$jfxVersion:$platform")
         implementation("org.openjfx:javafx-fxml:$jfxVersion:$platform")
     }
 }
