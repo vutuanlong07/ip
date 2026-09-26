@@ -6,12 +6,12 @@ on:
       - '!gui-v*-SNAPSHOT'
 permissions:
   contents: write
-env:
-  JAR_NAME: "marquee-${{ github.ref_name }}"
 jobs:
   build-gui-jar:
     name: Build JAR for marquee-gui
     runs-on: ubuntu-latest
+    env:
+      JAR_NAME: marquee-${{ github.ref_name }}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7
@@ -27,8 +27,8 @@ jobs:
       - name: Upload JAR
         uses: actions/upload-artifact@v7
         with:
-          name: ${{ env.JAR_NAME }}-all
-          path: marquee-gui/build/libs/${{ env.JAR_NAME }}-all.jar
+          name: ${{ env.JAR_NAME }}
+          path: marquee-gui/build/libs/${{ env.JAR_NAME }}.jar
   check-jar:
     name: Test run the JAR
     needs: [build-gui-jar]
@@ -46,11 +46,11 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: ./
-          name: ${{ env.JAR_NAME }}-all
+          name: ${{ env.JAR_NAME }}
       - name: Run the JAR on ${{ matrix.os }}
         timeout-minutes: 1
         continue-on-error: true
-        run: java -jar ${{ env.JAR_NAME }}-all.jar
+        run: java -jar ${{ env.JAR_NAME }}.jar
   publish:
     name: Publish the built binaries
     needs: [build-gui-jar]
@@ -60,7 +60,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: marquee-gui/releases
-          pattern: ${{ env.JAR_NAME }}-*
+          pattern: marquee-${{ github.ref_name }}-*
           merge-multiple: true
       - name: Create release
         uses: softprops/action-gh-release@v3
