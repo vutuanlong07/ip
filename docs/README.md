@@ -1,12 +1,12 @@
 ---
 layout: page
-title: Marquee User Guide
+title: Marquee User Guide - CLI version
 ---
 
 - Table of Contents
 {:toc}
 
-CLI version
+Marquee User Guide - CLI version
 ---
 
 ### 1. `help` command
@@ -123,71 +123,118 @@ Changes the properties of all tasks.
   - `/to <end>`: the new ending time of the task
   - `/completed`: mark the tasks as completed. Takes priority over `/incomplete`
   - `/incomplete`: mark the tasks as incomplete
-  - `/chain`: set this flag to edit tasks from the last command's result
+  - `/chain`: set this flag to edit only tasks from the last command's result
 
 ### 12. `delete` command
 
 Deletes the tasks at the given indices.
 
 - Syntax: `delete <index>... [/chain]`
-  - `<index>...`: a list of indices of the tasks to delete
-  - `/chain`: set this flag to delete tasks from the last command's result
+    - `<index>...`: a list of indices of the tasks to delete
+    - `/chain`: set this flag to delete only tasks from the last command's result
 
 This command returns the deleted tasks as a result set that can be operated on by other tasks by setting flag `/chain`.
 
-Even if there is no actual change in value, the command still treats the task as modified.
+### 13. `delete-all` command
 
-### 11. `edit-all` command
+Deletes all tasks.
 
-Changes the properties of all tasks.
+- Syntax: `delete-all [/chain]`
+    - `/chain`: set this flag to delete only tasks from the last command's result
 
-- Syntax: `edit-all [/description <description>] [/from <start>] [/to <end>] [/completed] [/incomplete]`
-  - `/description <description>`: the new description of the task
-  - `/from <start>`: the new starting time of the task
-  - `/to <end>`: the new ending time of the task
-  - `/completed`: mark the tasks as completed. Takes priority over `/incomplete`
-  - `/incomplete`: mark the tasks as incomplete
-  - `/chain`: set this flag to edit tasks from the last command's result
+Be careful when using this command without `/chain` - there is no undo feature, yet.
 
-delete          - Deletes tasks by index
-<index>...        the indices to delete
-/chain            delete at indices of the last command's result
-delete-all      - Deletes all tasks
-/chain            delete all from the last command's result
-delete-matching - Deletes tasks matching arguments, equivalent to
-find..., then delete-all /chain
-<argument>        match task description containing this string
-/from <time>      match tasks starting at or after this time
-/to <time>        match tasks ending at or before this time
-/completed        match completed tasks
-/incomplete       match incomplete tasks
-/tags <tag>...    match all the following tags
-/chain            search over the last command's result
-mark            - Mark the tasks at the given indices as completed
-<index>...        the indices to mark
-/chain            mark at indices of the last command's result
-mark-all        - Mark all tasks as completed
-/chain            mark all from the last command's result
-mark-matching   - Mark tasks matching arguments as completed, equivalent to
-find..., then mark-all /chain
-<argument>        match task description containing this string
-/from <time>      match tasks starting at or after this time
-/to <time>        match tasks ending at or before this time
-/completed        match completed tasks
-/incomplete       match incomplete tasks
-/tags <tag>...    match all the following tags
-/chain            search over the last command's result
-unmark          - Mark the tasks at the given indices as incomplete
-<index>...        the indices to unmark
-/chain            unmark at indices of the last command's result
-unmark-all      - Mark all tasks as incomplete
-/chain            unmark all from the last command's result
-unmark-matching - Mark tasks matching arguments as incomplete, equivalent to
-find..., then unmark-all /chain
-<argument>        match task description containing this string
-/from <time>      match tasks starting at or after this time
-/to <time>        match tasks ending at or before this time
-/completed        match completed tasks
-/incomplete       match incomplete tasks
-/tags <tag>...    match all the following tags
-/chain            search over the last command's result
+This command returns the deleted tasks as a result set that can be operated on by other tasks by setting flag `/chain`.
+
+### 14. `delete-matching` command
+
+Deletes all tasks matching the following conditions.
+
+- Syntax: `delete-matching [<description>] [/tags <tag>...] [/from <start>] [/to <end>] [/completed] [/incomplete] [/chain]`
+    - `<description>`: the string to search for in task descriptions.
+    - `/tags <tag>...`: a list of the names of the tags to search for.
+    - `/from <start>`: the earliest time to find task.
+    - `/to <end>`: the latest time to find task.
+    - `/completed`: set this flag to search for completed tasks only. Takes priority over `/incomplete`.
+    - `/incomplete`: set this flag to search for incomplete tasks only. Is set by default.
+    - `/chain`: set this flag to delete only tasks from the last command's result
+
+Equivalent to running `find...` with the above arguments, then running `delete-all`.
+
+This command returns the deleted tasks as a result set that can be operated on by other tasks by setting flag `/chain`.
+
+### 15. `mark` command
+
+Marks the tasks at the given indices as completed.
+
+- Syntax: `mark <index>... [/chain]`
+    - `<index>...`: a list of indices of the tasks to delete
+    - `/chain`: set this flag to mark only tasks from the last command's result
+
+This command returns the marked tasks as a result set that can be operated on by other tasks by setting flag `/chain`.
+
+### 16. `mark-all` command
+
+Marks all tasks as completed.
+
+- Syntax: `mark-all [/chain]`
+    - `/chain`: set this flag to mark only tasks from the last command's result
+
+Be careful when using this command without `/chain` - there is no undo feature, yet.
+
+This command returns the marked tasks as a result set that can be operated on by other tasks by setting flag `/chain`.
+
+### 17. `mark-matching` command
+
+Marks all tasks matching the following conditions as completed.
+
+- Syntax: `mark-matching [<description>] [/tags <tag>...] [/from <start>] [/to <end>] [/completed] [/incomplete] [/chain]`
+    - `<description>`: the string to search for in task descriptions.
+    - `/tags <tag>...`: a list of the names of the tags to search for.
+    - `/from <start>`: the earliest time to find task.
+    - `/to <end>`: the latest time to find task.
+    - `/completed`: set this flag to search for completed tasks only. Takes priority over `/incomplete`.
+    - `/incomplete`: set this flag to search for incomplete tasks only. Is set by default.
+    - `/chain`: set this flag to mark only tasks from the last command's result
+
+Equivalent to running `find...` with the above arguments, then running `mark-all`.
+
+This command returns the marked tasks as a result set that can be operated on by other tasks by setting flag `/chain`.
+
+### 18. `unmark` command
+
+Marks the tasks at the given indices as incomplete.
+
+- Syntax: `unmark <index>... [/chain]`
+    - `<index>...`: a list of indices of the tasks to delete
+    - `/chain`: set this flag to mark only tasks from the last command's result
+
+This command returns the unmarked tasks as a result set that can be operated on by other tasks by setting flag `/chain`.
+
+### 19. `unmark-all` command
+
+Marks all tasks as incomplete.
+
+- Syntax: `unmark-all [/chain]`
+    - `/chain`: set this flag to mark only tasks from the last command's result
+
+Be careful when using this command without `/chain` - there is no undo feature, yet.
+
+This command returns the unmarked tasks as a result set that can be operated on by other tasks by setting flag `/chain`.
+
+### 20. `unmark-matching` command
+
+Marks all tasks matching the following conditions as incomplete.
+
+- Syntax: `unmark-matching [<description>] [/tags <tag>...] [/from <start>] [/to <end>] [/completed] [/incomplete] [/chain]`
+    - `<description>`: the string to search for in task descriptions.
+    - `/tags <tag>...`: a list of the names of the tags to search for.
+    - `/from <start>`: the earliest time to find task.
+    - `/to <end>`: the latest time to find task.
+    - `/completed`: set this flag to search for completed tasks only. Takes priority over `/incomplete`.
+    - `/incomplete`: set this flag to search for incomplete tasks only. Is set by default.
+    - `/chain`: set this flag to mark only tasks from the last command's result
+
+Equivalent to running `find...` with the above arguments, then running `unmark-all`.
+
+This command returns the unmarked tasks as a result set that can be operated on by other tasks by setting flag `/chain`.
