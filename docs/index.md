@@ -28,13 +28,13 @@ The JAR is fully annotated with Javadoc. Refer to the Javadoc for help.
 
 ## Features
 
-- [x] Manage tasks, deadlines and events
-- [x] Search for upcoming tasks
-- [x] Update tasks
-- [x] Batch task operations
-- [x] Uses CSV file format compatible with spreadsheet programs
-- [x] (CLI) Recognize many date-time formats
-- [x] (GUI) Create tags on-the-fly and add tags seamlessly
+- Manage tasks, deadlines and events
+- Search for upcoming tasks
+- Update tasks
+- Batch task operations
+- Uses CSV file format compatible with spreadsheet programs
+- (CLI) Recognize many date-time formats
+- (GUI) Create tags on-the-fly and add tags seamlessly
 
 ## Installation
 
