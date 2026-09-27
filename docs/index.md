@@ -3,10 +3,14 @@ layout: page
 title: Marquee
 ---
 
+# Marquee
+
+---
+
 [![CLI Build](https://github.com/vutuanlong07/ip/actions/workflows/build-cli.yaml/badge.svg)](https://github.com/vutuanlong07/ip/releases)
 [![GUI Build](https://github.com/vutuanlong07/ip/actions/workflows/build-gui.yaml/badge.svg)](https://github.com/vutuanlong07/ip/releases)
 
-![Ui](images/Ui.png)
+![Ui](Ui.png)
 
 ## Overview
 
