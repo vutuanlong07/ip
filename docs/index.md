@@ -10,8 +10,9 @@ title: Marquee
 
 ## Overview
 
-Marquee is an API for a task-keeping assistant that tries to mimic natural language as close as possible to give you a smooth conversation.
-This repo comes with a basic CLI build out of the box for Marquee.
+Marquee is a task-keeping assistant that tries to mimic natural language to give you a smooth conversation.
+
+This repo comes with a CLI build out of the box for Marquee.
 
 - Guide for CLI version: [User Guide - CLI version](cli.md)
 
@@ -35,6 +36,56 @@ The JAR is fully annotated with Javadoc. Refer to the Javadoc for help.
 ## Installation
 
 All downloadables are located in [GitHub Release](https://github.com/vutuanlong07/ip/releases).
+
+### CLI application
+
+#### Use the JAR (cross-platform)
+
+1. Make sure you have installed Java Runtime 25+
+2. Download the JAR from Releases
+3. Open the folder containing the JAR in your command prompt
+4. Run the following command:
+
+```bash
+java -jar marquee-cli-v1.2.0-jar.jar
+```
+
+#### Use the platform-specific binaries
+
+1. Download the binary for your platform
+2. Run the binary normally (in file explorer, double-click or right click then select "Open")
+
+### GUI application
+
+1. Make sure you have installed Java Runtime 25+
+2. Download the JAR from Releases
+3. Open the folder containing the JAR in your command prompt
+4. Run the following command:
+
+```bash
+java -jar marquee-cli-v1.1.0-crossplatform.jar
+```
+
+### API package
+
+1. Download the JAR from Releases
+2. Add the following to your `build.gradle` or `build.gradle.kts`:
+
+#### Groovy
+
+```groovy
+dependencies {
+    implementation files('/path/to/jar/marquee-core-v1.0.0.jar')
+}
+```
+
+#### Kotlin
+
+```kotlin
+dependencies {
+    implementation(files("/path/to/jar/marquee-core-v1.0.0.jar"))
+}
+```
 
 **Acknowledgements**
 

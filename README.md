@@ -5,8 +5,11 @@
 
 ## Overview
 
-Marquee is an API for a task-keeping assistant that tries to mimic natural language as close as possible to give you a smooth conversation.
-This repo comes with a basic CLI build out of the box for Marquee.
+Marquee is a task-keeping assistant that tries to mimic natural language to give you a smooth conversation.
+
+This repo comes with a CLI build out of the box for Marquee.
+
+For more information, go to the [project website](https://vutuanlong07.github.io/ip/)
 
 ## Table of Contents
 
@@ -18,20 +21,49 @@ This repo comes with a basic CLI build out of the box for Marquee.
 
 - [x] Manage tasks, deadlines and events
 - [x] Search for upcoming tasks
-- [ ] Update tasks
+- [x] Update tasks
 - [x] Batch task operations
-- [x] Recognize many date-time formats
-- [x] Allow easy extension by extending `marquee.base` classes
+- [x] Uses CSV file format compatible with spreadsheet programs
+- [x] (CLI) Recognize many date-time formats
+- [x] (GUI) Create tags on-the-fly and add tags seamlessly
 
 ## Installation
 
-The core JAR is available in Releases
-CLI application is available in Releasse
+All downloadables are located in [GitHub Release](https://github.com/vutuanlong07/ip/releases).
 
-## Usage
+### CLI application
+
+#### Use the JAR (cross-platform)
+
+1. Make sure you have installed Java Runtime 25+
+2. Download the JAR from Releases
+3. Open the folder containing the JAR in your command prompt
+4. Run the following command:
+
+```bash
+java -jar marquee-cli-v1.2.0-jar.jar
+```
+
+#### Use the platform-specific binaries
+
+1. Download the binary for your platform
+2. Run the binary normally (in file explorer, double-click or right click then select "Open")
+
+### GUI application
+
+1. Make sure you have installed Java Runtime 25+
+2. Download the JAR from Releases
+3. Open the folder containing the JAR in your command prompt
+4. Run the following command:
+
+```bash
+java -jar marquee-cli-v1.1.0-crossplatform.jar
+```
+
+### API package
 
 1. Download the JAR from Releases
-1. Add the following to your `build.gradle` or `build.gradle.kts`:
+2. Add the following to your `build.gradle` or `build.gradle.kts`:
 
 #### Groovy
 
