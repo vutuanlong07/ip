@@ -117,7 +117,8 @@ public class Serializer {
             method.setAccessible(true);
             return method.invoke(target, args);
         } catch (IllegalAccessException e) {
-            throw new AssertionError("Unexpected IllegalAccessException on " + method.getName(), e);
+            assert false : "Unexpected IllegalAccessException on " + method.getName();
+            return null;
         }
     }
 
@@ -127,7 +128,8 @@ public class Serializer {
             constructor.setAccessible(true);
             return constructor.newInstance(args);
         } catch (IllegalAccessException e) {
-            throw new AssertionError("Unexpected IllegalAccessException on " + constructor.getName(), e);
+            assert false : "Unexpected IllegalAccessException on " + constructor.getName();
+            return null;
         }
     }
 
