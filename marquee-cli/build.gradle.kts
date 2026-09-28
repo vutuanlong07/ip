@@ -1,5 +1,3 @@
-import org.gradle.internal.os.OperatingSystem
-
 plugins {
     application
     id("java-common-conventions")
@@ -10,12 +8,7 @@ plugins {
 group = findProperty("group")!!
 version = findProperty(project.name + "-version")!!
 
-val platform: OperatingSystem = OperatingSystem.current()
-var platformTag = (
-        if (platform.isMacOsX) "mac_os"
-        else if (platform.isWindows) "windows"
-        else if (platform.isLinux) "linux" else "others"
-) + "_" + System.getProperty("os.arch")
+val outputName = (findProperty("outputName") ?: "${project.name}-v${project.version}") as String
 
 dependencies {
     implementation(project(":marquee-core"))
@@ -29,7 +22,7 @@ graalvmNative {
     toolchainDetection = true
 
     binaries.named("main") {
-        imageName = "${project.name}-v${project.version}-${platformTag}"
+        imageName = outputName
         buildArgs.add("--static-nolibc")
         buildArgs.add("-march=compatibility")
         buildArgs.add("-O3")
@@ -41,11 +34,11 @@ graalvmNative {
 }
 
 tasks.jar {
-    archiveFileName = "${project.name}-v${project.version}-jar_lean.jar"
+    archiveFileName = "${outputName}-lean.jar"
 }
 
 tasks.shadowJar {
-    archiveFileName = "${project.name}-v${project.version}-jar.jar"
+    archiveFileName = "${outputName}.jar"
 }
 
 tasks.run {

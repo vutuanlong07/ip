@@ -13,6 +13,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, ubuntu-26.04-arm, windows-latest, macos-latest]
+    env:
+      IMAGE_NAME: marquee-${{ github.ref_name }}-${{ matrix.os }}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7
@@ -25,15 +27,17 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Build with Gradle
-        run: ./gradlew :marquee-cli:nativeCompile
+        run: ./gradlew :marquee-cli:nativeCompile -PoutputName="${{ env.IMAGE_NAME }}"
       - name: Upload binaries
         uses: actions/upload-artifact@v7
         with:
-          name: marquee-${{ github.ref_name }}-${{ matrix.os }}
-          path: marquee-cli/build/native/nativeCompile/*
+          name: ${{ env.IMAGE_NAME }}
+          path: marquee-cli/build/native/nativeCompile/${{ env.IMAGE_NAME }}.*
   build-cli-jar:
     name: Build JAR for marquee-cli
     runs-on: ubuntu-latest
+    env:
+      JAR_NAME: marquee-${{ github.ref_name }}
     steps:
       - name: Checkout sources
         uses: actions/checkout@v7
@@ -45,12 +49,12 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
       - name: Build with Gradle
-        run: ./gradlew :marquee-cli:shadowJar
+        run: ./gradlew :marquee-cli:shadowJar -PoutputName="${{ env.JAR_NAME }}"
       - name: Upload JAR
         uses: actions/upload-artifact@v7
         with:
-          name: marquee-${{ github.ref_name }}-jar
-          path: marquee-cli/build/libs/*
+          name: ${{ env.JAR_NAME }}
+          path: marquee-cli/build/libs/${{ env.JAR_NAME }}.jar
   publish:
     name: Publish the built binaries
     needs: [build-cli, build-cli-jar]
@@ -60,7 +64,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: marquee-cli/releases
-          pattern: marquee-${{ github.ref_name }}-*
+          pattern: marquee-${{ github.ref_name }}*
           merge-multiple: true
       - name: Create release
         uses: softprops/action-gh-release@v3
