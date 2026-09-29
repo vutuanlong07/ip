@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Marquee User Guide - CLI version
+title: CLI User Guide
 ---
 
 - Table of Contents
@@ -8,7 +8,7 @@ title: Marquee User Guide - CLI version
 
 ---
 
-Marquee uses commands to create, manipulate and filter tasks.
+Marquee CLI uses commands to create, manipulate and filter tasks.
 The following lists the available commands in Marquee.
 
 ### 1. `help` command

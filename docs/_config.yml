@@ -3,6 +3,7 @@ theme: minima
 
 header_pages:
   - cli.md
+  - gui.md
 
 markdown: kramdown
 
