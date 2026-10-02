@@ -41,11 +41,11 @@ This will save the current checklist to the file you opened it from.
 If the checklist is newly created, then you will be prompted to choose a
 save location for the new checklist.
 
+![Save file pop-up](images/save-file_2.png)
+
 Go to the location you want to save the checklist at.
 Then, choose the name of the save file.
 The `.csv` extension will be automatically added.
-
-![Save file pop-up](images/save-file_2.png)
 
 Finally, click `Save` in the file save pop-up.
 The button location and text may differ based on your platform.
@@ -107,7 +107,7 @@ The change can be seen immediately.
 
 ![Editing the task's completion status](images/edit-task-mark_2.png)
 
-### Adding a tag to a task
+### Adding and removing a tag to a task
 
 First select a task from the list by clicking on it.
 
@@ -115,4 +115,28 @@ First select a task from the list by clicking on it.
 
 The task's tags are displayed in a list above the time fields
 
-Now, select a tag without any tags. Click on the `+` button 
+Now, select a tag without any tags. Click on the `+` button to add a tag.
+A tag selection pop-up will open.
+
+![Tag selection pop-up](images/edit-task-tag_2.png)
+
+Type in the text input the tag you want to add.
+
+![Add a new tag](images/edit-task-tag_3.png)
+
+The list below the input shows the existing tags that contains the input text.
+Click on an entry to set the input to that tag.
+
+In this example, we will add a new tag.
+
+![Add a new tag](images/edit-task-tag_4.png)
+
+Click `OK` to confirm and add the tag to the current task.
+The change is reflected immediately.
+
+![Add a new tag](images/edit-task-tag_5.png)
+
+To remove a tag from a task, select the task first.
+Then, click the `x` button next to the tag to remove it.
+
+![Add a new tag](images/edit-task-tag_6.png)
