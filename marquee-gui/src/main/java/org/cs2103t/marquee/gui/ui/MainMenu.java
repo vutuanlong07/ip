@@ -17,6 +17,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.SplitPane;
 import javafx.scene.layout.AnchorPane;
@@ -37,6 +38,12 @@ public class MainMenu extends VBox {
     private AnchorPane taskListContainer;
     @FXML
     private AnchorPane taskEditorContainer;
+    @FXML
+    private Button filterDescriptionButton;
+    @FXML
+    private Button filterTagsButton;
+    @FXML
+    private Button filterTimeButton;
 
     private TaskListView taskList;
     private TaskEditorView taskEditor;
@@ -274,5 +281,20 @@ public class MainMenu extends VBox {
     @FXML
     void refresh() {
         taskList.refresh();
+    }
+
+    @FXML
+    void filterDescription() {
+
+    }
+
+    @FXML
+    void filterTags() {
+
+    }
+
+    @FXML
+    void filterTime() {
+
     }
 }

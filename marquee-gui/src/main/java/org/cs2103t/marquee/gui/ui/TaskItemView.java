@@ -44,7 +44,6 @@ public class TaskItemView extends GridPane {
     public TaskItemView(ListCell<Task> parent) throws IOException {
         tags = new TagListView();
         tags.setAddAllowed(false);
-        tags.setAddAllowed(false);
         AnchorPane.setTopAnchor(tags, 0.0);
         AnchorPane.setRightAnchor(tags, 0.0);
         AnchorPane.setBottomAnchor(tags, 0.0);

@@ -10,3 +10,20 @@
 .task-list-header > .first-field {
     -fx-background-insets: 2 2 2 2;
 }
+
+.filter-button {
+    -fx-background-color: transparent;
+    -fx-padding: 1;
+}
+
+.filter-button .image-view {
+    -fx-opacity: 50%;
+}
+
+.filter-button:active {
+    -fx-background-color: yellow;
+}
+
+.filter-button:active .image-view {
+    -fx-opacity: 100%;
+}
