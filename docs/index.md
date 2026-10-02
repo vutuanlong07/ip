@@ -1,7 +1,12 @@
-# Marquee
+---
+layout: page
+title: Marquee
+---
 
 [![CLI Build](https://github.com/vutuanlong07/ip/actions/workflows/build-cli.yaml/badge.svg)](https://github.com/vutuanlong07/ip/releases)
 [![GUI Build](https://github.com/vutuanlong07/ip/actions/workflows/build-gui.yaml/badge.svg)](https://github.com/vutuanlong07/ip/releases)
+
+![Ui](Ui.png)
 
 ## Overview
 
@@ -9,23 +14,24 @@ Marquee is a task-keeping assistant that tries to mimic natural language to give
 
 This repo comes with a CLI build out of the box for Marquee.
 
-For more information, go to the [project website](https://vutuanlong07.github.io/ip/)
+- Guide for CLI version: [User Guide - CLI version](cli.md)
 
-## Table of Contents
+There is an additional GUI build that doesn't operate using commands if that is preferred.
 
-* [Features](#features)
-* [Installation](#installation)
-* [Usage](#usage)
+- Guide for GUI version: *TBA*
+
+For developers, a JAR containing the base features excluding the CLI and GUI application is available for download.
+The JAR is fully annotated with Javadoc. Refer to the Javadoc for help.
 
 ## Features
 
-- [x] Manage tasks, deadlines and events
-- [x] Search for upcoming tasks
-- [x] Update tasks
-- [x] Batch task operations
-- [x] Uses CSV file format compatible with spreadsheet programs
-- [x] (CLI) Recognize many date-time formats
-- [x] (GUI) Create tags on-the-fly and add tags seamlessly
+- Manage tasks, deadlines and events
+- Search for upcoming tasks
+- Update tasks
+- Batch task operations
+- Uses CSV file format compatible with spreadsheet programs
+- (CLI) Recognize many date-time formats
+- (GUI) Create tags on-the-fly and add tags seamlessly
 
 ## Installation
 
@@ -80,3 +86,10 @@ dependencies {
     implementation(files("/path/to/jar/marquee-core-v1.0.0.jar"))
 }
 ```
+
+**Acknowledgements**
+
+- Libraries used: [JavaFX](https://openjfx.io/), [JUnit5](https://github.com/junit-team/junit5)
+- Media used:
+    - "Close free icon" by [ariefstudio](https://www.flaticon.com/authors/ariefstudio) on [Flaticon](https://www.flaticon.com/)
+    - "Funnel free icon" by [Slidicon](https://www.flaticon.com/authors/slidicon) on [Flaticon](https://www.flaticon.com/)

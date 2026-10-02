@@ -1,0 +1,12 @@
+.task-list-header {
+    -fx-background-color: darkgray;
+}
+
+.task-list-header > .field {
+    -fx-background-color: lightgray;
+    -fx-background-insets: 2 2 2 0;
+}
+
+.task-list-header > .first-field {
+    -fx-background-insets: 2 2 2 2;
+}
