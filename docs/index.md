@@ -89,4 +89,7 @@ dependencies {
 
 **Acknowledgements**
 
-* Libraries used: [JavaFX](https://openjfx.io/), [JUnit5](https://github.com/junit-team/junit5)
+- Libraries used: [JavaFX](https://openjfx.io/), [JUnit5](https://github.com/junit-team/junit5)
+- Media used:
+    - "Close free icon" by [ariefstudio](https://www.flaticon.com/authors/ariefstudio) on [Flaticon](https://www.flaticon.com/)
+    - "Funnel free icon" by [Slidicon](https://www.flaticon.com/authors/slidicon) on [Flaticon](https://www.flaticon.com/)
