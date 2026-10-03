@@ -18,7 +18,7 @@ This repo comes with a CLI build out of the box for Marquee.
 
 There is an additional GUI build that doesn't operate using commands if that is preferred.
 
-- Guide for GUI version: *TBA*
+- Guide for GUI version: [User Guide - GUI version](gui.md)
 
 For developers, a JAR containing the base features excluding the CLI and GUI application is available for download.
 The JAR is fully annotated with Javadoc. Refer to the Javadoc for help.
