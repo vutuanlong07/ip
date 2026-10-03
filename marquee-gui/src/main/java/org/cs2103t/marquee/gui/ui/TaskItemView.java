@@ -6,8 +6,10 @@ import org.cs2103t.marquee.core.task.Task;
 import org.cs2103t.marquee.core.time.DateTimeFormatter;
 
 import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
@@ -15,17 +17,20 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 
 /**
  * Controller for read-only task item view.
  */
-public class TaskItemView extends GridPane {
+public class TaskItemView extends HBox {
     private static final PseudoClass MARKED_CLASS = PseudoClass.getPseudoClass("completed");
 
     private final ObjectProperty<Task> task = new SimpleObjectProperty<>(this, "task");
     private final BooleanProperty mark = new SimpleBooleanProperty(this, "mark");
+    private final IntegerProperty index = new SimpleIntegerProperty(this, "index");
 
+    @FXML
+    private Label id;
     @FXML
     private Label description;
     @FXML
@@ -44,7 +49,6 @@ public class TaskItemView extends GridPane {
     public TaskItemView(ListCell<Task> parent) throws IOException {
         tags = new TagListView();
         tags.setAddAllowed(false);
-        tags.setAddAllowed(false);
         AnchorPane.setTopAnchor(tags, 0.0);
         AnchorPane.setRightAnchor(tags, 0.0);
         AnchorPane.setBottomAnchor(tags, 0.0);
@@ -55,6 +59,7 @@ public class TaskItemView extends GridPane {
         );
         task.addListener((_, oldTask, newTask) -> {
             if (oldTask != null) {
+                id.textProperty().unbind();
                 mark.unbind();
                 description.textProperty().unbind();
                 tags.itemsProperty().unbind();
@@ -63,6 +68,7 @@ public class TaskItemView extends GridPane {
             }
             if (newTask != null) {
                 setDisable(false);
+                id.textProperty().bind(index.asString());
                 mark.bind(newTask.markProperty());
                 description.textProperty().bind(newTask.descriptionProperty());
                 tags.itemsProperty().bind(newTask.tagsProperty());
@@ -70,6 +76,7 @@ public class TaskItemView extends GridPane {
                 end.textProperty().bind(newTask.endProperty().map(DateTimeFormatter::formatDateTime));
             } else {
                 setDisable(true);
+                id.setText("");
                 mark.set(false);
                 description.setText("");
                 tags.setItems(null);
@@ -94,12 +101,20 @@ public class TaskItemView extends GridPane {
     public Task getTask() {
         return task.get();
     }
-
     public void setTask(Task newTask) {
         task.set(newTask);
     }
-
     public ObjectProperty<Task> taskProperty() {
         return task;
+    }
+
+    public int getIndex() {
+        return index.get();
+    }
+    public void setIndex(int newIndex) {
+        index.set(newIndex);
+    }
+    public IntegerProperty indexProperty() {
+        return index;
     }
 }

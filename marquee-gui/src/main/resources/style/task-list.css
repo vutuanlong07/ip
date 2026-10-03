@@ -15,16 +15,16 @@
     -fx-background-color: lightgray;
 }
 
-.task-item > .field {
+.task-item .field {
     -fx-background-color: whitesmoke;
     -fx-background-insets: 0 1 1 0;
 }
 
-.task-item > .first-field {
+.task-item .first-field {
     -fx-background-insets: 0 1 1 1;
 }
 
-.task-item:completed > .field {
+.task-item:completed .field {
     -fx-background-color: lightgreen;
 }
 
@@ -32,12 +32,12 @@
     -fx-background-color: darkgrey;
 }
 
-.list-cell:filled:selected .task-item > .field {
+.list-cell:filled:selected .task-item .field {
     -fx-background-insets: 1 1 1 0;
     -fx-translate-y: 0;
 }
 
-.list-cell:filled:selected .task-item > .first-field {
+.list-cell:filled:selected .task-item .first-field {
     -fx-background-insets: 1 1 1 1;
 }
 

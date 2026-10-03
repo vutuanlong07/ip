@@ -35,6 +35,7 @@ public class TaskListView extends ListView<Task> {
                 if (taskView == null) {
                     try {
                         taskView = new TaskItemView(this);
+                        taskView.maxWidthProperty().bind(widthProperty());
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -47,6 +48,7 @@ public class TaskListView extends ListView<Task> {
                         setText(item.toString());
                     } else {
                         taskView.setTask(item);
+                        taskView.setIndex(getIndex() + 1);
                         setGraphic(taskView);
                     }
                 }

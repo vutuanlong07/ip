@@ -141,22 +141,12 @@ public class TaskEditorView extends GridPane {
         end.setTextFormatter(endFormatter);
     }
 
-    private void errorDialogue(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(title);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
     public Task getTask() {
         return task.get();
     }
-
     public void setTask(Task newTask) {
         task.set(newTask);
     }
-
     public ObjectProperty<Task> taskProperty() {
         return task;
     }

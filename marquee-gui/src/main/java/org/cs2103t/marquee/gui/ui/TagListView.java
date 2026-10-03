@@ -67,6 +67,7 @@ public class TagListView extends FlowPane {
         getStylesheets().add(getClass().getResource("/style/tag-list.css").toExternalForm());
 
         addButton = new TagListAddButton(this);
+        addButton.disableProperty().bind(items.isNull());
         getChildren().add(addButton);
 
         sentinel = new Region();
