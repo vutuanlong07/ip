@@ -10,15 +10,26 @@ import org.cs2103t.marquee.core.Marquee;
 import org.cs2103t.marquee.core.io.FileParseException;
 import org.cs2103t.marquee.core.task.Task;
 import org.cs2103t.marquee.core.task.TaskTag;
+import org.cs2103t.marquee.gui.FilterData;
 import org.cs2103t.marquee.gui.MainApplication;
 
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.transformation.FilteredList;
+import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.SplitPane;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyCodeCombination;
+import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
@@ -28,6 +39,8 @@ import javafx.stage.Stage;
  * Controller class for the main menu.
  */
 public class MainMenu extends VBox {
+    private static final PseudoClass FILTER_ACTIVE_CLASS = PseudoClass.getPseudoClass("active");
+
     private final Marquee marquee;
     private final ObjectProperty<Path> currentFile = new SimpleObjectProperty<>(this, "currentFile");
 
@@ -37,10 +50,15 @@ public class MainMenu extends VBox {
     private AnchorPane taskListContainer;
     @FXML
     private AnchorPane taskEditorContainer;
+    @FXML
+    private Button filterButton;
 
     private TaskListView taskList;
     private TaskEditorView taskEditor;
 
+    private FilteredList<Task> filteredChecklist;
+    private ObjectProperty<FilterData> filterDataProperty = new SimpleObjectProperty<>(this, "filterDataProperty");
+    private BooleanProperty filterActiveProperty = new SimpleBooleanProperty(this, "filterActiveProperty");
     private ObjectProperty<Task> selected = new SimpleObjectProperty<>(this, "selected");
     private Task clipboard;
 
@@ -50,6 +68,29 @@ public class MainMenu extends VBox {
      */
     public MainMenu(Stage stage) throws IOException {
         marquee = new Marquee();
+
+        filteredChecklist = new FilteredList<>(marquee.checklistProperty());
+        filteredChecklist.predicateProperty().bind(
+                Bindings.createObjectBinding(() ->
+                        task -> filterDataProperty.get() == null || filterDataProperty.get().apply(task),
+                        filterDataProperty
+                )
+        );
+        filterActiveProperty.addListener((_, _, isActive) ->
+                filterButton.pseudoClassStateChanged(FILTER_ACTIVE_CLASS, isActive)
+        );
+        filterDataProperty.addListener((_, oldFilterData, newFilterData) -> {
+            if (oldFilterData != null) {
+                filterActiveProperty.unbind();
+            }
+            if (newFilterData != null) {
+                filterActiveProperty.bind(newFilterData.activeProperty());
+            } else {
+                filterActiveProperty.set(false);
+            }
+        });
+        filterDataProperty.set(new FilterData());
+
         currentFile.addListener((_, _, filepath) -> {
             if (filepath == null) {
                 stage.setTitle("Marquee: Untitled");
@@ -64,7 +105,7 @@ public class MainMenu extends VBox {
         });
 
         taskList = new TaskListView();
-        taskList.itemsProperty().bind(marquee.checklistProperty());
+        taskList.setItems(filteredChecklist);
         AnchorPane.setTopAnchor(taskList, 0.0);
         AnchorPane.setRightAnchor(taskList, 0.0);
         AnchorPane.setBottomAnchor(taskList, 0.0);
@@ -89,6 +130,30 @@ public class MainMenu extends VBox {
         content.setDividerPosition(0, 0.7);
         taskListContainer.getChildren().setAll(taskList);
         taskEditorContainer.getChildren().setAll(taskEditor);
+    }
+
+    /**
+     * Bind hotkeys to utilities on the given scene
+     *
+     * @param scene the scene to bind hotkeys on
+     */
+    public void bindHotkeys(Scene scene) {
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.DELETE),
+                this::deleteSelected
+        );
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.C, KeyCombination.SHORTCUT_DOWN),
+                this::copySelected
+        );
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.X, KeyCombination.SHORTCUT_DOWN),
+                this::copySelected
+        );
+        scene.getAccelerators().put(
+                new KeyCodeCombination(KeyCode.V, KeyCombination.SHORTCUT_DOWN),
+                this::paste
+        );
     }
 
     private boolean saveAt(Path saveLocation) {
@@ -240,27 +305,27 @@ public class MainMenu extends VBox {
     }
 
     @FXML
-    public void copySelected() {
+    void copySelected() {
         if (selected.get() != null) {
             clipboard = new Task(selected.get());
         }
     }
 
     @FXML
-    public void deleteSelected() {
+    void deleteSelected() {
         if (selected.get() != null) {
             marquee.checklistProperty().remove(selected.get());
         }
     }
 
     @FXML
-    public void cutSelected() {
+    void cutSelected() {
         copySelected();
         deleteSelected();
     }
 
     @FXML
-    public void paste() {
+    void paste() {
         if (clipboard != null) {
             if (selected.get() != null) {
                 marquee.checklistProperty().add(
@@ -274,5 +339,22 @@ public class MainMenu extends VBox {
     @FXML
     void refresh() {
         taskList.refresh();
+    }
+
+    @FXML
+    void openFilterDataDialog() {
+        try {
+            FilterDataDialog dialog = new FilterDataDialog(new FilterData(filterDataProperty.get()));
+            dialog.showAndWait().ifPresent(result ->
+                    filterDataProperty.set(result)
+            );
+        } catch (IOException e) {
+            e.printStackTrace();
+            new Alert(
+                    Alert.AlertType.ERROR,
+                    "Cannot open search dialog\n" + e.getMessage(),
+                    ButtonType.OK
+            ).showAndWait();
+        }
     }
 }

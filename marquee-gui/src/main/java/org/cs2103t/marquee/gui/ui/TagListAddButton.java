@@ -52,6 +52,7 @@ public class TagListAddButton extends HBox {
                     parent.getItems().add(result)
             );
         } catch (IOException e) {
+            e.printStackTrace();
             new Alert(
                     Alert.AlertType.ERROR,
                     "Cannot open tag list dialog\n" + e.getMessage(),

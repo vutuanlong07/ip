@@ -27,7 +27,7 @@ public class TagSelectDialog extends Dialog<TaskTag> {
     private final ListProperty<TaskTag> tags =
             new SimpleListProperty<>(this, "tags", FXCollections.observableArrayList());
 
-    private class TagSelectView extends DialogPane {
+    private class TagSelectDialogView extends DialogPane {
         private final FilteredList<TaskTag> filtered = new FilteredList<>(tags);
 
         @FXML
@@ -35,8 +35,8 @@ public class TagSelectDialog extends Dialog<TaskTag> {
         @FXML
         private ListView<TaskTag> searchResult;
 
-        public TagSelectView() throws IOException {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/TagSelectView.fxml"));
+        public TagSelectDialogView() throws IOException {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/view/TagSelectDialogView.fxml"));
             loader.setController(this);
             loader.setRoot(this);
             loader.load();
@@ -86,14 +86,15 @@ public class TagSelectDialog extends Dialog<TaskTag> {
             }, filtered));
         }
     }
-    private final TagSelectView dialogPane;
+    private final TagSelectDialogView dialogPane;
 
     /**
      * Creates a {@code TagSelectDialog}.
      */
     public TagSelectDialog() throws IOException {
+        setTitle("Add tag...");
         tags.setAll(TaskTag.getDictionary().values());
-        dialogPane = new TagSelectView();
+        dialogPane = new TagSelectDialogView();
 
         setDialogPane(dialogPane);
         setResultConverter(response ->
