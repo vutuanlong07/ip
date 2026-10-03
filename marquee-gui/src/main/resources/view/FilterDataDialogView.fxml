@@ -26,10 +26,10 @@
             <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
          </rowConstraints>
          <children>
-            <Label styleClass="fieldLabel" text="Completed" />
-            <CheckBox fx:id="mark" allowIndeterminate="true" indeterminate="true" mnemonicParsing="false" GridPane.columnIndex="1" />
-            <Label styleClass="fieldLabel" text="Description" GridPane.rowIndex="1" />
-            <TextArea fx:id="description" prefColumnCount="10" prefRowCount="3" promptText="Search..." wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Label styleClass="fieldLabel" text="Completed" GridPane.rowIndex="1" />
+            <CheckBox fx:id="mark" allowIndeterminate="true" indeterminate="true" mnemonicParsing="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+            <Label styleClass="fieldLabel" text="Description" />
+            <TextArea fx:id="description" prefColumnCount="10" prefRowCount="3" promptText="Search..." wrapText="true" GridPane.columnIndex="1" />
             <Label styleClass="fieldLabel" text="Tags" GridPane.rowIndex="2" />
             <StackPane fx:id="tagsContainer" GridPane.columnIndex="1" GridPane.rowIndex="2" />
             <Label styleClass="fieldLabel" text="Start time" GridPane.rowIndex="3" />
