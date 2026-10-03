@@ -85,8 +85,8 @@ public final class FilterData {
         return (getDescription().isEmpty() || task.getDescription().contains(getDescription()))
                 && (getMark() == null || task.isMarked() == getMark())
                 && (getTags().isEmpty() || task.getTags().containsAll(getTags()))
-                && (getStart() == null || task.getStart().isBefore(getStart()))
-                && (getEnd() == null || task.getEnd().isAfter(getEnd()));
+                && (getStart() == null || task.startsAfter(getStart()))
+                && (getEnd() == null || task.endsBefore(getEnd()));
     }
 
     public boolean isActive() {
