@@ -11,12 +11,12 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
-<fx:root headerText="Search tasks" type="DialogPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root headerText="Search tasks" maxWidth="-Infinity" minWidth="-Infinity" prefWidth="300.0" type="DialogPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <content>
       <GridPane focusTraversable="true" hgap="20.0" vgap="10.0">
          <columnConstraints>
             <ColumnConstraints halignment="LEFT" hgrow="SOMETIMES" minWidth="70.0" />
-            <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" />
+            <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" />
          </columnConstraints>
          <rowConstraints>
             <RowConstraints valignment="TOP" vgrow="SOMETIMES" />
