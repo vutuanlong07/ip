@@ -3,7 +3,10 @@ layout: page
 title: CLI User Guide
 ---
 
-- Table of Contents
+## Table of Contents
+{:.no_toc}
+
+- ToC
 {:toc}
 
 ---

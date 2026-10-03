@@ -3,8 +3,11 @@ layout: page
 title: GUI User Guide
 ---
 
-- Table of Contents
-  {:toc}
+## Table of Contents
+{:.no_toc}
+
+- ToC
+{:toc}
 
 ---
 
