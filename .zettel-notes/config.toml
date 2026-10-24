@@ -1,0 +1,3 @@
+excluded_paths = ''
+mount = true
+uid_regex = '^\d{6,}'
